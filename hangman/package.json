@@ -1,0 +1,6 @@
+{
+    "name": "hangman",
+    "version": "1.0.0",
+    "description": "A kid-friendly hangman word game",
+    "private": true
+}
