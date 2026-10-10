@@ -147,7 +147,7 @@
     </div>
     <div class="row">
       <label>Population</label>
-      <input type="number" id="inpPop" min="1" max="40" value="20">
+      <input type="number" id="inpPop" min="2" max="40" value="20">
     </div>
     <div class="row">
       <label>Sim time / gen (s)</label>
@@ -729,7 +729,7 @@ function makeDesign() {
 
 function simSettings() {
   return {
-    population: Math.max(1, Math.min(40, parseInt(document.getElementById('inpPop').value) || 20)),
+    population: Math.max(2, Math.min(40, parseInt(document.getElementById('inpPop').value) || 20)),
     simTime: Math.max(2, Math.min(120, parseFloat(document.getElementById('inpSimTime').value) || 10)),
     mutationRate: Math.max(0.05, parseFloat(document.getElementById('inpMut').value) || 0.5)
   };

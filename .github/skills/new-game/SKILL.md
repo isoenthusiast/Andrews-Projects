@@ -1,9 +1,9 @@
 ---
-description: "Scaffold a complete new browser game or app: folder, index.html, package.json, plus README and INSTRUCTIONS entries"
+name: new-game
+description: Scaffold a complete new browser game or app: folder, index.html, package.json, plus README and INSTRUCTIONS entries
+disable-model-invocation: true
 argument-hint: "Describe the game, e.g. 'a snake game with power-ups'"
-agent: "agent"
 ---
-
 Build a new self-contained app for this repo from this idea:
 
 > ${input:gameIdea:Describe the game or app you want}
