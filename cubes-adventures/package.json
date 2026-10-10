@@ -1,0 +1,6 @@
+{
+    "name": "cubes-adventures",
+    "version": "1.0.0",
+    "description": "A cube platformer adventure - rescue the cube friends in 8 worlds",
+    "private": true
+}

@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 700" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowDark" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#444"/>
+    </marker>
+    <marker id="arrowOrange" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#e67e22"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1976d2"/>
+    </marker>
+  </defs>
+
+  <!-- background + header -->
+  <rect width="940" height="700" fill="#fbfaf7"/>
+  <rect x="0" y="0" width="940" height="62" fill="#2c3e50"/>
+  <text x="470" y="40" fill="#ffffff" font-size="26" font-weight="bold" text-anchor="middle">Build this Dino Body — the “Runner” Blueprint 🦖</text>
+
+  <!-- ground -->
+  <line x1="40" y1="585" x2="900" y2="585" stroke="#8d6e63" stroke-width="6" stroke-linecap="round"/>
+  <line x1="120" y1="600" x2="230" y2="600" stroke="#bcaaa4" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 9"/>
+  <line x1="95" y1="615" x2="185" y2="615" stroke="#bcaaa4" stroke-width="4" stroke-linecap="round" stroke-dasharray="7 9"/>
+
+  <!-- ===== FAR-SIDE legs (dashed = the 2 legs on the other side, same shape!) ===== -->
+  <line x1="372" y1="398" x2="332" y2="470" stroke="#b0bec5" stroke-width="11" stroke-linecap="round" stroke-dasharray="3 7"/>
+  <line x1="332" y1="470" x2="302" y2="545" stroke="#b0bec5" stroke-width="9" stroke-linecap="round" stroke-dasharray="3 7"/>
+  <circle cx="372" cy="398" r="10" fill="#90a4ae"/>
+  <circle cx="332" cy="470" r="8" fill="#90a4ae"/>
+  <circle cx="302" cy="545" r="10" fill="#90a4ae"/>
+
+  <line x1="532" y1="398" x2="558" y2="470" stroke="#b0bec5" stroke-width="11" stroke-linecap="round" stroke-dasharray="3 7"/>
+  <line x1="558" y1="470" x2="588" y2="545" stroke="#b0bec5" stroke-width="9" stroke-linecap="round" stroke-dasharray="3 7"/>
+  <circle cx="532" cy="398" r="10" fill="#90a4ae"/>
+  <circle cx="558" cy="470" r="8" fill="#90a4ae"/>
+  <circle cx="588" cy="545" r="10" fill="#90a4ae"/>
+
+  <!-- ===== BODY (one big low bone = the spine) ===== -->
+  <rect x="290" y="362" width="330" height="72" rx="36" fill="#7cb342" stroke="#558b2f" stroke-width="5"/>
+
+  <!-- head -->
+  <circle cx="648" cy="398" r="27" fill="#7cb342" stroke="#558b2f" stroke-width="5"/>
+  <circle cx="659" cy="391" r="5.5" fill="#2e2e2e"/>
+  <!-- tail -->
+  <path d="M 290 398 q -38 -6 -48 -42" stroke="#7cb342" stroke-width="13" fill="none" stroke-linecap="round"/>
+
+  <!-- ===== NEAR-side legs (solid = the 2 legs you see) ===== -->
+  <!-- back leg -->
+  <line x1="372" y1="434" x2="356" y2="498" stroke="#558b2f" stroke-width="15" stroke-linecap="round"/>
+  <line x1="356" y1="498" x2="302" y2="552" stroke="#558b2f" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="372" cy="434" r="11" fill="#2e7d32"/>
+  <circle cx="356" cy="498" r="9" fill="#2e7d32"/>
+  <circle cx="302" cy="552" r="11" fill="#2e7d32"/>
+  <!-- front leg -->
+  <line x1="532" y1="434" x2="550" y2="498" stroke="#558b2f" stroke-width="15" stroke-linecap="round"/>
+  <line x1="550" y1="498" x2="604" y2="552" stroke="#558b2f" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="532" cy="434" r="11" fill="#2e7d32"/>
+  <circle cx="550" cy="498" r="9" fill="#2e7d32"/>
+  <circle cx="604" cy="552" r="11" fill="#2e7d32"/>
+
+  <!-- ===== MUSCLES (orange dashed, next to each bone) ===== -->
+  <line x1="356" y1="427" x2="341" y2="492" stroke="#e67e22" stroke-width="5" stroke-dasharray="7 6" marker-end="url(#arrowOrange)"/>
+  <line x1="346" y1="487" x2="291" y2="542" stroke="#e67e22" stroke-width="5" stroke-dasharray="7 6" marker-end="url(#arrowOrange)"/>
+
+  <line x1="544" y1="427" x2="562" y2="492" stroke="#e67e22" stroke-width="5" stroke-dasharray="7 6" marker-end="url(#arrowOrange)"/>
+  <line x1="559" y1="487" x2="613" y2="542" stroke="#e67e22" stroke-width="5" stroke-dasharray="7 6" marker-end="url(#arrowOrange)"/>
+
+  <!-- ===== LABELS ===== -->
+  <!-- 1 JOINT -->
+  <line x1="372" y1="420" x2="372" y2="330" stroke="#444" stroke-width="2" marker-end="url(#arrowDark)"/>
+  <circle cx="372" cy="330" r="3.5" fill="#444"/>
+  <text x="60" y="318" font-size="20" font-weight="bold" fill="#2e7d32">1. JOINT</text>
+  <text x="60" y="340" font-size="16" fill="#444">a little ball — legs bend here</text>
+
+  <!-- 2 BONE -->
+  <line x1="356" y1="520" x2="356" y2="648" stroke="#444" stroke-width="2" marker-end="url(#arrowDark)"/>
+  <circle cx="356" cy="648" r="3.5" fill="#444"/>
+  <text x="60" y="636" font-size="20" font-weight="bold" fill="#558b2f">2. BONE</text>
+  <text x="60" y="658" font-size="16" fill="#444">a strong stick</text>
+
+  <!-- 3 MUSCLE -->
+  <line x1="562" y1="445" x2="700" y2="330" stroke="#e67e22" stroke-width="2" marker-end="url(#arrowOrange)"/>
+  <circle cx="700" cy="330" r="3.5" fill="#e67e22"/>
+  <text x="708" y="316" font-size="20" font-weight="bold" fill="#e67e22">3. MUSCLE</text>
+  <text x="708" y="338" font-size="16" fill="#444">pushes AND pulls</text>
+  <text x="708" y="358" font-size="16" fill="#888">(1 per leg bit is enough!)</text>
+
+  <!-- dashed = far legs -->
+  <line x1="532" y1="398" x2="790" y2="240" stroke="#90a4ae" stroke-width="2" marker-end="url(#arrowDark)"/>
+  <circle cx="790" cy="240" r="3.5" fill="#90a4ae"/>
+  <text x="700" y="212" font-size="17" font-weight="bold" fill="#90a4ae">DASHED legs =</text>
+  <text x="700" y="232" font-size="15" fill="#444">the 2 legs on the other side.</text>
+  <text x="700" y="250" font-size="15" fill="#444">Make them the SAME shape →</text>
+  <text x="700" y="268" font-size="15" font-weight="bold" fill="#1976d2">Symmetric = won’t fall over!</text>
+
+  <!-- LOW body -->
+  <line x1="455" y1="362" x2="455" y2="150" stroke="#1976d2" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <circle cx="455" cy="150" r="3.5" fill="#1976d2"/>
+  <text x="300" y="120" font-size="18" font-weight="bold" fill="#1976d2">LOW body = hard to tip over 🛡️</text>
+
+  <!-- wide feet -->
+  <line x1="604" y1="585" x2="604" y2="655" stroke="#1976d2" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <circle cx="604" cy="655" r="3.5" fill="#1976d2"/>
+  <text x="430" y="675" font-size="18" font-weight="bold" fill="#1976d2">Feet spread wide = steady like a table 🪑</text>
+
+  <!-- LEGEND -->
+  <rect x="40" y="150" width="230" height="128" rx="14" fill="#ffffff" stroke="#cfd8dc" stroke-width="2"/>
+  <text x="58" y="178" font-size="17" font-weight="bold" fill="#333">Color key</text>
+  <line x1="58" y1="200" x2="120" y2="200" stroke="#558b2f" stroke-width="7" stroke-linecap="round"/>
+  <text x="128" y="205" font-size="15" fill="#333">Bone</text>
+  <line x1="58" y1="226" x2="120" y2="226" stroke="#e67e22" stroke-width="5" stroke-dasharray="6 5" stroke-linecap="round"/>
+  <text x="128" y="231" font-size="15" fill="#333">Muscle</text>
+  <circle cx="72" cy="253" r="7" fill="#2e7d32"/>
+  <text x="128" y="258" font-size="15" fill="#333">Joint</text>
+
+  <!-- RULES -->
+  <rect x="40" y="72" width="780" height="44" rx="12" fill="#fff8e1" stroke="#f0c33c" stroke-width="2"/>
+  <text x="58" y="100" font-size="16" fill="#555">3 rules: ① same on both sides  ② low &amp; wide  ③ muscle connects 2 bones ACROSS a joint (hip→foot bends the knee!)</text>
+</svg>

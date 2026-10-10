@@ -1,0 +1,6 @@
+{
+    "name": "tower-defense",
+    "version": "2.1.0",
+    "description": "Great Wall Defense + Plants vs. Zombies 3 + Combined mode - a three-game canvas collection with a mode picker",
+    "private": true
+}

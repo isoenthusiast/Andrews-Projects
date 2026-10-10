@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolution — Creature Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<style>
+  :root {
+    --bg: #10151d;
+    --panel: #1a222e;
+    --panel2: #232e3d;
+    --text: #e8edf4;
+    --muted: #93a1b5;
+    --accent: #4fc3f7;
+    --accent2: #7cb342;
+    --danger: #ef5350;
+    --border: #2c3a4d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Segoe UI", system-ui, sans-serif;
+    display: flex;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #stage { position: relative; flex: 1; min-width: 0; }
+  canvas { display: block; width: 100%; height: 100%; background: #0d1117; }
+
+  #hud {
+    position: absolute; top: 12px; left: 12px;
+    background: rgba(16,21,29,0.85); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px; font-size: 13px;
+    line-height: 1.6; pointer-events: none; backdrop-filter: blur(4px);
+    min-width: 200px;
+  }
+  #hud .gen { font-size: 15px; font-weight: 600; color: var(--accent); }
+  #hud b { color: var(--text); }
+  #hud .k { color: var(--muted); }
+
+  #side {
+    width: 320px; background: var(--panel); border-left: 1px solid var(--border);
+    padding: 14px; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;
+  }
+  #side h1 { font-size: 18px; margin: 0 0 2px; color: var(--accent); }
+  #side .sub { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+  .section { background: var(--panel2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .section h3 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+  .toolbar { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn {
+    background: #2b3a4f; color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 10px; font-size: 13px; cursor: pointer;
+    transition: background .15s, transform .05s;
+  }
+  .btn:hover { background: #35506b; }
+  .btn:active { transform: scale(0.97); }
+  .btn.on { background: var(--accent); color: #08131c; border-color: var(--accent); font-weight: 600; }
+  .btn.green { background: var(--accent2); color: #0d1a08; border-color: var(--accent2); font-weight: 700; }
+  .btn.green:hover { background: #8fd45a; }
+  .btn.small { padding: 4px 8px; font-size: 12px; }
+  .kbd { font-size: 11px; color: var(--muted); }
+
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0; }
+  .row label { font-size: 13px; color: var(--text); }
+  .row input[type=number], .row input[type=text] {
+    width: 84px; background: #10161f; color: var(--text);
+    border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px; font-size: 13px;
+  }
+  .row input[type=range] { flex: 1; accent-color: var(--accent); }
+
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat { background: #10161f; border-radius: 8px; padding: 6px 8px; }
+  .stat .label { font-size: 11px; color: var(--muted); }
+  .stat .value { font-size: 16px; font-weight: 600; color: var(--text); }
+
+  #counts { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  #status { font-size: 12px; color: var(--accent2); min-height: 16px; }
+  .warn { color: var(--danger) !important; }
+
+  .hint { font-size: 11px; color: var(--muted); line-height: 1.5; }
+  .check { display: flex; align-items: center; gap: 6px; margin: 6px 0; font-size: 13px; cursor: pointer; }
+  .check input { accent-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div id="stage">
+  <canvas id="canvas"></canvas>
+  <div id="hud"></div>
+</div>
+
+<div id="side">
+  <h1>🧬 Evolution</h1>
+  <div class="sub">Build a creature → the brain learns to RUN via evolution</div>
+
+  <div class="section">
+    <h3>Mode</h3>
+    <div class="toolbar">
+      <button class="btn on" id="modeBuild">🛠️ Build</button>
+      <button class="btn" id="modeSim">🧪 Simulate</button>
+    </div>
+    <div id="status" style="margin-top:6px"></div>
+  </div>
+
+  <div class="section" id="buildTools">
+    <h3>Tools <span class="kbd">(keys: J B M V E)</span></h3>
+    <div class="toolbar">
+      <button class="btn on" data-tool="joint">⬤ Joint <span class="kbd">J</span></button>
+      <button class="btn" data-tool="bone">🦴 Bone <span class="kbd">B</span></button>
+      <button class="btn" data-tool="muscle">💪 Muscle <span class="kbd">M</span></button>
+      <button class="btn" data-tool="move">✋ Move <span class="kbd">V</span></button>
+      <button class="btn" data-tool="erase">🧽 Erase <span class="kbd">E</span></button>
+    </div>
+    <div id="counts"></div>
+    <div class="hint" style="margin-top:6px">
+      <b>Joint</b>: click canvas to add.<br>
+      <b>Bone</b>: click 2 joints (rigid stick).<br>
+      <b>Muscle</b>: click 2 <i>bones</i> (contracts/expands between their centers — put it <u>across a joint</u> to bend a leg!).<br>
+      Scroll = zoom · drag empty = pan.
+    </div>
+  </div>
+
+  <div class="section" id="simControls" style="display:none">
+    <h3>Simulation</h3>
+    <div class="row">
+      <button class="btn green" id="btnEvolve" style="flex:1">▶ Start Evolution</button>
+      <button class="btn" id="btnPause">⏸</button>
+    </div>
+    <div class="row">
+      <label>Speed</label>
+      <button class="btn small" data-speed="1">1×</button>
+      <button class="btn small" data-speed="3">3×</button>
+      <button class="btn small" data-speed="8">8×</button>
+      <button class="btn small" data-speed="24">24×</button>
+    </div>
+    <div class="row">
+      <label>Task</label>
+      <button class="btn small on" data-task="running">🏃 Run</button>
+      <button class="btn small" data-task="jumping">⬆️ Jump</button>
+      <button class="btn small" data-task="flying">🕊️ Fly</button>
+    </div>
+    <div class="row">
+      <label>Population</label>
+      <input type="number" id="inpPop" min="1" max="40" value="20">
+    </div>
+    <div class="row">
+      <label>Sim time / gen (s)</label>
+      <input type="number" id="inpSimTime" min="2" max="120" value="10">
+    </div>
+    <div class="row">
+      <label>Mutation rate</label>
+      <input type="range" id="inpMut" min="0" max="1" step="0.01" value="0.15">
+      <span id="mutVal" style="font-size:12px;color:var(--muted)">0.50</span>
+    </div>
+    <div class="row">
+      <label>Hidden layer(s)</label>
+      <input type="text" id="inpHidden" value="10" style="width:120px">
+    </div>
+    <label class="check"><input type="checkbox" id="inpClock" checked> Clock input (helps gaits)</label>
+  </div>
+
+  <div class="section">
+    <h3>Stats</h3>
+    <div class="stat-grid">
+      <div class="stat"><div class="label">Generation</div><div class="value" id="stGen">0</div></div>
+      <div class="stat"><div class="label">Best fitness</div><div class="value" id="stFit">0%</div></div>
+      <div class="stat"><div class="label" id="statDistLabel">Best distance</div><div class="value" id="stDist">0 m</div></div>
+      <div class="stat"><div class="label" id="statSpeedLabel">Best speed</div><div class="value" id="stSpeed">0 m/s</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Presets</h3>
+    <div class="toolbar">
+      <button class="btn" id="presetQuad">🦕 4-leg runner (blueprint)</button>
+      <button class="btn" id="presetHopper">🦘 Hopper (easy to learn)</button>
+      <button class="btn" id="presetClear">🗑️ Clear</button>
+    </div>
+  </div>
+
+  <div class="hint">Fitness = distance ÷ (55 m × sim time), like the real game. 100% ≈ 5.5 m/s.</div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   Evolution — a recreation of keiwando's "Evolution" simulator
+   Physics: Matter.js · Brain: feed-forward NN · Evolution: GA
+   ============================================================ */
+
+// ---------- Matter aliases ----------
+const { Engine, Bodies, Body, Composite, Constraint } = Matter;
+
+// ---------- Canvas / camera ----------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const cam = { x: 0, y: 0, scale: 70 }; // world units -> px: *scale
+
+function resize() {
+  const r = document.getElementById('stage').getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = r.width * dpr;
+  canvas.height = r.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  canvas.style.width = r.width + 'px';
+  canvas.style.height = r.height + 'px';
+}
+window.addEventListener('resize', resize);
+resize();
+
+const W = () => canvas.width / Math.min(window.devicePixelRatio || 1, 2);
+const H = () => canvas.height / Math.min(window.devicePixelRatio || 1, 2);
+
+function w2s(p) { return { x: (p.x - cam.x) * cam.scale + W() / 2, y: (p.y - cam.y) * cam.scale + H() / 2 }; }
+function s2w(p) { return { x: (p.x - W() / 2) / cam.scale + cam.x, y: (p.y - H() / 2) / cam.scale + cam.y }; }
+
+// ---------- Editor state ----------
+const editor = { joints: [], bones: [], muscles: [], nextId: 1 };
+const PICK_PX = 14;           // click must land within this many screen px of a joint/bone/muscle to select it
+const GROUND_Y = 0;           // world y of the ground surface (Matter: y down)
+const MAX_DISTANCE = 55;      // meters -> 100% running fitness in 10 s
+const MAX_JUMP_HEIGHT = 20;   // meters -> 100% jumping fitness (like the real game)
+const MAX_FLY_HEIGHT = 40;    // meters -> 100% flying height fitness (like the real game)
+
+let tool = 'joint';
+let pending = null;           // for bone/muscle first-click selection
+let dragging = null;          // {joint, offX, offY} for move tool
+let mode = 'build';           // 'build' | 'sim'
+
+function jById(id) { return editor.joints.find(j => j.id === id); }
+function bById(id) { return editor.bones.find(b => b.id === id); }
+
+function addJoint(x, y) {
+  const j = { id: editor.nextId++, x, y, r: 0.22, weight: 0.3 };
+  editor.joints.push(j);
+  saveDesign();
+  return j;
+}
+function hasBoneBetween(ja, jb) {
+  return editor.bones.some(b => (b.a === ja.id && b.b === jb.id) || (b.a === jb.id && b.b === ja.id));
+}
+function addBone(ja, jb) {
+  if (hasBoneBetween(ja, jb)) return null; // don't draw the same bone line twice
+  const b = { id: editor.nextId++, a: ja.id, b: jb.id, thickness: 0.3 };
+  editor.bones.push(b);
+  saveDesign();
+  return b;
+}
+function hasMuscleBetween(ba, bb) {
+  return editor.muscles.some(m => (m.boneA === ba.id && m.boneB === bb.id) || (m.boneA === bb.id && m.boneB === ba.id));
+}
+function addMuscle(ba, bb) {
+  if (hasMuscleBetween(ba, bb)) return null; // don't draw the same muscle line twice
+  const c1 = boneCenter(ba), c2 = boneCenter(bb);
+  const restLen = Math.max(0.05, Math.hypot(c2.x - c1.x, c2.y - c1.y));
+  const m = { id: editor.nextId++, boneA: ba.id, boneB: bb.id, strength: 10, canExpand: true, restLen };
+  editor.muscles.push(m);
+  saveDesign();
+  return m;
+}
+
+function distToSeg(px, py, x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const l2 = dx * dx + dy * dy;
+  let t = l2 ? ((px - x1) * dx + (py - y1) * dy) / l2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  const cx = x1 + t * dx, cy = y1 + t * dy;
+  return Math.hypot(px - cx, py - cy);
+}
+
+function nearestJoint(x, y, tol) {
+  let best = null, bd = tol;
+  for (const j of editor.joints) {
+    const d = Math.hypot(x - j.x, y - j.y);
+    if (d < bd) { bd = d; best = j; }
+  }
+  return best;
+}
+function nearestBone(x, y, tol) {
+  let best = null, bd = tol;
+  for (const b of editor.bones) {
+    const ja = jById(b.a), jb = jById(b.b);
+    if (!ja || !jb) continue;
+    const d = distToSeg(x, y, ja.x, ja.y, jb.x, jb.y);
+    if (d < bd) { bd = d; best = b; }
+  }
+  return best;
+}
+function nearestMuscle(x, y, tol) {
+  let best = null, bd = tol;
+  for (const m of editor.muscles) {
+    const ba = bById(m.boneA), bb = bById(m.boneB);
+    if (!ba || !bb) continue;
+    const ja = jById(ba.a), jb = jById(ba.b);
+    const jc = jById(bb.a), jd = jById(bb.b);
+    if (!ja || !jb || !jc || !jd) continue;
+    const c1 = { x: (ja.x + jb.x) / 2, y: (ja.y + jb.y) / 2 };
+    const c2 = { x: (jc.x + jd.x) / 2, y: (jc.y + jd.y) / 2 };
+    const d = distToSeg(x, y, c1.x, c1.y, c2.x, c2.y);
+    if (d < bd) { bd = d; best = m; }
+  }
+  return best;
+}
+
+function boneCenter(b) {
+  const ja = jById(b.a), jb = jById(b.b);
+  return { x: (ja.x + jb.x) / 2, y: (ja.y + jb.y) / 2 };
+}
+
+function deleteJoint(joint) {
+  editor.joints = editor.joints.filter(j => j !== joint);
+  const bones = editor.bones.filter(b => b.a === joint.id || b.b === joint.id);
+  editor.bones = editor.bones.filter(b => b.a !== joint.id && b.b !== joint.id);
+  const boneIds = new Set(bones.map(b => b.id));
+  editor.muscles = editor.muscles.filter(m => !boneIds.has(m.boneA) && !boneIds.has(m.boneB));
+  saveDesign();
+}
+function deleteBone(bone) {
+  editor.bones = editor.bones.filter(b => b !== bone);
+  editor.muscles = editor.muscles.filter(m => m.boneA !== bone.id && m.boneB !== bone.id);
+  saveDesign();
+}
+function deleteMuscle(muscle) {
+  editor.muscles = editor.muscles.filter(m => m !== muscle);
+  saveDesign();
+}
+
+// ---------- Editor mouse ----------
+let mouseDown = false, panning = false, panStart = null;
+canvas.addEventListener('mousedown', (e) => {
+  const p = evtWorld(e);
+  mouseDown = true;
+  if (mode !== 'build') return;
+  if (tool === 'move') {
+    const j = nearestJoint(p.x, p.y, PICK_PX / cam.scale);
+    if (j) { dragging = { joint: j, offX: p.x - j.x, offY: p.y - j.y }; }
+    else { panning = true; panStart = { x: e.clientX, y: e.clientY }; }
+    return;
+  }
+  if (tool === 'joint') {
+    if (!nearestJoint(p.x, p.y, PICK_PX / cam.scale)) { addJoint(p.x, p.y); updateCounts(); }
+    return;
+  }
+  if (tool === 'bone') {
+    const j = nearestJoint(p.x, p.y, PICK_PX / cam.scale);
+    if (!j) return;
+    if (!pending) { pending = { kind: 'bone', joint: j }; }
+    else if (pending.kind === 'bone' && pending.joint !== j) {
+      addBone(pending.joint, j); pending = null; updateCounts();
+    }
+    return;
+  }
+  if (tool === 'muscle') {
+    const b = nearestBone(p.x, p.y, PICK_PX / cam.scale);
+    if (!b) return;
+    if (!pending) { pending = { kind: 'muscle', bone: b }; }
+    else if (pending.kind === 'muscle' && pending.bone !== b) {
+      addMuscle(pending.bone, b); pending = null; updateCounts();
+    }
+    return;
+  }
+  if (tool === 'erase') {
+    const j = nearestJoint(p.x, p.y, PICK_PX / cam.scale);
+    if (j) { deleteJoint(j); updateCounts(); return; }
+    const b = nearestBone(p.x, p.y, PICK_PX / cam.scale);
+    if (b) { deleteBone(b); updateCounts(); return; }
+    const m = nearestMuscle(p.x, p.y, PICK_PX / cam.scale);
+    if (m) { deleteMuscle(m); updateCounts(); }
+  }
+});
+window.addEventListener('mousemove', (e) => {
+  const p = evtWorld(e);
+  if (panning && panStart) {
+    const dx = (e.clientX - panStart.x) / cam.scale;
+    const dy = (e.clientY - panStart.y) / cam.scale;
+    cam.x -= dx; cam.y -= dy;
+    panStart = { x: e.clientX, y: e.clientY };
+    return;
+  }
+  if (dragging) {
+    dragging.joint.x = p.x - dragging.offX;
+    dragging.joint.y = p.y - dragging.offY;
+  }
+});
+window.addEventListener('mouseup', () => {
+  mouseDown = false; panning = false; dragging = null;
+});
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const before = s2w({ x: mx, y: my });
+  const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  cam.scale = Math.max(10, Math.min(600, cam.scale * factor));
+  const after = s2w({ x: mx, y: my });
+  cam.x += before.x - after.x;
+  cam.y += before.y - after.y;
+}, { passive: false });
+
+function evtWorld(e) {
+  const rect = canvas.getBoundingClientRect();
+  return s2w({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+}
+
+// ---------- Tool buttons ----------
+document.querySelectorAll('[data-tool]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setTool(btn.dataset.tool);
+  });
+});
+function setTool(t) {
+  tool = t; pending = null; dragging = null;
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+}
+window.addEventListener('keydown', (e) => {
+  if (mode !== 'build') return;
+  const map = { j: 'joint', b: 'bone', m: 'muscle', v: 'move', e: 'erase' };
+  if (map[e.key.toLowerCase()]) { setTool(map[e.key.toLowerCase()]); e.preventDefault(); }
+  if (e.key === 'Escape') pending = null;
+});
+
+function updateCounts() {
+  document.getElementById('counts').textContent =
+    `Joints: ${editor.joints.length} · Bones: ${editor.bones.length} · Muscles: ${editor.muscles.length}`;
+}
+
+// ---------- Save / Load (keeps your creature across reloads) ----------
+const SAVE_KEY = 'evolution-design-v1';
+function saveDesign() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(editor)); } catch (e) { /* storage unavailable */ }
+}
+function loadDesign() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.joints) || !Array.isArray(d.bones) || !Array.isArray(d.muscles)) return;
+    editor.joints = d.joints; editor.bones = d.bones; editor.muscles = d.muscles;
+    editor.nextId = d.nextId || 1;
+    pending = null;
+  } catch (e) { /* corrupt save, ignore */ }
+}
+
+// ---------- Presets ----------
+function clearEditor() {
+  editor.joints.length = 0; editor.bones.length = 0; editor.muscles.length = 0;
+  pending = null;
+  saveDesign();
+}
+function loadQuadPreset() {
+  clearEditor();
+  const J = (x, y) => addJoint(x, y);
+  // low, wide, stable stance (body close to ground = hard to tip over)
+  const j1 = J(-0.9, -0.4), j2 = J(0, -0.5), j3 = J(0.9, -0.4);   // hips / spine
+  const j4 = J(-1.05, -0.25), j5 = J(-1.2, 0.0);                   // back leg
+  const j6 = J(1.05, -0.25), j7 = J(1.2, 0.0);                     // front leg
+  const b1 = addBone(j1, j2);   // back torso
+  const b2 = addBone(j2, j3);   // front torso
+  const b3 = addBone(j1, j4);   // back thigh
+  const b4 = addBone(j4, j5);   // back shin
+  const b5 = addBone(j3, j6);   // front thigh
+  const b6 = addBone(j6, j7);   // front shin
+  addMuscle(b1, b2);            // spine
+  addMuscle(b1, b3);            // back hip
+  addMuscle(b3, b4);            // back knee
+  addMuscle(b2, b5);            // front hip
+  addMuscle(b5, b6);            // front knee
+  cam.x = 0; cam.y = -0.2; cam.scale = 100;
+  updateCounts();
+}
+
+function loadHopperPreset() {
+  clearEditor();
+  const J = (x, y) => addJoint(x, y);
+  // a compact "hopper": heavy body + two legs. Extending the back leg pushes it forward.
+  const j1 = J(-0.3, -0.7);   // back body
+  const j2 = J(0.35, -0.8);   // front body / head
+  const j3 = J(-0.5, -0.25);  // back knee
+  const j4 = J(-0.75, 0.0);   // back foot
+  const j5 = J(0.45, -0.25);  // front knee
+  const j6 = J(0.7, 0.0);     // front foot
+  const b1 = addBone(j1, j2); // body
+  const b2 = addBone(j1, j3); // back thigh
+  const b3 = addBone(j3, j4); // back shin
+  const b4 = addBone(j2, j5); // front thigh
+  const b5 = addBone(j5, j6); // front shin
+  addMuscle(b1, b2);          // back hip / spine
+  addMuscle(b2, b3);          // back knee  (main hop thrust: back foot -> body)
+  addMuscle(b1, b4);          // front hip / spine
+  addMuscle(b4, b5);          // front knee
+  cam.x = 0; cam.y = -0.4; cam.scale = 100;
+  updateCounts();
+}
+document.getElementById('presetHopper').addEventListener('click', () => { if (sim) stopSim(); loadHopperPreset(); });
+document.getElementById('presetQuad').addEventListener('click', () => { if (sim) stopSim(); loadQuadPreset(); });
+document.getElementById('presetClear').addEventListener('click', () => { if (sim) stopSim(); clearEditor(); updateCounts(); });
+
+// ---------- Mode switching ----------
+const modeBuildBtn = document.getElementById('modeBuild');
+const modeSimBtn = document.getElementById('modeSim');
+function setMode(m) {
+  mode = m;
+  modeBuildBtn.classList.toggle('on', m === 'build');
+  modeSimBtn.classList.toggle('on', m === 'sim');
+  document.getElementById('buildTools').style.display = m === 'build' ? '' : 'none';
+  document.getElementById('simControls').style.display = m === 'sim' ? '' : 'none';
+  document.getElementById('status').textContent = m === 'sim' ? 'Running — watch the best creature learn!' : '';
+  if (m === 'build' && sim) stopSim();
+  cam.scale = m === 'sim' ? 80 : cam.scale;
+}
+modeBuildBtn.addEventListener('click', () => setMode('build'));
+modeSimBtn.addEventListener('click', () => setMode('sim'));
+
+// ---------- Neural network ----------
+function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+class FeedForwardNetwork {
+  constructor(sizes) {
+    this.sizes = sizes;
+    this.w = []; this.b = [];
+    for (let l = 1; l < sizes.length; l++) {
+      const inN = sizes[l - 1], outN = sizes[l];
+      const wl = [], bl = [];
+      const scale = (l === sizes.length - 1) ? 2.0 : 1.2; // big output layer -> active muscles
+      for (let i = 0; i < outN; i++) {
+        bl.push((Math.random() * 2 - 1) * 0.3);
+        const row = [];
+        for (let k = 0; k < inN; k++) row.push((Math.random() * 2 - 1) * scale);
+        wl.push(row);
+      }
+      this.w.push(wl); this.b.push(bl);
+    }
+  }
+  forward(inputs) {
+    let a = inputs;
+    for (let l = 0; l < this.w.length; l++) {
+      const out = [];
+      for (let i = 0; i < this.w[l].length; i++) {
+        let sum = this.b[l][i];
+        for (let k = 0; k < a.length; k++) sum += this.w[l][i][k] * a[k];
+        const last = (l === this.w.length - 1);
+        out.push(last ? Math.tanh(sum) : sigmoid(sum));
+      }
+      a = out;
+    }
+    return a; // outputs in [-1,1]
+  }
+  toChromosome() {
+    const c = [];
+    for (const bl of this.b) for (const v of bl) c.push(v);
+    for (const wl of this.w) for (const row of wl) for (const v of row) c.push(v);
+    return c;
+  }
+  static fromChromosome(sizes, c) {
+    const net = new FeedForwardNetwork(sizes);
+    let idx = 0;
+    for (let l = 0; l < net.b.length; l++) {
+      for (let i = 0; i < net.b[l].length; i++) net.b[l][i] = c[idx++];
+      for (let i = 0; i < net.w[l].length; i++)
+        for (let k = 0; k < net.w[l][i].length; k++) net.w[l][i][k] = c[idx++];
+    }
+    return net;
+  }
+  get size() { return this.w.length ? this.b.reduce((s, b) => s + b.length, 0) + this.w.reduce((s, wl) => s + wl.length * wl[0].length, 0) : 0; }
+}
+
+// ---------- GA ----------
+function gaussian() { // Box-Muller
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+function mutateChromosome(c, rate) {
+  const m = c.slice();
+  for (let i = 0; i < m.length; i++) {
+    if (Math.random() < rate) {
+      m[i] += gaussian() * 0.15;              // small tweaks
+      if (Math.random() < 0.05) m[i] = Math.random() * 2 - 1; // occasional big jump
+      m[i] = Math.max(-2.5, Math.min(2.5, m[i]));
+    }
+  }
+  return m;
+}
+function onePointCrossover(a, b) {
+  const point = Math.floor(Math.random() * (a.length + 1));
+  return a.slice(0, point).concat(b.slice(point));
+}
+function rankProportionalPick(sorted) { // sorted ascending by fitness
+  const n = sorted.length;
+  const total = (n * (n + 1)) / 2;
+  let r = Math.random() * total;
+  for (let i = 0; i < n; i++) {
+    r -= (i + 1);
+    if (r <= 0) return sorted[i];
+  }
+  return sorted[n - 1];
+}
+
+// ---------- Simulation ----------
+let sim = null;
+
+class Creature {
+  constructor(design, chromosome, index) {
+    this.design = design;
+    this.index = index;
+    this.jointBodies = [];
+    this.muscleInfo = [];    // {boneAIdx, boneBIdx, strength, canExpand, restLen}
+    this.net = FeedForwardNetwork.fromChromosome(design.netSizes, chromosome);
+    this.startX = 0;
+    this.x = 0;
+    this.fitness = 0;
+    this.avgSpeed = 0;
+    this.bestX = 0;
+    this.prevAng = null;
+    // task stat tracking
+    this.maxHeight = 0;      // highest point reached above the ground
+    this.airborneTime = 0;   // time spent with no joints touching the ground
+    this.pathX = 0;          // total horizontal distance travelled (both directions)
+    this.lastX = null;
+    this.airFraction = 0;
+  }
+}
+
+function buildCreature(design, chromosome, spawnX) {
+  const c = new Creature(design, chromosome);
+  const off = design.offset; // aligns lowest joint to ground
+  for (const j of design.joints) {
+    // spawn with feet exactly on the ground (no drop = no landing tip)
+    const body = Bodies.circle(spawnX + j.x, GROUND_Y + j.y + off, j.r, {
+      friction: 0.7, restitution: 0, frictionAir: 0.06,
+      label: 'joint'
+    });
+    body.prevX = body.position.x; body.prevY = body.position.y;
+    Body.setMass(body, j.weight);
+    c.jointBodies.push(body);
+    Composite.add(design.engine.world, body);
+  }
+  // bones = rigid distance constraints between joints (stable: no rotating bodies)
+  for (const b of design.bones) {
+    const ja = c.jointBodies[b.ji], jb = c.jointBodies[b.ji2];
+    const len = Math.hypot(jb.position.x - ja.position.x, jb.position.y - ja.position.y);
+    Composite.add(design.engine.world,
+      Constraint.create({ bodyA: ja, pointA: { x: 0, y: 0 }, bodyB: jb, pointB: { x: 0, y: 0 }, length: len, stiffness: 1 }));
+  }
+  // muscles = actuator constraints whose length the brain changes each tick
+  for (const m of design.muscles) {
+    const a = c.jointBodies[m.ja], b = c.jointBodies[m.jb];
+    const con = Constraint.create({ bodyA: a, pointA: { x: 0, y: 0 }, bodyB: b, pointB: { x: 0, y: 0 }, length: m.restLen, stiffness: 0.95 });
+    Composite.add(design.engine.world, con);
+    c.muscleInfo.push({ constraint: con, boneAIdx: m.bi, boneBIdx: m.bi2, restLen: m.restLen, canExpand: m.canExpand, ja: a, jb: b });
+  }
+  c.startX = spawnX;
+  c.x = spawnX;
+  return c;
+}
+
+function spawnPopulation(design, chromosomes) {
+  const spacing = 3.2;
+  return chromosomes.map((chrom, i) => buildCreature(design, chrom, -design.spanX / 2 + i * spacing - (spacing * (chromosomes.length - 1)) / 2));
+}
+
+function makeDesign() {
+  // Validate
+  if (editor.joints.length < 2) throw new Error('Add at least 2 joints first.');
+  if (editor.bones.length < 1) throw new Error('Add at least 1 bone (click 2 joints).');
+  if (editor.muscles.length < 1) throw new Error('Add at least 1 muscle (click 2 bones).');
+
+  const engine = Engine.create();
+  engine.gravity.y = 1;
+  engine.positionIterations = 5;
+  engine.velocityIterations = 5;
+  engine.enableSleeping = true; // idle creatures fall asleep -> big wall-clock speedup
+
+  // ground
+  const ground = Bodies.rectangle(0, GROUND_Y + 3, 100000, 6, { isStatic: true, friction: 1, label: 'ground' });
+  Composite.add(engine.world, ground);
+
+  // map joints
+  const joints = editor.joints.map((j, ji) => ({ ...j, ji }));
+  // map bones -> joint indices
+  const jIndex = {};
+  editor.joints.forEach((j, i) => jIndex[j.id] = i);
+  const bones = editor.bones.map((b) => ({ ...b, ji: jIndex[b.a], ji2: jIndex[b.b] }));
+  // muscles -> bone indices
+  const bIndex = {};
+  editor.bones.forEach((b, i) => bIndex[b.id] = i);
+  const muscles = editor.muscles.map((m) => {
+    const ba = bById(m.boneA), bb = bById(m.boneB);
+    const ia1 = jIndex[ba.a], ia2 = jIndex[ba.b];
+    const ib1 = jIndex[bb.a], ib2 = jIndex[bb.b];
+    // muscle connects two bones; find the joint they share (the hinge)
+    const setA = new Set([ia1, ia2]);
+    const shared = setA.has(ib1) ? ib1 : setA.has(ib2) ? ib2 : null;
+    let ja, jb;
+    if (shared !== null) {
+      ja = (ia1 === shared) ? ia2 : ia1;
+      jb = (ib1 === shared) ? ib2 : ib1;
+    } else {
+      ja = ia1; jb = ib1;
+    }
+    const p1 = joints[ja], p2 = joints[jb];
+    const restLen = Math.max(0.05, Math.hypot(p2.x - p1.x, p2.y - p1.y));
+    return { ...m, bi: bIndex[m.boneA], bi2: bIndex[m.boneB], ja, jb, restLen };
+  });
+
+  // offset so lowest joint sits on ground
+  const lowestY = Math.min(...joints.map(j => j.y));
+  const offset = -lowestY;
+  const minX = Math.min(...joints.map(j => j.x)), maxX = Math.max(...joints.map(j => j.x));
+  const spanX = Math.max(maxX - minX, 1);
+
+  // network sizes
+  const hiddenRaw = document.getElementById('inpHidden').value.split(/[,\s]+/).filter(s => s !== '').map(Number);
+  const hidden = hiddenRaw.length && hiddenRaw.every(Number.isFinite) ? hiddenRaw.map(n => Math.max(2, Math.min(64, Math.round(n)))) : [10];
+  const useClock = document.getElementById('inpClock').checked;
+  const inputs = 6 + (useClock ? 2 : 0);
+  const outputs = muscles.length;
+  const netSizes = [inputs, ...hidden, outputs];
+
+  return { engine, ground, joints, bones, muscles, offset, spanX, netSizes, useClock };
+}
+
+function simSettings() {
+  return {
+    population: Math.max(1, Math.min(40, parseInt(document.getElementById('inpPop').value) || 20)),
+    simTime: Math.max(2, Math.min(120, parseFloat(document.getElementById('inpSimTime').value) || 10)),
+    mutationRate: Math.max(0.05, parseFloat(document.getElementById('inpMut').value) || 0.5)
+  };
+}
+
+function stopSim() {
+  if (sim) {
+    Matter.Engine.clear(sim.design.engine);
+    sim = null;
+  }
+  document.getElementById('btnEvolve').textContent = '▶ Start Evolution';
+  document.getElementById('btnPause').textContent = '⏸';
+  document.getElementById('stGen').textContent = '0';
+  document.getElementById('stFit').textContent = '0%';
+  document.getElementById('stDist').textContent = '0 m';
+  document.getElementById('stSpeed').textContent = '0 m/s';
+}
+
+document.getElementById('btnEvolve').addEventListener('click', () => {
+  if (mode !== 'sim') setMode('sim');
+  if (sim && sim.running) { stopSim(); return; }
+  try {
+    startSim();
+  } catch (err) {
+    document.getElementById('status').textContent = '⚠️ ' + err.message;
+    document.getElementById('status').classList.add('warn');
+    setTimeout(() => document.getElementById('status').classList.remove('warn'), 3000);
+  }
+});
+document.getElementById('btnPause').addEventListener('click', () => {
+  if (!sim) return;
+  sim.paused = !sim.paused;
+  document.getElementById('btnPause').textContent = sim.paused ? '▶' : '⏸';
+});
+
+function startSim() {
+  stopSim();
+  const design = makeDesign();
+  const settings = simSettings();
+  const chromoLen = new FeedForwardNetwork(design.netSizes).size;
+  let population = Array.from({ length: settings.population }, () => {
+    const c = [];
+    for (let i = 0; i < chromoLen; i++) c.push(Math.random() * 2 - 1);
+    return c;
+  });
+
+  let generation = 0;
+  let bestEver = { fitness: 0, distance: 0, speed: 0, height: 0, airFraction: 0, chromosome: null };
+  let elapsed = 0;
+  let creatures = spawnPopulation(design, population);
+
+  sim = {
+    design, settings, population: null,
+    task: currentTask(),
+    generation: 0, elapsed: 0, creatures,
+    bestEver, running: true, paused: false,
+    speed: 1, genTime: 0,
+  };
+  updateTaskLabels();
+
+  document.getElementById('btnEvolve').textContent = '⏹ Stop';
+  document.getElementById('btnPause').textContent = '⏸';
+  cam.x = 0; cam.y = 0; cam.scale = 80;
+}
+
+const DT = 1 / 60;
+const SETTLE = 1.0; // seconds after spawn where muscles stay relaxed (creature lands & stands)
+
+function stepSimulation() {
+  if (!sim || !sim.running || sim.paused) return;
+  const { design, settings } = sim;
+  for (const c of sim.creatures) {
+    if (sim.genTime > SETTLE) {
+      runBrain(c, design);
+    } else {
+      // settle: keep muscles at rest length so the creature lands on its feet
+      for (const m of c.muscleInfo) m.constraint.length = m.restLen;
+    }
+    c.x = c.jointBodies[0].position.x;
+    if (c.x > c.bestX) c.bestX = c.x;
+    // safety clamps so nothing can "rocket": linear + angular velocity, position step
+    for (const b of c.jointBodies) clampSpeed(b, 15, 10);
+  }
+  Engine.update(design.engine, DT * 1000);
+  for (const c of sim.creatures) {
+    for (const b of c.jointBodies) clampStep(b, 0.35);
+    updateCreatureStats(c, DT);
+  }
+  sim.elapsed += DT;
+  sim.genTime += DT;
+  if (sim.genTime >= settings.simTime) {
+    endGeneration();
+  }
+}
+function clampSpeed(body, max, maxAng) {
+  const v = body.velocity;
+  const sp = Math.hypot(v.x, v.y);
+  if (sp > max) Body.setVelocity(body, { x: v.x / sp * max, y: v.y / sp * max });
+  if (Math.abs(body.angularVelocity) > maxAng) {
+    Body.setAngularVelocity(body, Math.sign(body.angularVelocity) * maxAng);
+  }
+}
+function clampStep(body, max) {
+  const dx = body.position.x - body.prevX, dy = body.position.y - body.prevY;
+  const d = Math.hypot(dx, dy);
+  if (d > max) {
+    const s = max / d;
+    Body.setPosition(body, { x: body.prevX + dx * s, y: body.prevY + dy * s });
+  }
+  body.prevX = body.position.x; body.prevY = body.position.y;
+}
+
+function updateCreatureStats(c, dt) {
+  let lowY = Infinity, points = 0;
+  for (const b of c.jointBodies) {
+    const bottom = b.position.y + b.circleRadius;
+    if (bottom < lowY) lowY = bottom;
+    if (bottom >= GROUND_Y - 0.03) points += 1;
+  }
+  const height = Math.max(0, GROUND_Y - lowY);
+  if (height > c.maxHeight) c.maxHeight = height;
+  if (points === 0) c.airborneTime += dt;
+  if (c.lastX === null) c.lastX = c.x;
+  const dx = c.x - c.lastX;
+  if (dx > 0) c.pathX += dx; // forward-only progress (ignores back-and-forth oscillation)
+  c.lastX = c.x;
+}
+
+function creatureInputs(c, design, t) {
+  const bodies = c.jointBodies;
+  let vx = 0, vy = 0, lowY = Infinity, points = 0;
+  for (const b of bodies) {
+    vx += b.velocity.x; vy += b.velocity.y;
+    const bottom = b.position.y + b.circleRadius;
+    if (bottom < lowY) lowY = bottom;
+    if (bottom >= GROUND_Y - 0.03) points += 1;
+  }
+  vx /= bodies.length; vy /= bodies.length;
+  // body rotation = average direction of the bones
+  let rot = 0;
+  for (const bone of design.bones) {
+    const ja = bodies[bone.ji], jb = bodies[bone.ji2];
+    rot += Math.atan2(jb.position.y - ja.position.y, jb.position.x - ja.position.x);
+  }
+  rot /= design.bones.length;
+  const angVel = c.prevAng === null ? 0 : (rot - c.prevAng) / DT;
+  c.prevAng = rot;
+
+  const inputs = [
+    Math.max(0, GROUND_Y - lowY),   // distance from ground
+    vx, vy, angVel, points, rot
+  ];
+  if (design.useClock) {
+    const ph = t * 2 * Math.PI / 0.4;
+    inputs.push(Math.sin(ph), Math.cos(ph)); // phase + quadrature -> any gait phase
+  }
+  return inputs;
+}
+
+function runBrain(c, design) {
+  const inputs = creatureInputs(c, design, sim.elapsed);
+  const outputs = c.net.forward(inputs);
+  c.lastOutputs = outputs;
+  // Each muscle is a springy actuator: the brain output shifts its target length.
+  for (let i = 0; i < c.muscleInfo.length; i++) {
+    const m = c.muscleInfo[i];
+    const out = outputs[i] !== undefined ? outputs[i] : 0;
+    let target = m.restLen * (1 + 0.6 * out);
+    if (!m.canExpand && target > m.restLen) target = m.restLen; // can only contract
+    const clamped = Math.max(0.05, target);
+    // wake sleeping bodies when this muscle actually needs to move
+    if (Math.abs(m.constraint.length - clamped) > 0.02 && Matter.Sleeping) {
+      Matter.Sleeping.set(m.ja, false);
+      Matter.Sleeping.set(m.jb, false);
+    }
+    m.constraint.length = clamped;
+  }
+}
+
+function tournamentPick(pool, k) {
+  let best = pool[Math.floor(Math.random() * pool.length)];
+  for (let i = 1; i < k; i++) {
+    const cand = pool[Math.floor(Math.random() * pool.length)];
+    if (cand.fit > best.fit) best = cand;
+  }
+  return best;
+}
+
+function endGeneration() {
+  const { design, settings, task } = sim;
+  const creatures = sim.creatures;
+
+  // fitness depends on the selected task
+  for (const c of creatures) {
+    c.x = c.jointBodies[0].position.x;
+    const dist = Math.max(0, c.x - c.startX);
+    c.distance = dist;
+    let fitness;
+    if (task === 'jumping') {
+      fitness = c.maxHeight / MAX_JUMP_HEIGHT;
+    } else if (task === 'flying') {
+      const heightFit = Math.min(1, c.maxHeight / MAX_FLY_HEIGHT);
+      const airFit = c.airborneTime / settings.simTime;
+      c.airFraction = airFit;
+      fitness = (heightFit + airFit) / 2;
+    } else {
+      // running: net distance + tiny forward-only bonus (helps early generations learn)
+      fitness = (dist + 0.1 * c.pathX) / (MAX_DISTANCE * settings.simTime);
+    }
+    c.fitness = Math.max(0, Math.min(1, fitness));
+    c.avgSpeed = dist / settings.simTime;
+  }
+
+  // sort ascending
+  const sorted = creatures.slice().sort((a, b) => a.fitness - b.fitness);
+
+  // update best-ever
+  const best = sorted[sorted.length - 1];
+  if (best.fitness > sim.bestEver.fitness) {
+    sim.bestEver = {
+      fitness: best.fitness, distance: best.distance, speed: best.avgSpeed,
+      height: best.maxHeight, airFraction: best.airFraction || 0,
+      chromosome: best.net.toChromosome(), creature: best
+    };
+  }
+
+  // build next generation: tournament selection + elitism (+ occasional reseeds)
+  const pool = sorted.map(c => ({ chrom: c.net.toChromosome(), fit: c.fitness }));
+  const next = [];
+  const eliteCount = Math.max(2, Math.floor(settings.population * 0.15));
+  for (let i = 0; i < eliteCount && i < pool.length; i++) next.push(pool[pool.length - 1 - i].chrom);
+
+  while (next.length < settings.population) {
+    let child;
+    if (Math.random() < 0.06) {
+      // occasional full reseed -> escapes local optima
+      child = [];
+      for (let i = 0; i < pool[0].chrom.length; i++) child.push(Math.random() * 2 - 1);
+    } else {
+      const p1 = tournamentPick(pool, 3);
+      const p2 = tournamentPick(pool, 3);
+      child = onePointCrossover(p1.chrom, p2.chrom);
+      child = mutateChromosome(child, settings.mutationRate);
+    }
+    next.push(child);
+  }
+
+  // cleanup old bodies
+  for (const c of creatures) {
+    for (const b of c.jointBodies) Composite.remove(design.engine.world, b);
+  }
+
+  sim.generation += 1;
+  sim.genTime = 0;
+  sim.elapsed = 0;
+  sim.creatures = spawnPopulation(design, next);
+}
+
+// ---------- Rendering ----------
+function drawBuild() {
+  ctx.clearRect(0, 0, W(), H());
+  // grid
+  const gs = 1;
+  const s = cam.scale;
+  const x0 = Math.floor((cam.x - W() / 2 / s) / gs) * gs;
+  const x1 = cam.x + W() / 2 / s;
+  const y0 = Math.floor((cam.y - H() / 2 / s) / gs) * gs;
+  const y1 = cam.y + H() / 2 / s;
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = x0; x <= x1; x += gs) {
+    const p = w2s({ x, y: 0 }); ctx.moveTo(p.x, 0); ctx.lineTo(p.x, H());
+  }
+  for (let y = y0; y <= y1; y += gs) {
+    const p = w2s({ x: 0, y }); ctx.moveTo(0, p.y); ctx.lineTo(W(), p.y);
+  }
+  ctx.stroke();
+
+  // ground line
+  const gA = w2s({ x: cam.x - 100, y: GROUND_Y }), gB = w2s({ x: cam.x + 100, y: GROUND_Y });
+  ctx.strokeStyle = '#6b7c93'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(gA.x, gA.y); ctx.lineTo(gB.x, gB.y); ctx.stroke();
+  ctx.fillStyle = 'rgba(107,124,147,0.5)'; ctx.font = '11px Segoe UI';
+  ctx.fillText('ground', gA.x + 6, gA.y - 4);
+
+  // muscles (under bones)
+  for (const m of editor.muscles) {
+    const ba = bById(m.boneA), bb = bById(m.boneB);
+    if (!ba || !bb) continue;
+    const c1 = boneCenter(ba), c2 = boneCenter(bb);
+    const p1 = w2s(c1), p2 = w2s(c2);
+    ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 5;
+    ctx.setLineDash([7, 5]);
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // bones
+  for (const b of editor.bones) {
+    const ja = jById(b.a), jb = jById(b.b);
+    if (!ja || !jb) continue;
+    const p1 = w2s({ x: ja.x, y: ja.y }), p2 = w2s({ x: jb.x, y: jb.y });
+    ctx.strokeStyle = '#8bc34a'; ctx.lineWidth = Math.max(3, b.thickness * s * 0.9);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+
+  // joints
+  for (const j of editor.joints) {
+    const p = w2s({ x: j.x, y: j.y });
+    ctx.fillStyle = '#2e7d32'; ctx.strokeStyle = '#a5d6a7'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(4, j.r * s), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+
+  // pending preview
+  if (pending) {
+    const mp = mouseWorldPos();
+    if (pending.kind === 'bone' && mp) {
+      const p1 = w2s(pending.joint), p2 = w2s(mp);
+      ctx.strokeStyle = 'rgba(139,195,74,0.6)'; ctx.lineWidth = 4; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); ctx.setLineDash([]);
+    }
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = '12px Segoe UI';
+  ctx.fillText(`Tool: ${tool}${pending ? ' — pick target' : ''}`, 12, H() - 10);
+}
+
+let mouseWorldPos = () => null;
+window.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseWorldPos = () => s2w({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+});
+
+function drawSim() {
+  ctx.clearRect(0, 0, W(), H());
+  if (!sim) { drawBuild(); return; }
+
+  const design = sim.design;
+  // focus on the creature that's currently farthest along
+  let best = sim.creatures[0];
+  for (const c of sim.creatures) if ((c.x - c.startX) > (best.x - best.startX)) best = c;
+  if (sim.genTime > 0.2) {
+    // ease camera to best creature
+    const tx = best.x, ty = GROUND_Y - 1.2;
+    cam.x += (tx - cam.x) * 0.12;
+    cam.y += (ty - cam.y) * 0.08;
+  } else {
+    cam.x = best.x; cam.y = GROUND_Y - 1.2;
+  }
+
+  // ground + distance markers
+  const gA = w2s({ x: cam.x - 60, y: GROUND_Y }), gB = w2s({ x: cam.x + 60, y: GROUND_Y });
+  ctx.strokeStyle = '#5b6b80'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(gA.x, gA.y); ctx.lineTo(gB.x, gB.y); ctx.stroke();
+
+  ctx.fillStyle = 'rgba(120,140,160,0.8)'; ctx.font = '11px Segoe UI';
+  const mStart = Math.floor((cam.x - 60) / 5) * 5;
+  for (let x = mStart; x < cam.x + 60; x += 5) {
+    const p = w2s({ x, y: GROUND_Y });
+    ctx.strokeStyle = (Math.round(x) % 25 === 0) ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y - 18); ctx.stroke();
+    if (Math.round(x) % 25 === 0) ctx.fillText(x + 'm', p.x - 10, p.y - 22);
+  }
+
+  // creatures
+  for (const c of sim.creatures) {
+    drawCreature(c);
+  }
+}
+
+function drawCreature(c) {
+  const s = cam.scale;
+  const design = sim.design;
+
+  // muscles (between bone midpoints)
+  for (let i = 0; i < c.muscleInfo.length; i++) {
+    const m = c.muscleInfo[i];
+    const ba = design.bones[m.boneAIdx], bb = design.bones[m.boneBIdx];
+    const a1 = c.jointBodies[ba.ji], a2 = c.jointBodies[ba.ji2];
+    const b1 = c.jointBodies[bb.ji], b2 = c.jointBodies[bb.ji2];
+    const ma = { x: (a1.position.x + a2.position.x) / 2, y: (a1.position.y + a2.position.y) / 2 };
+    const mb = { x: (b1.position.x + b2.position.x) / 2, y: (b1.position.y + b2.position.y) / 2 };
+    const p1 = w2s(ma), p2 = w2s(mb);
+    const out = c.lastOutputs ? c.lastOutputs[i] : 0;
+    const alpha = Math.min(1, Math.abs(out) * 1.5);
+    if (out < 0) ctx.strokeStyle = `rgba(239,83,80,${0.4 + alpha * 0.6})`; // contract = red
+    else ctx.strokeStyle = `rgba(66,165,245,${0.4 + alpha * 0.6})`;        // expand = blue
+    ctx.lineWidth = 2 + alpha * 4;
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+
+  // bones (lines between joints)
+  for (const b of design.bones) {
+    const ja = c.jointBodies[b.ji], jb = c.jointBodies[b.ji2];
+    const p1 = w2s(ja.position), p2 = w2s(jb.position);
+    ctx.strokeStyle = '#8bc34a';
+    ctx.lineWidth = Math.max(3, b.thickness * s * 0.9);
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+
+  // joints
+  for (const b of c.jointBodies) {
+    const p = w2s(b.position);
+    ctx.fillStyle = '#2e7d32'; ctx.strokeStyle = '#c8e6c9'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(3.5, b.circleRadius * s), 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  }
+}
+
+// ---------- HUD ----------
+function updateHUD() {
+  const el = document.getElementById('hud');
+  if (!sim) {
+    el.innerHTML = '';
+    return;
+  }
+  const t = sim.task;
+  let best = sim.creatures[0];
+  for (const c of sim.creatures) if ((c.x - c.startX) > (best.x - best.startX)) best = c;
+  const bestDist = Math.max(0, best.x - best.startX);
+  const ev = sim.bestEver;
+  let curLine, everLine;
+  if (t === 'running') {
+    curLine = `current best — fitness <b>${(best.fitness * 100).toFixed(1)}%</b> · ${bestDist.toFixed(1)} m`;
+    everLine = `best ever — fitness <b>${(ev.fitness * 100).toFixed(1)}%</b> · ${ev.distance.toFixed(1)} m · ${ev.speed.toFixed(2)} m/s`;
+  } else if (t === 'jumping') {
+    curLine = `current best — fitness <b>${(best.fitness * 100).toFixed(1)}%</b> · height ${best.maxHeight.toFixed(1)} m`;
+    everLine = `best ever — fitness <b>${(ev.fitness * 100).toFixed(1)}%</b> · height ${ev.height.toFixed(1)} m`;
+  } else {
+    const airCur = best.airborneTime / Math.max(sim.genTime, 0.001);
+    curLine = `current best — fitness <b>${(best.fitness * 100).toFixed(1)}%</b> · height ${best.maxHeight.toFixed(1)} m · air ${(airCur * 100).toFixed(0)}%`;
+    everLine = `best ever — fitness <b>${(ev.fitness * 100).toFixed(1)}%</b> · height ${ev.height.toFixed(1)} m · air ${(ev.airFraction * 100).toFixed(0)}%`;
+  }
+  el.innerHTML = `
+    <div class="gen">Generation ${sim.generation} · ${t}</div>
+    <div>⏱ gen time: <b>${sim.genTime.toFixed(1)}</b> / ${sim.settings.simTime}s</div>
+    <div class="k">${curLine}</div>
+    <div class="k">${everLine}</div>`;
+}
+
+// ---------- Main loop ----------
+let lastTime = performance.now();
+function loop(now) {
+  const dtReal = Math.min(0.05, (now - lastTime) / 1000);
+  lastTime = now;
+
+  if (sim) {
+    // advance simulation with speed multiplier (fixed 60 Hz steps)
+    sim.speed = parseInt(document.querySelector('.btn[data-speed].on')?.dataset.speed) || 1;
+    const steps = Math.max(1, Math.round(sim.speed * dtReal * 60));
+    for (let s = 0; s < Math.min(steps, 48); s++) {
+      try {
+        stepSimulation();
+      } catch (e) {
+        console.error('sim step error:', e);
+        stopSim();
+        break;
+      }
+      if (!sim || !sim.running || sim.paused) break;
+    }
+  }
+
+  if (mode === 'sim' && sim) drawSim();
+  else if (mode === 'sim') { drawBuild(); }
+  else drawBuild();
+
+  if (mode === 'build') {
+    document.getElementById('stGen').textContent = '0';
+  }
+  if (sim) {
+    let best = sim.creatures[0];
+    for (const c of sim.creatures) if ((c.x - c.startX) > (best.x - best.startX)) best = c;
+    const bestDist = Math.max(0, best.x - best.startX);
+    document.getElementById('stGen').textContent = sim.generation;
+    document.getElementById('stFit').textContent = (sim.bestEver.fitness * 100).toFixed(1) + '%';
+    if (sim.task === 'running') {
+      document.getElementById('stDist').textContent = sim.bestEver.distance.toFixed(1) + ' m';
+      document.getElementById('stSpeed').textContent = sim.bestEver.speed.toFixed(2) + ' m/s';
+    } else {
+      document.getElementById('stDist').textContent = sim.bestEver.height.toFixed(1) + ' m';
+      document.getElementById('stSpeed').textContent = (sim.bestEver.airFraction * 100).toFixed(0) + '%';
+    }
+    updateHUD();
+  }
+
+  requestAnimationFrame(loop);
+}
+
+// speed buttons
+document.querySelectorAll('[data-speed]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-speed]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  });
+});
+document.querySelector('[data-speed="3"]').classList.add('on');
+
+// mutation slider display
+const mutSlider = document.getElementById('inpMut');
+mutSlider.addEventListener('input', () => document.getElementById('mutVal').textContent = parseFloat(mutSlider.value).toFixed(2));
+document.getElementById('mutVal').textContent = parseFloat(mutSlider.value).toFixed(2);
+
+// task buttons
+function currentTask() {
+  return document.querySelector('[data-task].on')?.dataset.task || 'running';
+}
+function updateTaskLabels() {
+  const t = currentTask();
+  document.getElementById('statDistLabel').textContent = t === 'running' ? 'Best distance' : 'Best height';
+  document.getElementById('statSpeedLabel').textContent = t === 'running' ? 'Best speed' : 'Air time';
+}
+document.querySelectorAll('[data-task]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-task]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    if (sim) stopSim();
+  });
+});
+updateTaskLabels();
+
+// restore saved creature (if any) when the page loads
+loadDesign();
+updateCounts();
+
+updateCounts();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

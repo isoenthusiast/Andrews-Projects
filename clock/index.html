@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 1rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .date {
+            color: #8888aa;
+            font-size: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .clock-face {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            width: min(300px, 70vw);
+            height: min(300px, 70vw);
+            margin: 0 auto 1.25rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 0, 0, 0.4);
+            display: block;
+        }
+
+        .digital {
+            font-family: 'Courier New', monospace;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 4px;
+            text-shadow: 0 0 20px rgba(96, 165, 250, 0.35);
+            margin-bottom: 1.25rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.6rem 1.25rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .controls button:hover {
+            background: rgba(255, 255, 255, 0.16);
+            transform: translateY(-2px);
+        }
+
+        .controls button.active {
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+            border-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Clock</h1>
+        <div class="date" id="date"></div>
+        <canvas id="face" class="clock-face" width="300" height="300"></canvas>
+        <div class="digital" id="digital">--:--:--</div>
+        <div class="controls">
+            <button id="formatBtn">12-hour</button>
+            <button id="secondsBtn" class="active">Seconds on</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('face');
+        const ctx = canvas.getContext('2d');
+        const digital = document.getElementById('digital');
+        const dateEl = document.getElementById('date');
+        const formatBtn = document.getElementById('formatBtn');
+        const secondsBtn = document.getElementById('secondsBtn');
+
+        const SIZE = 300, CX = 150, CY = 150, R = 128;
+        let use24h = false;
+        let showSeconds = true;
+
+        function format(n) {
+            return String(n).padStart(2, '0');
+        }
+
+        function updateDate(d) {
+            const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            dateEl.textContent = d.toLocaleDateString(undefined, opts);
+        }
+
+        function drawFace() {
+            ctx.clearRect(0, 0, SIZE, SIZE);
+
+            // rim
+            const g = ctx.createRadialGradient(CX, CY, 90, CX, CY, R + 8);
+            g.addColorStop(0, '#2a2a4a');
+            g.addColorStop(1, '#15152c');
+            ctx.beginPath();
+            ctx.arc(CX, CY, R + 8, 0, Math.PI * 2);
+            ctx.fillStyle = g;
+            ctx.fill();
+
+            // face
+            ctx.beginPath();
+            ctx.arc(CX, CY, R, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.fill();
+
+            // tick marks
+            for (let i = 0; i < 60; i++) {
+                const ang = (i / 60) * Math.PI * 2 - Math.PI / 2;
+                const big = i % 5 === 0;
+                const outer = R - 4;
+                const inner = R - (big ? 15 : 9);
+                ctx.beginPath();
+                ctx.moveTo(CX + Math.cos(ang) * inner, CY + Math.sin(ang) * inner);
+                ctx.lineTo(CX + Math.cos(ang) * outer, CY + Math.sin(ang) * outer);
+                ctx.strokeStyle = big ? '#f7971e' : 'rgba(255, 255, 255, 0.35)';
+                ctx.lineWidth = big ? 3 : 1.5;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+            }
+
+            // hour numbers
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.font = '600 18px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let n = 1; n <= 12; n++) {
+                const ang = (n / 12) * Math.PI * 2 - Math.PI / 2;
+                const r = R - 30;
+                ctx.fillText(String(n), CX + Math.cos(ang) * r, CY + Math.sin(ang) * r);
+            }
+        }
+
+        function hand(ang, len, width, color, glow) {
+            ctx.save();
+            if (glow) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 14;
+            }
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.lineTo(CX + Math.cos(ang) * len, CY + Math.sin(ang) * len);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function draw() {
+            drawFace();
+            const now = new Date();
+            const h = now.getHours() % 12;
+            const m = now.getMinutes();
+            const s = now.getSeconds() + now.getMilliseconds() / 1000;
+
+            hand(((h + m / 60) / 12) * Math.PI * 2 - Math.PI / 2, R * 0.5, 6, '#ffffff');
+            hand(((m + s / 60) / 60) * Math.PI * 2 - Math.PI / 2, R * 0.72, 4, '#60a5fa');
+            hand((s / 60) * Math.PI * 2 - Math.PI / 2, R * 0.85, 2, '#f472b6', true);
+
+            // center cap
+            ctx.beginPath();
+            ctx.arc(CX, CY, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#f7971e';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(CX, CY, 3, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        }
+
+        function updateDigital() {
+            const now = new Date();
+            let h = now.getHours();
+            let suffix = '';
+            if (!use24h) {
+                suffix = h >= 12 ? ' PM' : ' AM';
+                h = h % 12 || 12;
+            }
+            const parts = [format(h), format(now.getMinutes())];
+            if (showSeconds) parts.push(format(now.getSeconds()));
+            digital.textContent = parts.join(':') + suffix;
+            updateDate(now);
+        }
+
+        function tick() {
+            draw();
+            requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+        setInterval(updateDigital, 250);
+        updateDigital();
+
+        formatBtn.addEventListener('click', () => {
+            use24h = !use24h;
+            formatBtn.textContent = use24h ? '24-hour' : '12-hour';
+            formatBtn.classList.toggle('active', use24h);
+            updateDigital();
+        });
+
+        secondsBtn.addEventListener('click', () => {
+            showSeconds = !showSeconds;
+            secondsBtn.textContent = showSeconds ? 'Seconds on' : 'Seconds off';
+            secondsBtn.classList.toggle('active', showSeconds);
+            updateDigital();
+        });
+    </script>
+</body>
+</html>

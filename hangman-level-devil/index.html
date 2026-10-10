@@ -1,0 +1,2154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Andrew's Game Collection — Hangman &amp; Level Devil</title>
+<style>
+    /* ============================================================
+       Shell only. Each game ships its own <style> inside its
+       <template>, so exactly one game's CSS is ever live.
+       ============================================================ */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        color: #e8edf7;
+        background:
+            radial-gradient(1200px 600px at 50% -10%, #2a1b33 0%, transparent 60%),
+            radial-gradient(900px 520px at 88% 112%, #3a1620 0%, transparent 60%),
+            #0b0d12;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        overflow-x: hidden;
+    }
+
+    /* the mounted game drops straight into the page flow */
+    #viewport { display: contents; }
+
+    /* ---------------- picker ---------------- */
+    #picker {
+        position: fixed; inset: 0; z-index: 5;
+        display: grid; place-items: center;
+        padding: 26px;
+        overflow: auto;
+    }
+    #picker[hidden] { display: none; }
+
+    .pk { margin: auto; width: 100%; max-width: 820px; text-align: center; }
+    .pk h1 {
+        margin: 0;
+        font-size: clamp(1.5rem, 4vw, 2.1rem);
+        letter-spacing: 3px;
+        font-weight: 800;
+        background: linear-gradient(90deg, #ffd166, #ff7a8a, #c084fc);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .pk-sub { margin: 8px 0 26px; font-size: 0.7rem; letter-spacing: 1.8px; text-transform: uppercase; color: #8b97ad; }
+    .pk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; }
+
+    .pk-card {
+        display: flex; flex-direction: column; align-items: center; gap: 7px;
+        padding: 26px 22px 22px;
+        border-radius: 18px;
+        text-align: center;
+        cursor: pointer;
+        color: #e8edf7;
+        font-family: inherit;
+        background: linear-gradient(180deg, rgba(33,30,48,0.95), rgba(14,15,22,0.95));
+        border: 1px solid rgba(255,209,102,0.22);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+        transition: transform .12s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .pk-card:hover { transform: translateY(-4px); border-color: #ffd166; box-shadow: 0 20px 48px rgba(0,0,0,0.6), 0 0 26px rgba(255,122,138,0.25); }
+    .pk-card:active { transform: translateY(-1px); }
+
+    .pk-seal {
+        width: 66px; height: 66px;
+        display: grid; place-items: center;
+        font-size: 1.5rem; font-weight: 800; letter-spacing: 1px;
+        color: #fff8ea;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    }
+    .seal-hangman {
+        border-radius: 14px; font-size: 1.05rem;
+        background: linear-gradient(145deg, #8b5cf6, #4c2a86);
+        border: 2px solid #ffd166;
+        box-shadow: 0 0 20px rgba(139,92,246,0.45);
+    }
+    .seal-devil {
+        border-radius: 50%;
+        background: linear-gradient(145deg, #e8414f, #7d1f18);
+        border: 2px solid #ff9aa4;
+        box-shadow: 0 0 20px rgba(232,65,79,0.45);
+    }
+
+    .pk-name { font-size: 1.2rem; font-weight: 700; letter-spacing: 2px; }
+    .pk-en { font-size: 0.64rem; letter-spacing: 1.6px; text-transform: uppercase; color: #8b97ad; }
+    .pk-desc { font-size: 0.8rem; color: #c3ccdd; line-height: 1.65; margin-top: 5px; }
+    .pk-tag {
+        margin-top: 5px;
+        font-size: 0.72rem; color: #ffe9b0;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,209,102,0.25);
+        border-radius: 999px;
+        padding: 5px 13px;
+    }
+    .pk-go {
+        margin-top: 12px;
+        font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;
+        color: #1a1a2e;
+        background: linear-gradient(180deg, #ffe6a3, #f2b73e);
+        border-radius: 10px;
+        padding: 9px 20px;
+        box-shadow: 0 4px 0 #8a6415;
+    }
+    .pk-foot { margin-top: 24px; font-size: 0.68rem; color: #6f7b93; line-height: 1.7; }
+    .pk-foot b { color: #ffd166; }
+
+    #switchBtn {
+        position: fixed; right: 16px; bottom: 16px; z-index: 20;
+        padding: 11px 17px;
+        border-radius: 999px;
+        font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: .4px;
+        cursor: pointer;
+        color: #1a1a2e;
+        background: linear-gradient(180deg, #ffe6a3, #f2b73e);
+        border: 1px solid rgba(255,248,225,0.7);
+        box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+    }
+    #switchBtn:hover { filter: brightness(1.08); }
+    #switchBtn[hidden] { display: none; }
+</style>
+</head>
+<body>
+<div id="viewport"></div>
+<button id="switchBtn" hidden>☰ Switch game</button>
+
+<div id="picker">
+    <div class="pk">
+        <h1>Andrew's Game Collection</h1>
+        <p class="pk-sub">Two games · one page · 两款游戏 · 一个入口</p>
+        <div class="pk-grid">
+            <button class="pk-card" data-mode="hangman">
+                <span class="pk-seal seal-hangman">A B C</span>
+                <span class="pk-name">Hangman</span>
+                <span class="pk-en">Word Game</span>
+                <span class="pk-desc">Guess the secret word one letter at a time before the stick figure is complete. 100+ kid-friendly words with hints.</span>
+                <span class="pk-tag">🪢 6 mistakes allowed</span>
+                <span class="pk-go">Play →</span>
+            </button>
+            <button class="pk-card" data-mode="devil">
+                <span class="pk-seal seal-devil">😈</span>
+                <span class="pk-name">Level Devil</span>
+                <span class="pk-en">Troll Platformer</span>
+                <span class="pk-desc">Reach the door — but the level lies, collapses, crushes and betrays you across 10 devious stages that rewrite themselves.</span>
+                <span class="pk-tag">🚪 10 levels</span>
+                <span class="pk-go">Play →</span>
+            </button>
+        </div>
+        <p class="pk-foot">Inside a game, click <b>☰ Switch game</b> at the bottom-right to come back here at any time.</p>
+    </div>
+</div>
+
+<!-- ===================== Hangman ===================== -->
+<template id="tpl-hangman">
+<style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            padding: 1rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #8888aa;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        canvas {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            display: block;
+            margin: 0 auto;
+            width: 220px;
+            height: 240px;
+        }
+
+        .word-display {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 12px;
+            color: #fff;
+            margin: 1rem 0 0.75rem;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+        }
+
+        .hint {
+            color: #a0a0c8;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .status {
+            color: #a0a0c0;
+            font-size: 1rem;
+            min-height: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+        .status.win { color: #4ade80; }
+        .status.lose { color: #f87171; }
+
+        .keyboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        .key {
+            width: 38px;
+            height: 42px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0f0;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-transform: uppercase;
+        }
+
+        .key:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(1.08);
+        }
+
+        .key:disabled {
+            cursor: default;
+            opacity: 0.35;
+        }
+
+        .key.correct {
+            background: rgba(74, 222, 128, 0.25);
+            color: #4ade80;
+        }
+
+        .key.wrong {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+        }
+
+        .game-actions {
+            margin-top: 1.25rem;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247, 151, 30, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #c0c0e0;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 0.75rem;
+            color: #a0a0c0;
+            font-size: 0.9rem;
+        }
+
+        .scoreboard span {
+            font-weight: 700;
+        }
+        .scoreboard .wins { color: #4ade80; }
+        .scoreboard .losses { color: #f87171; }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .word-display { font-size: 2rem; letter-spacing: 8px; }
+            .key { width: 32px; height: 36px; font-size: 0.85rem; }
+            canvas { width: 180px; height: 200px; }
+        }
+    
+</style>
+
+    <div class="container">
+        <h1>Hangman</h1>
+        <p class="subtitle">Guess the word before the stick figure is complete!</p>
+
+        <div class="scoreboard">
+            <div>Won: <span class="wins" id="scoreWins">0</span></div>
+            <div>Lost: <span class="losses" id="scoreLosses">0</span></div>
+        </div>
+
+        <canvas id="hangmanCanvas" width="220" height="240"></canvas>
+
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="hint" id="hint"></div>
+        <div class="status" id="status">Pick a letter to start!</div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div class="game-actions">
+            <button class="btn btn-primary" id="newWordBtn">New Word</button>
+            <button class="btn btn-secondary" id="resetScoresBtn">Reset Scores</button>
+        </div>
+    </div>
+
+    
+</template>
+
+<!-- ===================== Level Devil ===================== -->
+<template id="tpl-devil">
+<style>
+
+  :root{
+    --bg:#0b0d12;
+    --panel:#141821;
+    --line:#232a38;
+    --ink:#e8edf7;
+    --dim:#8b97ad;
+    --red:#ff4d5e;
+    --gold:#ffd166;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #1b2130 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font:15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    overflow-x:hidden;
+  }
+  #app{width:100%;max-width:960px}
+
+  #hud{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-bottom:10px;
+  }
+  .title{display:flex;align-items:baseline;gap:10px;min-width:0}
+  #lvl{font-weight:800;letter-spacing:.14em;font-size:12px;color:var(--red);white-space:nowrap}
+  #lvlname{font-weight:600;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tools{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  #deaths{font-variant-numeric:tabular-nums;font-size:13px;color:var(--dim);letter-spacing:.04em}
+  .btn{
+    background:var(--panel);color:var(--ink);border:1px solid var(--line);
+    border-radius:9px;width:38px;height:34px;font-size:15px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:border-color .15s, transform .08s, background .15s;
+  }
+  .btn:hover{border-color:#3a4557;background:#1a1f2b}
+  .btn:active{transform:translateY(1px)}
+
+  #stage{
+    position:relative;width:100%;aspect-ratio:960/512;
+    border-radius:14px;overflow:hidden;
+    border:1px solid var(--line);
+    background:#0e1219;
+    box-shadow:0 24px 60px -30px #000, inset 0 0 0 1px #ffffff08;
+  }
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:auto}
+
+  /* ---- intro card ---- */
+  #intro{
+    position:absolute;left:0;right:0;top:22%;text-align:center;pointer-events:none;
+    opacity:0;transition:opacity .35s;
+  }
+  #intro.show{opacity:1}
+  #intro .iname{
+    font-size:clamp(20px,3.4vw,34px);font-weight:800;letter-spacing:.02em;
+    text-shadow:0 4px 24px #000c, 0 1px 0 #000;
+  }
+  #intro .ihint{
+    margin-top:6px;font-size:clamp(11px,1.5vw,14px);color:#c8d2e4;
+    text-shadow:0 2px 12px #000d;font-style:italic;
+  }
+
+  /* ---- overlay ---- */
+  #overlay{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(8,10,15,.82);backdrop-filter:blur(3px);
+    text-align:center;padding:20px;
+  }
+  #overlay.hide{display:none}
+  #overlay .card{max-width:520px}
+  #ovTitle{font-size:clamp(24px,4.4vw,42px);font-weight:900;letter-spacing:.01em;margin:0 0 8px}
+  #ovTitle.red{color:var(--red)}
+  #ovTitle.gold{color:var(--gold)}
+  #ovText{color:#c3ccdd;font-size:clamp(12px,1.7vw,15px);margin:0 0 18px}
+  #ovText kbd{
+    background:#1c2230;border:1px solid #2f384a;border-bottom-width:2px;
+    border-radius:5px;padding:1px 6px;font:inherit;font-size:.92em;color:#e8edf7;
+  }
+  #ovBtn{
+    background:linear-gradient(#e8414f,#c92d3c);color:#fff;border:0;
+    padding:12px 26px;border-radius:11px;font-size:16px;font-weight:700;cursor:pointer;
+    box-shadow:0 10px 24px -12px #ff4d5e, inset 0 1px 0 #ffffff40;
+    transition:transform .08s, filter .15s;
+  }
+  #ovBtn:hover{filter:brightness(1.08)}
+  #ovBtn:active{transform:translateY(1px)}
+
+  .foot{
+    margin:12px 2px 0;color:var(--dim);font-size:12.5px;text-align:center;line-height:1.7;
+  }
+  .foot kbd{
+    background:#171d28;border:1px solid #2a3342;border-bottom-width:2px;border-radius:5px;
+    padding:1px 6px;font:inherit;font-size:11.5px;color:#cfd8e8;
+  }
+
+  /* ---- touch controls ---- */
+  #touch{display:none;gap:10px;margin-top:14px;justify-content:space-between}
+  #touch .grp{display:flex;gap:10px}
+  .tbtn{
+    width:74px;height:74px;border-radius:50%;
+    background:#161c26;border:1px solid #2b3444;color:#dbe3f0;
+    font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;
+    touch-action:none;
+  }
+  .tbtn:active{background:#222b39}
+  body.touch #touch{display:flex}
+  body.touch .foot .kbm{display:none}
+
+  #err{
+    position:fixed;left:12px;bottom:12px;right:12px;max-height:40%;overflow:auto;
+    background:#2a0d12;border:1px solid #6b1f2a;color:#ffc9d0;
+    font:12px/1.5 ui-monospace,Consolas,monospace;padding:10px 12px;border-radius:10px;
+    display:none;white-space:pre-wrap;z-index:99;
+  }
+
+</style>
+
+<div id="app">
+  <div id="hud">
+    <div class="title">
+      <span id="lvl">LEVEL 1</span>
+      <span id="lvlname">The Floor Lies</span>
+    </div>
+    <div class="tools">
+      <span id="deaths">💀 0</span>
+      <button class="btn" id="btnRestart" title="Restart level (R)">↻</button>
+      <button class="btn" id="btnMute" title="Sound on/off (M)">🔊</button>
+    </div>
+  </div>
+
+  <div id="stage">
+    <canvas id="game"></canvas>
+    <div id="intro"><div class="iname"></div><div class="ihint"></div></div>
+    <div id="overlay" class="hide">
+      <div class="card">
+        <h1 id="ovTitle">LEVEL DEVIL</h1>
+        <p id="ovText"></p>
+        <button id="ovBtn">Start</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="touch">
+    <div class="grp">
+      <div class="tbtn" data-k="left">◀</div>
+      <div class="tbtn" data-k="right">▶</div>
+    </div>
+    <div class="grp">
+      <div class="tbtn" data-k="jump">▲</div>
+    </div>
+  </div>
+
+  <p class="foot">
+    <span class="kbm"><kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd> move &nbsp;·&nbsp;
+    <kbd>Space</kbd> / <kbd>↑</kbd> jump &nbsp;·&nbsp; <kbd>R</kbd> retry &nbsp;·&nbsp;
+    <kbd>M</kbd> sound &nbsp;·&nbsp; <kbd>Esc</kbd> pause</span>
+    <span class="kbm" style="display:block;margin-top:4px">Reach the door. The level will not make it easy.</span>
+  </p>
+</div>
+<pre id="err"></pre>
+
+
+</template>
+
+<script>
+/* Each game is a module that builds itself into the mounted markup and
+   returns a teardown function. */
+window.__GAMES = window.__GAMES || {};
+/* ------------------------------------------------------------------
+   Hangman: guess the word before the stick figure is finished.
+   ------------------------------------------------------------------ */
+window.__GAMES.hangman = function (root) {
+
+        // ── Word library (2 syllables or less, kid-friendly) ──
+        const WORDS = [
+            { word: "apple", hint: "A red or green fruit" },
+            { word: "beach", hint: "Sandy place by the ocean" },
+            { word: "bird", hint: "An animal with wings" },
+            { word: "book", hint: "You read this" },
+            { word: "bread", hint: "A food made from flour" },
+            { word: "brush", hint: "You use this on your teeth or hair" },
+            { word: "cake", hint: "A sweet birthday treat" },
+            { word: "cat", hint: "A furry pet that purrs" },
+            { word: "chair", hint: "You sit on it" },
+            { word: "child", hint: "A young person" },
+            { word: "clock", hint: "It tells the time" },
+            { word: "cloud", hint: "Fluffy thing in the sky" },
+            { word: "crayon", hint: "You draw with it" },
+            { word: "crown", hint: "A king or queen wears it" },
+            { word: "dance", hint: "Moving to music" },
+            { word: "desk", hint: "A table for doing homework" },
+            { word: "dog", hint: "A furry pet that barks" },
+            { word: "door", hint: "You open it to enter a room" },
+            { word: "drum", hint: "A musical instrument you hit" },
+            { word: "duck", hint: "A bird that says quack" },
+            { word: "earth", hint: "The planet we live on" },
+            { word: "elephant", hint: "A very big animal with a trunk" },
+            { word: "fish", hint: "An animal that swims" },
+            { word: "flower", hint: "A pretty plant that blooms" },
+            { word: "frog", hint: "A green animal that hops" },
+            { word: "fruit", hint: "Healthy food like apples" },
+            { word: "game", hint: "Something fun to play" },
+            { word: "garden", hint: "Where flowers and plants grow" },
+            { word: "ghost", hint: "A spooky Halloween spirit" },
+            { word: "gift", hint: "Something you give on a birthday" },
+            { word: "glove", hint: "You wear it on your hand" },
+            { word: "grape", hint: "A small purple fruit" },
+            { word: "grass", hint: "Green stuff that grows on the ground" },
+            { word: "guitar", hint: "A musical instrument with strings" },
+            { word: "happy", hint: "Feeling glad and joyful" },
+            { word: "hat", hint: "You wear it on your head" },
+            { word: "heart", hint: "An organ that pumps blood" },
+            { word: "horse", hint: "An animal you can ride" },
+            { word: "house", hint: "A building where you live" },
+            { word: "island", hint: "Land surrounded by water" },
+            { word: "juice", hint: "A drink made from fruit" },
+            { word: "kite", hint: "It flies in the wind on a string" },
+            { word: "kitten", hint: "A baby cat" },
+            { word: "ladder", hint: "You climb up it" },
+            { word: "lamp", hint: "It gives you light" },
+            { word: "laugh", hint: "The sound you make when something is funny" },
+            { word: "leaf", hint: "A green part of a tree" },
+            { word: "lemon", hint: "A sour yellow fruit" },
+            { word: "light", hint: "The opposite of dark" },
+            { word: "lion", hint: "A big wild cat, the king of animals" },
+            { word: "lizard", hint: "A small reptile that basks in the sun" },
+            { word: "lunch", hint: "A meal you eat in the middle of the day" },
+            { word: "mango", hint: "A sweet tropical fruit" },
+            { word: "milk", hint: "A white drink from cows" },
+            { word: "mirror", hint: "You look at yourself in it" },
+            { word: "money", hint: "You use it to buy things" },
+            { word: "monkey", hint: "A funny animal that climbs trees" },
+            { word: "moon", hint: "It shines in the night sky" },
+            { word: "mountain", hint: "A very tall hill" },
+            { word: "mouse", hint: "A small animal with a long tail" },
+            { word: "music", hint: "Songs and melodies" },
+            { word: "nurse", hint: "A person who helps you get better" },
+            { word: "ocean", hint: "A huge body of salty water" },
+            { word: "orange", hint: "A round citrus fruit" },
+            { word: "panda", hint: "A black and white bear from China" },
+            { word: "pencil", hint: "You write with it" },
+            { word: "piano", hint: "A musical instrument with keys" },
+            { word: "pig", hint: "A pink farm animal" },
+            { word: "pillow", hint: "You rest your head on it" },
+            { word: "pizza", hint: "A round cheesy food" },
+            { word: "plant", hint: "A living thing that grows in soil" },
+            { word: "puppy", hint: "A baby dog" },
+            { word: "queen", hint: "A female ruler" },
+            { word: "rabbit", hint: "A furry animal with long ears" },
+            { word: "rain", hint: "Water falling from the sky" },
+            { word: "river", hint: "A long flow of water" },
+            { word: "robot", hint: "A machine that can do tasks" },
+            { word: "rocket", hint: "It flies into space" },
+            { word: "sail", hint: "A big cloth on a boat" },
+            { word: "sand", hint: "Tiny grains you find at the beach" },
+            { word: "school", hint: "A place where you learn" },
+            { word: "sheep", hint: "A fluffy farm animal" },
+            { word: "shell", hint: "A hard outer covering of a sea creature" },
+            { word: "shirt", hint: "A piece of clothing you wear on top" },
+            { word: "shoe", hint: "Something you wear on your foot" },
+            { word: "slide", hint: "A playground thing you go down" },
+            { word: "snake", hint: "A long reptile with no legs" },
+            { word: "snow", hint: "White frozen flakes from the sky" },
+            { word: "socks", hint: "You wear them on your feet" },
+            { word: "spider", hint: "A small creature with eight legs" },
+            { word: "spoon", hint: "You use it to eat soup" },
+            { word: "stairs", hint: "Steps you walk up and down" },
+            { word: "star", hint: "A bright dot in the night sky" },
+            { word: "storm", hint: "Bad weather with thunder and rain" },
+            { word: "sun", hint: "The bright star in our sky" },
+            { word: "swing", hint: "A playground seat that goes back and forth" },
+            { word: "table", hint: "A flat piece of furniture" },
+            { word: "tiger", hint: "A big orange and black striped cat" },
+            { word: "toast", hint: "Golden brown bread" },
+            { word: "tree", hint: "A tall plant with leaves" },
+            { word: "truck", hint: "A big vehicle that carries things" },
+            { word: "water", hint: "You drink it to stay hydrated" },
+            { word: "whale", hint: "The biggest animal in the ocean" },
+            { word: "wheel", hint: "A round thing that helps things roll" },
+            { word: "window", hint: "You look through it to see outside" },
+            { word: "winter", hint: "The cold season with snow" },
+            { word: "zebra", hint: "A black and white striped horse" }
+        ];
+
+        // ── Hangman drawing ──
+        const canvas = document.getElementById('hangmanCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const DRAW_STEPS = [
+            // 0: base
+            () => {
+                ctx.strokeStyle = '#555577';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.moveTo(20, 230); ctx.lineTo(200, 230);
+                ctx.moveTo(50, 230); ctx.lineTo(50, 20);
+                ctx.lineTo(140, 20); ctx.lineTo(140, 45);
+                ctx.stroke();
+            },
+            // 1: head
+            () => {
+                ctx.strokeStyle = '#e0e0f0';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(140, 62, 17, 0, Math.PI * 2);
+                ctx.stroke();
+            },
+            // 2: body
+            () => {
+                ctx.beginPath();
+                ctx.moveTo(140, 79); ctx.lineTo(140, 145);
+                ctx.stroke();
+            },
+            // 3: left arm
+            () => {
+                ctx.beginPath();
+                ctx.moveTo(140, 95); ctx.lineTo(110, 130);
+                ctx.stroke();
+            },
+            // 4: right arm
+            () => {
+                ctx.beginPath();
+                ctx.moveTo(140, 95); ctx.lineTo(170, 130);
+                ctx.stroke();
+            },
+            // 5: left leg
+            () => {
+                ctx.beginPath();
+                ctx.moveTo(140, 145); ctx.lineTo(110, 195);
+                ctx.stroke();
+            },
+            // 6: right leg
+            () => {
+                ctx.beginPath();
+                ctx.moveTo(140, 145); ctx.lineTo(170, 195);
+                ctx.stroke();
+            }
+        ];
+
+        function drawGallows() {
+            ctx.clearRect(0, 0, 220, 240);
+            DRAW_STEPS[0]();
+        }
+
+        // ── Game state ──
+        let currentWordObj = null;
+        let guessedLetters = null;
+        let wrongCount = 0;
+        let gameOver = false;
+        let wins = 0;
+        let losses = 0;
+        let usedWords = [];
+
+        const wordDisplay = document.getElementById('wordDisplay');
+        const hintEl = document.getElementById('hint');
+        const statusEl = document.getElementById('status');
+        const keyboardEl = document.getElementById('keyboard');
+        const scoreWins = document.getElementById('scoreWins');
+        const scoreLosses = document.getElementById('scoreLosses');
+
+        function buildKeyboard() {
+            keyboardEl.innerHTML = '';
+            for (let i = 0; i < 26; i++) {
+                const key = document.createElement('button');
+                key.className = 'key';
+                key.textContent = String.fromCharCode(97 + i);
+                key.dataset.letter = String.fromCharCode(97 + i);
+                key.addEventListener('click', () => handleGuess(key.dataset.letter));
+                keyboardEl.appendChild(key);
+            }
+        }
+
+        function pickWord() {
+            const available = WORDS.filter(w => !usedWords.includes(w.word));
+            if (available.length === 0) {
+                usedWords = [];
+                return pickWord();
+            }
+            const idx = Math.floor(Math.random() * available.length);
+            return available[idx];
+        }
+
+        function startGame() {
+            currentWordObj = pickWord();
+            guessedLetters = new Set();
+            wrongCount = 0;
+            gameOver = false;
+
+            document.querySelectorAll('.key').forEach(k => {
+                k.disabled = false;
+                k.className = 'key';
+            });
+
+            drawGallows();
+            renderWord();
+            hintEl.textContent = `💡 ${currentWordObj.hint}`;
+            statusEl.className = 'status';
+            statusEl.textContent = 'Pick a letter!';
+        }
+
+        function renderWord() {
+            const display = currentWordObj.word
+                .split('')
+                .map(ch => guessedLetters.has(ch) ? ch : '_')
+                .join(' ');
+            wordDisplay.textContent = display;
+        }
+
+        function handleGuess(letter) {
+            if (gameOver || guessedLetters.has(letter)) return;
+            guessedLetters.add(letter);
+
+            const key = document.querySelector(`.key[data-letter="${letter}"]`);
+            const word = currentWordObj.word;
+
+            if (word.includes(letter)) {
+                key.classList.add('correct');
+                key.disabled = true;
+                renderWord();
+
+                const won = word.split('').every(ch => guessedLetters.has(ch));
+                if (won) {
+                    gameOver = true;
+                    wins++;
+                    scoreWins.textContent = wins;
+                    statusEl.className = 'status win';
+                    statusEl.textContent = '🎉 You won! Great job!';
+                    document.querySelectorAll('.key').forEach(k => k.disabled = true);
+                } else {
+                    statusEl.textContent = '✅ Correct! Keep going!';
+                }
+            } else {
+                key.classList.add('wrong');
+                key.disabled = true;
+                wrongCount++;
+                drawHangmanStep(wrongCount);
+
+                if (wrongCount >= 6) {
+                    gameOver = true;
+                    losses++;
+                    scoreLosses.textContent = losses;
+                    statusEl.className = 'status lose';
+                    statusEl.textContent = `💀 Oh no! The word was "${currentWordObj.word}"`;
+                    wordDisplay.textContent = currentWordObj.word.split('').join(' ');
+                    document.querySelectorAll('.key').forEach(k => k.disabled = true);
+                } else {
+                    statusEl.textContent = `❌ Wrong! ${6 - wrongCount} mistake${6 - wrongCount > 1 ? 's' : ''} left`;
+                }
+            }
+        }
+
+        function drawHangmanStep(step) {
+            if (step >= 1 && step < DRAW_STEPS.length) {
+                DRAW_STEPS[step]();
+            }
+        }
+
+        function resetScores() {
+            wins = 0;
+            losses = 0;
+            scoreWins.textContent = '0';
+            scoreLosses.textContent = '0';
+            usedWords = [];
+            startGame();
+        }
+
+        function newWord() {
+            if (currentWordObj) usedWords.push(currentWordObj.word);
+            startGame();
+        }
+
+        // ── Init ──
+        buildKeyboard();
+        startGame();
+
+        document.getElementById('newWordBtn').addEventListener('click', newWord);
+        document.getElementById('resetScoresBtn').addEventListener('click', resetScores);
+
+        // Physical keyboard support
+        function onKeyDown(e) {
+            const ch = e.key.toLowerCase();
+            if (/^[a-z]$/.test(ch)) {
+                const key = document.querySelector(`.key[data-letter="${ch}"]`);
+                if (key && !key.disabled) handleGuess(ch);
+            }
+            if (e.key === 'Enter') newWord();
+        }
+        document.addEventListener('keydown', onKeyDown);
+
+        return function stop() {
+            document.removeEventListener('keydown', onKeyDown);
+        };
+    };
+    
+
+
+window.__GAMES = window.__GAMES || {};
+/* ------------------------------------------------------------------
+   Level Devil: a troll platformer whose levels rewrite themselves.
+   ------------------------------------------------------------------ */
+window.__GAMES.devil = function (root) {
+'use strict';
+
+/* =========================================================================
+   Level Devil style troll platformer.
+   Everything is drawn on a single canvas; the level is a mutable tile grid
+   plus a list of triggers that rewrite that grid when the player crosses
+   certain positions. That is the whole trick: the level edits itself.
+   ========================================================================= */
+
+// ---------------------------------------------------------------- constants
+const TILE = 32;
+const VIEW_W = 960, VIEW_H = 512;
+const STEP = 1/120;                 // fixed physics timestep
+
+const PW = 20, PH = 28;             // player hitbox
+const GRAVITY     = 2100;
+const MOVE_ACCEL  = 2400;           // px/s^2 on ground
+const AIR_ACCEL   = 1700;
+const FRICTION    = 2800;
+const MAX_SPEED   = 280;
+const JUMP_V      = 640;            // ~3.05 tiles high, ~5.3 tiles long
+const JUMP_MIN_V  = 420;            // variable-height clamp while rising
+const COYOTE      = 0.10;
+const JUMP_BUFFER = 0.12;
+const MAX_FALL    = 900;
+
+const FALL_DELAY  = 0.30;           // 'f' platform drops this long after contact
+const GHOST_DELAY = 0.40;           // 'g' fake tile vanishes after this
+const DEATH_PAUSE = 0.55;
+
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+
+// ---------------------------------------------------------------- audio
+const Sfx = (function(){
+  let ac = null, muted = false;
+  function ctxGet(){
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) { try { ac = new AC(); } catch(e) { ac = null; } }
+    }
+    return ac;
+  }
+  function tone(freq, dur, type, vol, glide){
+    const a = ctxGet(); if (!a || muted) return;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(freq, a.currentTime);
+    if (glide) o.frequency.exponentialRampToValueAtTime(Math.max(25, freq + glide), a.currentTime + dur);
+    g.gain.setValueAtTime(vol, a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(); o.stop(a.currentTime + dur + 0.02);
+  }
+  function noise(dur, vol){
+    const a = ctxGet(); if (!a || muted) return;
+    const n = Math.floor(a.sampleRate * dur);
+    const buf = a.createBuffer(1, n, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random()*2-1) * (1 - i/n);
+    const src = a.createBufferSource(); src.buffer = buf;
+    const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700;
+    const g = a.createGain(); g.gain.value = vol;
+    src.connect(f); f.connect(g); g.connect(a.destination); src.start();
+  }
+  return {
+    jump()  { tone(430, 0.11, 'square', 0.05, 300); },
+    land()  { tone(150, 0.05, 'triangle', 0.035, -50); },
+    death() { tone(320, 0.42, 'sawtooth', 0.075, -260); noise(0.25, 0.05); },
+    spike() { tone(900, 0.07, 'square', 0.045, -520); },
+    rumble(){ noise(0.55, 0.11); },
+    door()  { [523,659,784,1047].forEach(function(f,i){ setTimeout(function(){ tone(f,0.16,'triangle',0.06,0); }, i*85); }); },
+    step()  { tone(220, 0.03, 'triangle', 0.02, -40); },
+    toggle(){ muted = !muted; if (!muted) tone(660,0.08,'triangle',0.05,0); return muted; },
+    get muted(){ return muted; },
+    resume(){ const a = ctxGet(); if (a && a.state === 'suspended') a.resume(); },
+    suspend(){ if (ac && ac.state === 'running') { try { ac.suspend(); } catch(e){} } }
+  };
+})();
+
+// ---------------------------------------------------------------- level helpers
+function blank(w,h){ const g=[]; for(let y=0;y<h;y++){ const r=[]; for(let x=0;x<w;x++) r.push('.'); g.push(r); } return g; }
+function fill(g,x,y,w,h,ch){
+  for(let j=y;j<y+h;j++){ const row=g[j]; if(!row) continue;
+    for(let i=x;i<x+w;i++){ if(i>=0 && i<row.length) row[i]=ch; } }
+}
+function put(g,x,y,ch){ if(g[y] && g[y][x]!==undefined) g[y][x]=ch; }
+
+// tile classes
+const isSolid  = c => c === '#' || c === 'f' || c === 'g';
+const isSpike  = c => c === '^' || c === 'v';
+
+// ---------------------------------------------------------------- the levels
+function buildLevels(){
+  const out = [];
+
+  /* ---------- 1. warm-up: the ground you are standing on is a lie ---------- */
+  (function(){
+    const w=32, h=16, g=blank(w,h);
+    fill(g,0,13,w,3,'#');
+    put(g,28,12,'D');
+    out.push({
+      name:'The Floor Lies',
+      hint:'Nice, solid ground. Nothing can possibly go wrong.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:6}, ops:[
+          {op:'sfx',   name:'rumble', delay:0},
+          {op:'shake', amount:8,      delay:0},
+          {op:'set', x:13,y:13,w:1,h:1,ch:'.', delay:0.00},
+          {op:'set', x:14,y:13,w:1,h:1,ch:'.', delay:0.07},
+          {op:'set', x:15,y:13,w:1,h:1,ch:'.', delay:0.14},
+          {op:'set', x:13,y:14,w:3,h:1,ch:'.', delay:0.24},
+          {op:'set', x:13,y:15,w:3,h:1,ch:'^', delay:0.42},
+          {op:'sfx',   name:'spike', delay:0.42}
+        ]},
+        { when:{x:14}, ops:[
+          {op:'warn',  x:23,y:12,w:2,h:1,dur:0.62},
+          {op:'sfx',   name:'spike', delay:0.62},
+          {op:'shake', amount:6,      delay:0.62},
+          {op:'set', x:23,y:12,w:2,h:1,ch:'^', delay:0.62}
+        ]}
+      ]
+    });
+  })();
+
+  /* ---------- 2. don't stand still on anything ---------- */
+  (function(){
+    const w=34, h=16, g=blank(w,h);
+    fill(g,0,13,7,3,'#');
+    fill(g,21,13,13,3,'#');
+    fill(g,7,15,14,1,'^');
+    put(g,9,12,'f'); put(g,12,12,'f'); put(g,15,12,'f'); put(g,18,12,'g');
+    put(g,31,12,'D');
+    out.push({
+      name:'Step Lightly',
+      hint:'Every platform is a promise. Some promises are lies.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:9}, ops:[
+          {op:'warn',  x:29,y:12,w:1,h:1,dur:1.5},
+          {op:'sfx',   name:'spike', delay:1.5},
+          {op:'shake', amount:5,     delay:1.5},
+          {op:'set', x:29,y:12,w:1,h:1,ch:'^', delay:1.5}
+        ]}
+      ]
+    });
+  })();
+
+  /* ---------- 3. the corridor that swallows you ---------- */
+  (function(){
+    const w=36, h=16, g=blank(w,h);
+    fill(g,0,13,w,3,'#');
+    fill(g,8,6,21,3,'#');
+    put(g,33,12,'D');
+    out.push({
+      name:'Low Ceiling',
+      hint:'A long dark corridor. Mind the ceiling.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:10}, ops:[
+          {op:'sfx',   name:'rumble', delay:0},
+          {op:'warn',  x:8,y:9,w:21,h:4,dur:0.9},
+          {op:'shake', amount:9,      delay:0.9},
+          {op:'set', x:8,y:9, w:21,h:1,ch:'#',delay:0.90},
+          {op:'set', x:8,y:10,w:21,h:1,ch:'#',delay:1.60},
+          {op:'set', x:8,y:11,w:21,h:1,ch:'#',delay:2.30},
+          {op:'set', x:8,y:12,w:21,h:1,ch:'#',delay:3.00},
+          {op:'sfx',   name:'rumble', delay:3.00},
+          {op:'shake', amount:7,      delay:3.00},
+          {op:'set', x:8,y:12,w:21,h:1,ch:'.',delay:4.70},
+          {op:'set', x:8,y:11,w:21,h:1,ch:'.',delay:5.15},
+          {op:'set', x:8,y:10,w:21,h:1,ch:'.',delay:5.60},
+          {op:'set', x:8,y:9, w:21,h:1,ch:'.',delay:6.05},
+          {op:'sfx',   name:'land',   delay:6.05}
+        ]}
+      ]
+    });
+  })();
+
+  /* ---------- 4. the floor dissolves behind you ---------- */
+  (function(){
+    const w=44, h=16, g=blank(w,h);
+    fill(g,0,13,w,1,'#');                    // one tile thick, void below
+    put(g,14,12,'^'); put(g,22,12,'^'); put(g,30,12,'^');
+    fill(g,0,15,38,1,'^');                   // spikes waiting at the bottom
+    fill(g,38,13,6,3,'#');                   // safe landing
+    put(g,41,12,'D');
+    const spikeCols = [14,22,30];
+    const ops = [{op:'sfx',name:'rumble',delay:0}];
+    for (let i=0;i<38;i++){
+      ops.push({op:'set',x:i,y:13,w:1,h:1,ch:'.',delay:1.0+i*0.15});
+      if (spikeCols.indexOf(i) >= 0)
+        ops.push({op:'set',x:i,y:12,w:1,h:1,ch:'.',delay:1.0+i*0.15});
+    }
+    out.push({
+      name:'No Time To Think',
+      hint:'Keep moving right. Do not stop to admire the architecture.',
+      w:w, h:h, grid:g, spawn:{x:1,y:12},
+      triggers:[ { when:{x:3}, ops:ops } ]
+    });
+  })();
+
+  /* ---------- 5. the door is a coward ---------- */
+  (function(){
+    const w=32, h=16, g=blank(w,h);
+    fill(g,0,13,18,3,'#');                   // 0..17
+    fill(g,18,15,3,1,'^');                   // spike pit 18..20
+    fill(g,21,13,11,3,'#');                  // 21..31
+    fill(g,26,11,4,2,'#');                   // ledge on top of the right side
+    put(g,10,12,'D');
+    out.push({
+      name:'The Coward',
+      hint:'Doors are supposed to stay put. This one has other ideas.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:7}, ops:[
+          {op:'sfx',  name:'door',      delay:0},
+          {op:'door', x:23, y:12,       delay:0.10},
+          {op:'poof', x:10, y:12,       delay:0.10},
+          {op:'warn', x:24,y:12,w:1,h:1,dur:1.05},
+          {op:'sfx',  name:'spike',     delay:1.05},
+          {op:'set',  x:24,y:12,w:1,h:1,ch:'^',delay:1.05}
+        ]},
+        { when:{x:21}, ops:[
+          {op:'sfx',  name:'door',      delay:0},
+          {op:'door', x:27, y:10,       delay:0.10},
+          {op:'poof', x:23, y:12,       delay:0.10}
+        ]},
+        { when:{x:27, yAbove:10}, ops:[
+          {op:'sfx',  name:'door',      delay:0},
+          {op:'door', x:30, y:12,       delay:0.10},
+          {op:'poof', x:27, y:10,       delay:0.10},
+          {op:'shake',amount:5,         delay:0.10}
+        ]}
+      ]
+    });
+  })();
+
+  /* ---------- 6. everything, all at once ---------- */
+  (function(){
+    const w=48, h=16, g=blank(w,h);
+    fill(g,0,13,w,3,'#');
+    fill(g,26,6,17,3,'#');                   // corridor ceiling, cols 26..42
+    put(g,45,12,'D');
+    const collapse = [
+      {op:'sfx',   name:'rumble', delay:0},
+      {op:'shake', amount:7,      delay:0},
+      {op:'set', x:20,y:13,w:1,h:1,ch:'.',delay:0.00},
+      {op:'set', x:21,y:13,w:1,h:1,ch:'.',delay:0.08},
+      {op:'set', x:22,y:13,w:1,h:1,ch:'.',delay:0.16},
+      {op:'set', x:20,y:14,w:3,h:1,ch:'.',delay:0.26},
+      {op:'set', x:20,y:15,w:3,h:1,ch:'^',delay:0.44},
+      {op:'sfx',   name:'spike',  delay:0.44}
+    ];
+    const trap2 = [
+      {op:'shake', amount:5,      delay:0},
+      {op:'sfx',   name:'rumble', delay:0},
+      {op:'warn',  x:43,y:12,w:2,h:4,dur:1.5},
+      {op:'set',   x:43,y:13,w:2,h:1,ch:'.',delay:1.50},
+      {op:'set',   x:43,y:14,w:2,h:1,ch:'.',delay:1.65},
+      {op:'set',   x:43,y:15,w:2,h:1,ch:'^',delay:1.80}
+    ];
+    out.push({
+      name:'Final Gauntlet',
+      hint:'You have learned nothing. Good luck.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:6},  ops:collapse },
+        { when:{x:28}, ops:[
+          {op:'sfx',   name:'rumble', delay:0},
+          {op:'warn',  x:30,y:9,w:9,h:4,dur:0.75},
+          {op:'shake', amount:9,      delay:0.75},
+          {op:'set', x:30,y:9, w:9,h:1,ch:'#',delay:0.75},
+          {op:'set', x:30,y:10,w:9,h:1,ch:'#',delay:1.35},
+          {op:'set', x:30,y:11,w:9,h:1,ch:'#',delay:1.95},
+          {op:'set', x:30,y:12,w:9,h:1,ch:'#',delay:2.55},
+          {op:'sfx',   name:'rumble', delay:2.55},
+          {op:'shake', amount:8,      delay:2.55},
+          {op:'set', x:30,y:12,w:9,h:1,ch:'.',delay:4.20},
+          {op:'set', x:30,y:11,w:9,h:1,ch:'.',delay:4.60},
+          {op:'set', x:30,y:10,w:9,h:1,ch:'.',delay:5.00},
+          {op:'set', x:30,y:9, w:9,h:1,ch:'.',delay:5.40}
+        ]},
+        { when:{x:26}, ops:trap2 }
+      ]
+    });
+  })();
+
+  /* ---------- 7. the wall of spikes that follows you ---------- */
+  (function(){
+    const w=44, h=16, g=blank(w,h);
+    fill(g,0,13,w,3,'#');
+    put(g,14,12,'#'); put(g,30,12,'#');      // low blocks to hurdle
+    put(g,41,12,'D');
+    const wall = [
+      {op:'sfx',   name:'rumble', delay:0},
+      {op:'shake', amount:9,      delay:0},
+      {op:'warn',  x:0,y:12,w:11,h:1,dur:0.7}
+    ];
+    for (let i = 0; i < 39; i++)
+      wall.push({op:'set', x:i, y:12, w:1, h:1, ch:'^', delay:0.7 + i*0.30});
+    out.push({
+      name:'Shadow of the Wall',
+      hint:'Something is spreading towards you. Walking will not be enough.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[ { when:{x:3}, ops:wall } ]
+    });
+  })();
+
+  /* ---------- 8. the bridge, and the landing, are liars ---------- */
+  (function(){
+    const w=44, h=16, g=blank(w,h);
+    fill(g,0,13,8,3,'#');                    // solid start
+    fill(g,8,15,22,1,'^');                   // spikes along the chasm floor
+    put(g,9,13,'#');  put(g,10,13,'#'); put(g,11,13,'#');   // bridge: honest
+    put(g,14,13,'g'); put(g,15,13,'g');      // bridge: lies
+    put(g,18,13,'f'); put(g,19,13,'f');      // bridge: drops away
+    put(g,22,13,'g'); put(g,23,13,'g');      // bridge: lies
+    put(g,26,13,'g'); put(g,27,13,'g');      // so is the spot you land on
+    fill(g,30,13,14,3,'#');                  // the far side
+    put(g,40,12,'D');
+    out.push({
+      name:'The Bridge Is a Liar',
+      hint:'The bridge looks solid. So does the place you land on.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:5},  ops:[
+          {op:'sfx',   name:'rumble', delay:0},
+          {op:'shake', amount:7,      delay:0},
+          {op:'warn',  x:8,y:12,w:22,h:2,dur:0.7}
+        ]},
+        { when:{x:25}, ops:[
+          {op:'sfx',   name:'rumble', delay:0},
+          {op:'shake', amount:6,      delay:0}
+        ]}
+      ]
+    });
+  })();
+
+  /* ---------- 9. the floor leaves, the ceiling arrives ---------- */
+  (function(){
+    const w=46, h=16, g=blank(w,h);
+    fill(g,0,13,w,1,'#');                    // a single tile of floor
+    fill(g,0,15,w,1,'^');                    // and a long way down
+    fill(g,14,13,3,1,'.');                   // one honest hole to jump
+    fill(g,5,5,33,3,'#');                    // the ceiling, for now
+    put(g,43,12,'D');
+    const ops = [
+      {op:'sfx',   name:'rumble', delay:0},
+      {op:'shake', amount:8,      delay:0},
+      {op:'warn',  x:5,y:8,w:33,h:5,dur:0.6},
+      {op:'sfx',   name:'rumble', delay:1.6},
+      {op:'shake', amount:9,      delay:1.6},
+      {op:'set',   x:5,y:8, w:33,h:1,ch:'#',delay:1.60},
+      {op:'sfx',   name:'rumble', delay:2.6},
+      {op:'set',   x:5,y:9, w:33,h:1,ch:'#',delay:2.60},
+      {op:'sfx',   name:'rumble', delay:3.6},
+      {op:'set',   x:5,y:10,w:33,h:1,ch:'#',delay:3.60},
+      {op:'sfx',   name:'rumble', delay:4.6},
+      {op:'set',   x:5,y:11,w:33,h:1,ch:'#',delay:4.60},
+      {op:'sfx',   name:'rumble', delay:5.6},
+      {op:'shake', amount:12,     delay:5.6},
+      {op:'set',   x:5,y:12,w:33,h:1,ch:'#',delay:5.60}
+    ];
+    for (let i = 0; i < 39; i++)
+      ops.push({op:'set', x:i, y:13, w:1, h:1, ch:'.', delay:0.9 + i*0.18});
+    out.push({
+      name:'The Vise',
+      hint:'The floor is leaving. The ceiling is arriving. Do the math.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[ { when:{x:4}, ops:ops } ]
+    });
+  })();
+
+  /* ---------- 10. the door changes its mind ---------- */
+  (function(){
+    const w=40, h=16, g=blank(w,h);
+    fill(g,0,13,15,3,'#');                   // left ground
+    fill(g,15,15,3,1,'^');                   // the hole between
+    fill(g,18,13,22,3,'#');                  // right ground
+    put(g,22,12,'D');
+    out.push({
+      name:'Not That Way',
+      hint:'The door went back the way you came. Try not to think about it too hard.',
+      w:w, h:h, grid:g, spawn:{x:2,y:12},
+      triggers:[
+        { when:{x:20}, ops:[
+          {op:'sfx',   name:'door',   delay:0},
+          {op:'shake', amount:7,      delay:0},
+          {op:'door',  x:4, y:12,     delay:0.15},
+          {op:'poof',  x:22, y:12,    delay:0.15},
+          {op:'warn',  x:30,y:11,w:4,h:2,dur:0.45},
+          {op:'sfx',   name:'rumble', delay:0.45},
+          {op:'shake', amount:9,      delay:0.45},
+          {op:'set',   x:30,y:11,w:4,h:1,ch:'#',delay:0.45},
+          {op:'set',   x:30,y:12,w:4,h:1,ch:'#',delay:0.55},
+          {op:'sfx',   name:'rumble', delay:5.6},
+          {op:'set',   x:30,y:11,w:4,h:1,ch:'.',delay:5.60},
+          {op:'set',   x:30,y:12,w:4,h:1,ch:'.',delay:5.70}
+        ]}
+      ]
+    });
+  })();
+
+  return out;
+}
+
+// ---------------------------------------------------------------- game state
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const el = {
+  lvl: document.getElementById('lvl'),
+  lvlname: document.getElementById('lvlname'),
+  deaths: document.getElementById('deaths'),
+  intro: document.getElementById('intro'),
+  overlay: document.getElementById('overlay'),
+  ovTitle: document.getElementById('ovTitle'),
+  ovText: document.getElementById('ovText'),
+  ovBtn: document.getElementById('ovBtn'),
+  err: document.getElementById('err')
+};
+
+const LEVELS = buildLevels();
+let levelIndex = 0;
+let L = null;              // current level (runtime copy)
+let grid = null;
+
+let state = 'title';       // title | play | dying | win | finish | paused
+let prevState = 'play';
+let gameTime = 0;
+let timers = [];
+let tileTimers = new Map();
+let fallers = [];
+let particles = [];
+let warns = [];
+let shake = 0;
+let deathTimer = 0;
+let totalDeaths = 0;
+let levelDeaths = 0;
+let winTimer = 0;
+
+const camera = { x:0, shakeX:0, shakeY:0 };
+
+const p = {
+  x:0, y:0, vx:0, vy:0,
+  onGround:false, coyote:0, face:1,
+  squash:1, wasGround:false, runPhase:0
+};
+let jumpBuffer = 0;
+
+const keys = { left:false, right:false, jump:false };
+
+// ---------------------------------------------------------------- input
+function keyDown(e){
+  const k = e.key;
+  const lower = k.length === 1 ? k.toLowerCase() : k;
+  if (k === ' ' || k === 'ArrowUp' || k === 'ArrowDown' || k === 'ArrowLeft' || k === 'ArrowRight') e.preventDefault();
+
+  if (k === 'ArrowLeft'  || lower === 'a') keys.left = true;
+  if (k === 'ArrowRight' || lower === 'd') keys.right = true;
+  if (k === ' ' || k === 'ArrowUp' || lower === 'w' || lower === 'z') {
+    if (!keys.jump) jumpBuffer = JUMP_BUFFER;
+    keys.jump = true;
+  }
+  if (lower === 'r' && (state === 'play' || state === 'paused')) restartLevel(false);
+  if (lower === 'm') updateMuteBtn(Sfx.toggle());
+  if (k === 'Escape') togglePause();
+  Sfx.resume();
+}
+function keyUp(e){
+  const k = e.key;
+  const lower = k.length === 1 ? k.toLowerCase() : k;
+  if (k === 'ArrowLeft'  || lower === 'a') keys.left = false;
+  if (k === 'ArrowRight' || lower === 'd') keys.right = false;
+  if (k === ' ' || k === 'ArrowUp' || lower === 'w' || lower === 'z') keys.jump = false;
+}
+window.addEventListener('keydown', keyDown);
+window.addEventListener('keyup', keyUp);
+function onBlur(){ keys.left = keys.right = keys.jump = false; }
+window.addEventListener('blur', onBlur);
+
+// touch buttons
+Array.prototype.forEach.call(document.querySelectorAll('.tbtn'), function(btn){
+  const k = btn.dataset.k;
+  const on  = function(e){ e.preventDefault(); Sfx.resume();
+    if (k === 'jump') { if (!keys.jump) jumpBuffer = JUMP_BUFFER; keys.jump = true; }
+    else keys[k] = true;
+  };
+  const off = function(e){ e.preventDefault(); keys[k] = false; };
+  btn.addEventListener('touchstart', on, {passive:false});
+  btn.addEventListener('touchend', off, {passive:false});
+  btn.addEventListener('touchcancel', off, {passive:false});
+  btn.addEventListener('mousedown', on);
+  btn.addEventListener('mouseup', off);
+  btn.addEventListener('mouseleave', off);
+});
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) document.body.classList.add('touch');
+
+document.getElementById('btnRestart').addEventListener('click', function(){ Sfx.resume(); restartLevel(false); });
+document.getElementById('btnMute').addEventListener('click', function(){ Sfx.resume(); updateMuteBtn(Sfx.toggle()); });
+el.ovBtn.addEventListener('click', onOverlayButton);
+
+function updateMuteBtn(muted){
+  document.getElementById('btnMute').textContent = muted ? '🔇' : '🔊';
+}
+
+// ---------------------------------------------------------------- level lifecycle
+function loadLevel(i){
+  levelIndex = clamp(i, 0, LEVELS.length - 1);
+  L = LEVELS[levelIndex];
+  grid = L.grid.map(function(row){ return row.slice(); });
+  respawn();
+  el.lvl.textContent = 'LEVEL ' + (levelIndex + 1);
+  el.lvlname.textContent = L.name;
+  el.deaths.textContent = '💀 ' + totalDeaths;
+  showIntro(L.name, L.hint);
+}
+
+function respawn(){
+  const s = L.spawn;
+  p.x = s.x * TILE + (TILE - PW) / 2;
+  p.y = s.y * TILE + (TILE - PH);
+  p.vx = p.vy = 0;
+  p.onGround = false; p.coyote = 0; p.squash = 1; p.face = 1; p.runPhase = 0;
+  jumpBuffer = 0;
+  timers = [];
+  tileTimers = new Map();
+  fallers = [];
+  particles = [];
+  warns = [];
+  shake = 0;
+  // restore every trigger and the door so the level is fresh
+  grid = L.grid.map(function(row){ return row.slice(); });
+  for (let i = 0; i < L.triggers.length; i++) L.triggers[i].fired = false;
+  L.door = null;
+  camera.x = camTarget(true);
+}
+
+function restartLevel(){
+  if (state === 'finish' || state === 'title') return;
+  respawn();
+  state = 'play';
+  el.ovBtn.dataset.act = '';
+  hideOverlay();
+  showIntro(L.name, L.hint);
+}
+
+function showIntro(name, hint){
+  el.intro.querySelector('.iname').textContent = name;
+  el.intro.querySelector('.ihint').textContent = hint || '';
+  el.intro.classList.add('show');
+  clearTimeout(showIntro._t);
+  showIntro._t = setTimeout(function(){ el.intro.classList.remove('show'); }, 2400);
+}
+
+function hideOverlay(){ el.overlay.classList.add('hide'); }
+
+function showOverlay(title, text, btn, cls){
+  el.ovTitle.textContent = title;
+  el.ovTitle.className = cls || '';
+  el.ovText.innerHTML = text;
+  el.ovBtn.textContent = btn;
+  el.overlay.classList.remove('hide');
+}
+
+function onOverlayButton(){
+  Sfx.resume();
+  if (state === 'title') { totalDeaths = 0; levelDeaths = 0; loadLevel(0); state = 'play'; hideOverlay(); }
+  else if (state === 'finish') { totalDeaths = 0; levelDeaths = 0; loadLevel(0); state = 'play'; hideOverlay(); }
+  else if (state === 'paused') { state = 'play'; hideOverlay(); el.ovBtn.dataset.act = ''; }
+}
+
+function togglePause(){
+  if (state === 'play') { prevState = state; state = 'paused';
+    showOverlay('PAUSED', 'Take a breath. The level is not going anywhere — unlike some floors.', 'Resume', '');
+    el.ovBtn.dataset.act = 'resume';
+  } else if (state === 'paused') { state = 'play'; hideOverlay(); el.ovBtn.dataset.act = ''; }
+}
+
+// ---------------------------------------------------------------- timers / ops
+function later(delay, fn){ timers.push({ t: gameTime + delay, fn: fn }); }
+
+function scheduleTile(tx, ty, delay, fn){
+  const k = tx + ',' + ty;
+  if (tileTimers.has(k)) return;
+  tileTimers.set(k, { t: gameTime + delay, fn: fn, k: k });
+}
+
+function applyOps(ops){
+  for (let i = 0; i < ops.length; i++){
+    const op = ops[i];
+    if (op.delay) later(op.delay, makeApply(op));
+    else makeApply(op)();
+  }
+}
+function makeApply(op){
+  return function(){ applyOp(op); };
+}
+
+function applyOp(op){
+  switch (op.op){
+    case 'set': {
+      for (let y = op.y; y < op.y + (op.h || 1); y++){
+        const row = grid[y]; if (!row) continue;
+        for (let x = op.x; x < op.x + (op.w || 1); x++){
+          if (x < 0 || x >= L.w) continue;
+          row[x] = op.ch;
+        }
+      }
+      // a tile that appears inside you is a very bad tile
+      if (isSolid(op.ch) && overlapsPlayer(op.x, op.y, op.w || 1, op.h || 1)) killPlayer('crush');
+      else if (isSpike(op.ch) && overlapsPlayer(op.x, op.y, op.w || 1, op.h || 1)) killPlayer('spike');
+      break;
+    }
+    case 'warn':
+      warns.push({ x:op.x, y:op.y, w:op.w||1, h:op.h||1, until: gameTime + (op.dur||0.4), dur: op.dur||0.4 });
+      break;
+    case 'shake': shake = Math.max(shake, op.amount || 6); break;
+    case 'sfx':   if (Sfx[op.name]) Sfx[op.name](); break;
+    case 'door':  L.door = { x:op.x, y:op.y }; break;
+    case 'poof':  burst((op.x + 0.5) * TILE, (op.y + 0.5) * TILE, '#8d7dff', 14); break;
+  }
+}
+
+function overlapsPlayer(tx, ty, tw, th){
+  const bx = tx * TILE, by = ty * TILE, bw = tw * TILE, bh = th * TILE;
+  return p.x < bx + bw && p.x + PW > bx && p.y < by + bh && p.y + PH > by;
+}
+
+function burst(x, y, color, n){
+  for (let i = 0; i < n; i++){
+    const a = Math.random() * Math.PI * 2, s = 40 + Math.random() * 190;
+    particles.push({
+      x:x, y:y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 70,
+      life: 0.35 + Math.random()*0.45, max: 0.8,
+      size: 2 + Math.random()*3, color: color
+    });
+  }
+}
+
+function spawnFaller(tx, ty){
+  fallers.push({ x: tx*TILE, y: ty*TILE, vy: 0, a: 0, rot: (Math.random()-0.5)*0.2 });
+}
+
+// ---------------------------------------------------------------- queries
+function tileAt(tx, ty){
+  if (tx < 0 || tx >= L.w || ty < 0 || ty >= L.h) return '.';
+  return grid[ty][tx];
+}
+function solidAt(tx, ty){
+  if (tx < 0 || tx >= L.w) return true;   // level walls
+  if (ty < 0 || ty >= L.h) return false;
+  return isSolid(grid[ty][tx]);
+}
+function doorPos(){
+  if (L.door) return L.door;
+  for (let y = 0; y < L.h; y++) for (let x = 0; x < L.w; x++) if (grid[y][x] === 'D') return {x:x, y:y};
+  return {x:L.w-2, y:L.h-4};
+}
+
+// ---------------------------------------------------------------- death / win
+function killPlayer(){
+  if (state !== 'play') return;
+  state = 'dying';
+  deathTimer = DEATH_PAUSE;
+  totalDeaths++; levelDeaths++;
+  shake = 14;
+  burst(p.x + PW/2, p.y + PH/2, '#ff4d5e', 26);
+  burst(p.x + PW/2, p.y + PH/2, '#ffffff', 10);
+  Sfx.death();
+  el.deaths.textContent = '💀 ' + totalDeaths;
+}
+
+function completeLevel(){
+  if (state !== 'play') return;
+  state = 'win';
+  winTimer = 0.75;
+  burst(p.x + PW/2, p.y + PH/2, '#ffd166', 22);
+  Sfx.door();
+}
+
+function nextLevel(){
+  if (levelIndex + 1 >= LEVELS.length){
+    state = 'finish';
+    showOverlay('YOU ESCAPED',
+      'All ' + LEVELS.length + ' levels survived with <b>' + totalDeaths + '</b> death' + (totalDeaths === 1 ? '' : 's') + '.<br>' +
+      'The door never stood a chance.',
+      'Play again', 'gold');
+  } else {
+    loadLevel(levelIndex + 1);
+    state = 'play';
+  }
+}
+
+// ---------------------------------------------------------------- physics
+function stepPhysics(dt){
+  gameTime += dt;
+
+  // ---- timers
+  for (let i = timers.length - 1; i >= 0; i--){
+    const tm = timers[i];
+    if (gameTime >= tm.t){ timers.splice(i,1); tm.fn(); }
+  }
+  if (tileTimers.size){
+    const due = [];
+    tileTimers.forEach(function(v){ if (gameTime >= v.t) due.push(v); });
+    for (let i = 0; i < due.length; i++){ tileTimers.delete(due[i].k); due[i].fn(); }
+  }
+
+  if (state === 'play') updatePlayer(dt);
+
+  // ---- decaying effects
+  shake = Math.max(0, shake - dt * 26);
+  for (let i = warns.length - 1; i >= 0; i--) if (gameTime >= warns[i].until) warns.splice(i,1);
+  for (let i = particles.length - 1; i >= 0; i--){
+    const pt = particles[i];
+    pt.vy += 1400 * dt; pt.x += pt.vx*dt; pt.y += pt.vy*dt; pt.life -= dt;
+    if (pt.life <= 0) particles.splice(i,1);
+  }
+  for (let i = fallers.length - 1; i >= 0; i--){
+    const f = fallers[i];
+    f.vy += GRAVITY * dt; f.y += f.vy * dt; f.a += f.rot * dt * 2;
+    if (f.y > L.h * TILE + 120) fallers.splice(i,1);
+  }
+}
+
+function updatePlayer(dt){
+  // horizontal
+  const dir = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+  if (dir !== 0){
+    p.vx += dir * (p.onGround ? MOVE_ACCEL : AIR_ACCEL) * dt;
+    p.vx = clamp(p.vx, -MAX_SPEED, MAX_SPEED);
+    p.face = dir;
+  } else {
+    const f = (p.onGround ? FRICTION : AIR_ACCEL * 0.55) * dt;
+    if (Math.abs(p.vx) <= f) p.vx = 0;
+    else p.vx -= (p.vx > 0 ? 1 : -1) * f;
+  }
+
+  // coyote + buffered jump
+  p.coyote = p.onGround ? COYOTE : Math.max(0, p.coyote - dt);
+  if (jumpBuffer > 0) jumpBuffer -= dt;
+  if (jumpBuffer > 0 && p.coyote > 0){
+    p.vy = -JUMP_V;
+    p.onGround = false;
+    p.coyote = 0;
+    jumpBuffer = 0;
+    p.squash = 0.82;
+    Sfx.jump();
+  }
+
+  // gravity + variable height
+  p.vy += GRAVITY * dt;
+  if (!keys.jump && p.vy < -JUMP_MIN_V) p.vy = -JUMP_MIN_V;
+  if (p.vy > MAX_FALL) p.vy = MAX_FALL;
+
+  moveAxis(dt, true);
+  moveAxis(dt, false);
+
+  // landing feedback
+  if (p.onGround && !p.wasGround) { p.squash = 1.22; Sfx.land(); }
+  p.wasGround = p.onGround;
+  p.squash += (1 - p.squash) * Math.min(1, dt * 14);
+  if (p.onGround) p.runPhase += Math.abs(p.vx) * dt * 0.06;
+
+  // ---- tile interactions
+  interactTiles();
+
+  // ---- hazards
+  if (state !== 'play') return;
+  const x0 = Math.floor(p.x / TILE), x1 = Math.floor((p.x + PW - 0.01) / TILE);
+  const y0 = Math.floor(p.y / TILE), y1 = Math.floor((p.y + PH - 0.01) / TILE);
+  for (let ty = y0; ty <= y1; ty++)
+    for (let tx = x0; tx <= x1; tx++)
+      if (isSpike(tileAt(tx, ty))) { killPlayer(); return; }
+
+  if (p.y > L.h * TILE + 60) { killPlayer(); return; }
+
+  // ---- triggers
+  for (let i = 0; i < L.triggers.length; i++){
+    const t = L.triggers[i];
+    if (t.fired) continue;
+    if (checkWhen(t.when)) { t.fired = true; applyOps(t.ops); if (state !== 'play') return; }
+  }
+
+  // ---- door
+  const d = doorPos();
+  const dx = d.x * TILE, dy = d.y * TILE;
+  if (p.x < dx + TILE - 6 && p.x + PW > dx + 6 && p.y < dy + TILE - 4 && p.y + PH > dy + 6) completeLevel();
+}
+
+function checkWhen(w){
+  if (!w) return true;
+  const pt = { x: Math.floor((p.x + PW/2) / TILE), y: Math.floor((p.y + PH - 1) / TILE) };
+  if (w.x !== undefined && pt.x < w.x) return false;
+  if (w.yAbove !== undefined && pt.y > w.yAbove) return false;
+  if (w.yBelow !== undefined && pt.y < w.yBelow) return false;
+  return true;
+}
+
+function moveAxis(dt, horizontal){
+  if (horizontal){ p.x += p.vx * dt; } else { p.y += p.vy * dt; }
+
+  const bx = p.x, by = p.y;
+  const x0 = Math.floor(bx / TILE), x1 = Math.floor((bx + PW - 0.01) / TILE);
+  const y0 = Math.floor(by / TILE), y1 = Math.floor((by + PH - 0.01) / TILE);
+
+  for (let ty = y0; ty <= y1; ty++){
+    for (let tx = x0; tx <= x1; tx++){
+      if (!solidAt(tx, ty)) continue;
+      if (horizontal){
+        if (p.vx > 0)      p.x = tx * TILE - PW;
+        else if (p.vx < 0) p.x = (tx + 1) * TILE;
+        p.vx = 0;
+      } else {
+        if (p.vy > 0){ p.y = ty * TILE - PH; p.onGround = true; }
+        else if (p.vy < 0){ p.y = (ty + 1) * TILE; }
+        p.vy = 0;
+      }
+      return;
+    }
+  }
+  if (!horizontal) p.onGround = false;
+}
+
+function interactTiles(){
+  // feet row: falling platforms
+  const footY = Math.floor((p.y + PH + 1) / TILE);
+  const cxa = Math.floor(p.x / TILE), cxb = Math.floor((p.x + PW - 1) / TILE);
+  for (let tx = cxa; tx <= cxb; tx++){
+    if (tileAt(tx, footY) === 'f' && p.vy >= 0){
+      (function(txx){
+        scheduleTile(txx, footY, FALL_DELAY, function(){
+          if (tileAt(txx, footY) !== 'f') return;
+          grid[footY][txx] = '.';
+          spawnFaller(txx, footY);
+          Sfx.rumble();
+        });
+      })(tx);
+    }
+  }
+  // body: fake tiles
+  const x0 = Math.floor(p.x / TILE), x1 = Math.floor((p.x + PW - 0.01) / TILE);
+  const y0 = Math.floor(p.y / TILE), y1 = Math.floor((p.y + PH - 0.01) / TILE);
+  for (let ty = y0; ty <= y1; ty++){
+    for (let tx = x0; tx <= x1; tx++){
+      if (tileAt(tx, ty) === 'g'){
+        (function(txx, tyy){
+          scheduleTile(txx, tyy, GHOST_DELAY, function(){
+            if (tileAt(txx, tyy) !== 'g') return;
+            grid[tyy][txx] = '.';
+            burst((txx + 0.5) * TILE, (tyy + 0.5) * TILE, '#8d7dff', 8);
+            Sfx.step();
+          });
+        })(tx, ty);
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------- camera
+function camTarget(snap){
+  const w = L.w * TILE;
+  if (w <= VIEW_W) return (w - VIEW_W) / 2;
+  return clamp(p.x + PW/2 - VIEW_W/2, 0, w - VIEW_W);
+}
+
+// ---------------------------------------------------------------- rendering
+let stars = null;
+function initStars(){
+  stars = [];
+  for (let i = 0; i < 70; i++){
+    stars.push({ x: Math.random(), y: Math.random() * 0.72, r: 0.6 + Math.random() * 1.5, p: Math.random() * 6.28 });
+  }
+}
+
+function render(){
+  const camX = camera.x;
+
+  // ---------- background
+  const bg = ctx.createLinearGradient(0, 0, 0, VIEW_H);
+  bg.addColorStop(0, '#151a26');
+  bg.addColorStop(0.55, '#10141d');
+  bg.addColorStop(1, '#0a0d13');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+
+  // parallax stars / dust
+  ctx.save();
+  for (let i = 0; i < stars.length; i++){
+    const s = stars[i];
+    const sx = ((s.x * VIEW_W - camX * 0.22) % VIEW_W + VIEW_W) % VIEW_W;
+    const tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(gameTime * 1.6 + s.p));
+    ctx.globalAlpha = 0.30 * tw;
+    ctx.fillStyle = '#9fb4d8';
+    ctx.fillRect(sx, s.y * VIEW_H, s.r, s.r);
+  }
+  ctx.restore();
+
+  ctx.translate(camera.shakeX, camera.shakeY);
+
+  // ---------- warning markers (under tiles)
+  for (let i = 0; i < warns.length; i++){
+    const w = warns[i];
+    const life = (w.until - gameTime) / w.dur;
+    const pulse = 0.10 + 0.22 * (0.5 + 0.5 * Math.sin(gameTime * 42));
+    ctx.globalAlpha = clamp(life, 0, 1) * pulse * 2.0;
+    ctx.fillStyle = '#ff4d5e';
+    ctx.fillRect(w.x*TILE - camX, w.y*TILE, w.w*TILE, w.h*TILE);
+    ctx.globalAlpha = clamp(life, 0, 1) * 0.85;
+    ctx.strokeStyle = '#ff8a95';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(w.x*TILE - camX + 1, w.y*TILE + 1, w.w*TILE - 2, w.h*TILE - 2);
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------- tiles
+  const c0 = Math.max(0, Math.floor(camX / TILE) - 1);
+  const c1 = Math.min(L.w - 1, Math.ceil((camX + VIEW_W) / TILE) + 1);
+  for (let ty = 0; ty < L.h; ty++){
+    for (let tx = c0; tx <= c1; tx++){
+      const ch = grid[ty][tx];
+      if (ch === '.') continue;
+      drawTile(ch, tx*TILE - camX, ty*TILE, tx, ty);
+    }
+  }
+
+  // ---------- falling tiles
+  for (let i = 0; i < fallers.length; i++){
+    const f = fallers[i];
+    ctx.save();
+    ctx.translate(f.x - camX + TILE/2, f.y + TILE/2);
+    ctx.rotate(f.a);
+    ctx.globalAlpha = clamp(1 - (f.y - (L.h * TILE - 200)) / 200, 0, 1);
+    drawBlock(-TILE/2, -TILE/2, TILE, TILE, '#5b6b86', true);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  // ---------- door
+  drawDoor(doorPos(), camX);
+
+  // ---------- particles
+  for (let i = 0; i < particles.length; i++){
+    const pt = particles[i];
+    ctx.globalAlpha = clamp(pt.life / 0.6, 0, 1);
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x - camX, pt.y, pt.size, pt.size);
+  }
+  ctx.globalAlpha = 1;
+
+  // ---------- player
+  if (state !== 'dying' || deathTimer > DEATH_PAUSE - 0.18) drawPlayer(camX);
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // ---------- offscreen door arrow
+  drawDoorArrow(camX);
+
+  // ---------- vignette
+  const vg = ctx.createRadialGradient(VIEW_W/2, VIEW_H/2, VIEW_H*0.35, VIEW_W/2, VIEW_H/2, VIEW_H*0.95);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, VIEW_W, VIEW_H);
+}
+
+function drawBlock(x, y, w, h, col, highlight){
+  ctx.fillStyle = col;
+  ctx.fillRect(x, y, w, h);
+  if (highlight){
+    ctx.fillStyle = 'rgba(255,255,255,0.10)';
+    ctx.fillRect(x, y, w, 3);
+  }
+  ctx.fillStyle = 'rgba(0,0,0,0.22)';
+  ctx.fillRect(x, y + h - 3, w, 3);
+}
+
+function drawTile(ch, sx, sy, tx, ty){
+  if (ch === '#'){
+    drawBlock(sx, sy, TILE, TILE, '#3d4a63', true);
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.fillRect(sx + 1, sy + 1, TILE - 2, 1);
+    ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sx + 0.5, sy + 0.5, TILE - 1, TILE - 1);
+    return;
+  }
+  if (ch === 'f'){
+    drawBlock(sx, sy, TILE, TILE, '#3d4a63', true);
+    ctx.strokeStyle = 'rgba(255,120,120,0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sx + 6, sy + 5);  ctx.lineTo(sx + 14, sy + 15);
+    ctx.lineTo(sx + 9,  sy + 25);
+    ctx.moveTo(sx + 14, sy + 15); ctx.lineTo(sx + 25, sy + 19);
+    ctx.moveTo(sx + 6,  sy + 5);  ctx.lineTo(sx + 21, sy + 7);
+    ctx.stroke();
+    return;
+  }
+  if (ch === 'g'){
+    // deliberately identical to solid rock — that is the joke
+    drawBlock(sx, sy, TILE, TILE, '#3d4a63', true);
+    ctx.fillStyle = 'rgba(255,255,255,0.045)';
+    ctx.fillRect(sx + 1, sy + 1, TILE - 2, 1);
+    ctx.strokeStyle = 'rgba(0,0,0,0.30)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(sx + 0.5, sy + 0.5, TILE - 1, TILE - 1);
+    return;
+  }
+  if (ch === '^' || ch === 'v'){
+    const up = ch === '^';
+    const g = ctx.createLinearGradient(0, sy, 0, sy + TILE);
+    if (up){ g.addColorStop(0, '#ff8a95'); g.addColorStop(1, '#c0202f'); }
+    else   { g.addColorStop(0, '#c0202f'); g.addColorStop(1, '#ff8a95'); }
+    ctx.fillStyle = g;
+    const base = up ? sy + TILE : sy;
+    for (let k = 0; k < 4; k++){
+      const x = sx + k * 8;
+      ctx.beginPath();
+      ctx.moveTo(x, base);
+      ctx.lineTo(x + 4, up ? sy + 3 : sy + TILE - 3);
+      ctx.lineTo(x + 8, base);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.22)';
+    ctx.fillRect(sx, up ? sy + TILE - 3 : sy, TILE, 3);
+    return;
+  }
+}
+
+function drawDoor(d, camX){
+  const x = d.x * TILE - camX, y = d.y * TILE;
+  const pulse = 0.5 + 0.5 * Math.sin(gameTime * 3);
+  ctx.save();
+  // glow
+  const g = ctx.createRadialGradient(x + TILE/2, y + TILE/2, 2, x + TILE/2, y + TILE/2, TILE * 1.7);
+  g.addColorStop(0, 'rgba(255,209,102,' + (0.34 + 0.16 * pulse) + ')');
+  g.addColorStop(1, 'rgba(255,209,102,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - TILE * 1.7, y - TILE * 1.7, TILE * 4.4, TILE * 4.4);
+
+  // frame
+  ctx.fillStyle = '#ffd166';
+  roundRect(ctx, x + 3, y + 1, TILE - 6, TILE - 2, 5);
+  ctx.fill();
+  // opening
+  ctx.fillStyle = '#241c08';
+  roundRect(ctx, x + 6, y + 4, TILE - 12, TILE - 5, 4);
+  ctx.fill();
+  // shimmer inside
+  ctx.globalAlpha = 0.35 + 0.35 * pulse;
+  ctx.fillStyle = '#ffe9a8';
+  roundRect(ctx, x + 8, y + 6, TILE - 16, TILE - 11, 3);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  // knob
+  ctx.fillStyle = '#ffd166';
+  ctx.beginPath(); ctx.arc(x + TILE - 10, y + TILE/2 + 2, 1.9, 0, 6.29); ctx.fill();
+  ctx.restore();
+}
+
+function drawDoorArrow(camX){
+  const d = doorPos();
+  const dx = d.x * TILE + TILE/2 - camX;
+  if (dx >= 0 && dx <= VIEW_W) return;
+  const right = dx > VIEW_W;
+  const ax = right ? VIEW_W - 26 : 26;
+  const ay = clamp(p.y + PH/2, 40, VIEW_H - 40);
+  const pulse = 0.55 + 0.45 * Math.sin(gameTime * 5);
+  ctx.save();
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = '#ffd166';
+  ctx.beginPath();
+  if (right) { ctx.moveTo(ax + 12, ay); ctx.lineTo(ax - 4, ay - 10); ctx.lineTo(ax - 4, ay + 10); }
+  else       { ctx.moveTo(ax - 12, ay); ctx.lineTo(ax + 4, ay - 10); ctx.lineTo(ax + 4, ay + 10); }
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawPlayer(camX){
+  const x = p.x - camX + PW/2, y = p.y + PH;
+  const stretch = 1 / p.squash;
+  const sx = p.squash, sy = stretch;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(sx, sy);
+  ctx.translate(0, -PH);
+
+  // body
+  const grad = ctx.createLinearGradient(0, 0, 0, PH);
+  grad.addColorStop(0, '#ffffff');
+  grad.addColorStop(1, '#c9d5e8');
+  ctx.fillStyle = grad;
+  roundRect(ctx, -PW/2, 0, PW, PH, 6);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(20,26,38,0.85)';
+  ctx.lineWidth = 1.6;
+  roundRect(ctx, -PW/2, 0, PW, PH, 6);
+  ctx.stroke();
+
+  // eyes track the door
+  const d = doorPos();
+  const tx = (d.x * TILE + TILE/2) - (p.x + PW/2);
+  const ty = (d.y * TILE + TILE/2) - (p.y + PH/2);
+  const len = Math.max(1, Math.hypot(tx, ty));
+  const lookX = clamp(tx / len * 2.0, -2.2, 2.2);
+  const lookY = clamp(ty / len * 1.4, -1.8, 1.8);
+  const bob = p.onGround ? Math.sin(p.runPhase) * 1.0 : 0;
+
+  ctx.fillStyle = '#141a26';
+  ctx.beginPath(); ctx.arc(-4 + lookX, 10 + lookY + bob, 3.0, 0, 6.29); ctx.fill();
+  ctx.beginPath(); ctx.arc( 4 + lookX, 10 + lookY + bob, 3.0, 0, 6.29); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath(); ctx.arc(-4 + lookX + 1.1, 10 + lookY - 1.1 + bob, 0.9, 0, 6.29); ctx.fill();
+  ctx.beginPath(); ctx.arc( 4 + lookX + 1.1, 10 + lookY - 1.1 + bob, 0.9, 0, 6.29); ctx.fill();
+
+  // mouth: worried in the air, content on the ground
+  ctx.strokeStyle = '#141a26';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  if (p.onGround) ctx.arc(0, 17, 3.2, 0.15 * Math.PI, 0.85 * Math.PI);
+  else            ctx.arc(0, 22, 3.0, 1.18 * Math.PI, 1.82 * Math.PI);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function roundRect(c, x, y, w, h, r){
+  if (w < 2*r) r = w/2;
+  if (h < 2*r) r = h/2;
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y,     x + w, y + h, r);
+  c.arcTo(x + w, y + h, x,     y + h, r);
+  c.arcTo(x,     y + h, x,     y,     r);
+  c.arcTo(x,     y,     x + w, y,     r);
+  c.closePath();
+}
+
+// ---------------------------------------------------------------- loop
+let dpr = 1;
+function resize(){
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width  = Math.round(VIEW_W * dpr);
+  canvas.height = Math.round(VIEW_H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener('resize', resize);
+
+let rafId = 0;
+let last = performance.now(), acc = 0;
+
+function frame(now){
+  rafId = requestAnimationFrame(frame);
+  let raw = (now - last) / 1000;
+  last = now;
+  if (raw > 0.25) raw = 0.25;          // tab was hidden
+
+  acc += raw;
+  let guard = 0;
+  while (acc >= STEP && guard++ < 12){
+    if (state === 'play' || state === 'dying' || state === 'win') stepPhysics(STEP);
+    acc -= STEP;
+  }
+  if (acc > STEP * 12) acc = 0;
+
+  if (state === 'dying'){
+    deathTimer -= raw;
+    if (deathTimer <= 0) { respawn(); state = 'play'; }
+  }
+  if (state === 'win'){
+    winTimer -= raw;
+    if (winTimer <= 0) nextLevel();
+  }
+
+  // smooth camera
+  const target = camTarget();
+  camera.x += (target - camera.x) * Math.min(1, raw * 12);
+  if (Math.abs(target - camera.x) < 0.4) camera.x = target;
+
+  camera.shakeX = (Math.random() * 2 - 1) * shake;
+  camera.shakeY = (Math.random() * 2 - 1) * shake;
+
+  render();
+}
+
+// ---------------------------------------------------------------- boot
+try {
+  initStars();
+  resize();
+  loadLevel(0);
+  state = 'title';
+  showOverlay('LEVEL DEVIL',
+    'Reach the door. The level will lie, collapse, crush and betray you.<br><br>' +
+    '<kbd>←</kbd> <kbd>→</kbd> move &nbsp; <kbd>Space</kbd> jump &nbsp; <kbd>R</kbd> retry',
+    'Start', 'red');
+  rafId = requestAnimationFrame(frame);
+} catch (e){
+  el.err.style.display = 'block';
+  el.err.textContent = 'Error: ' + (e && e.stack || e);
+}
+
+  return function stop(){
+    cancelAnimationFrame(rafId);
+    window.removeEventListener('keydown', keyDown);
+    window.removeEventListener('keyup', keyUp);
+    window.removeEventListener('blur', onBlur);
+    window.removeEventListener('resize', resize);
+    clearTimeout(showIntro._t);
+    document.body.classList.remove('touch');
+    Sfx.suspend();
+  };
+};
+
+
+</script>
+
+<script>
+(function () {
+    'use strict';
+
+    /* Shell: mount one game at a time and tear it down cleanly. */
+    var TITLES = {
+        hangman: "Hangman — Andrew's Projects",
+        devil: "Level Devil — Andrew's Projects"
+    };
+    var HOME_TITLE = "Andrew's Game Collection — Hangman & Level Devil";
+
+    var picker = document.getElementById('picker');
+    var viewport = document.getElementById('viewport');
+    var switchBtn = document.getElementById('switchBtn');
+    var stopFn = null;
+
+    function unmount() {
+        if (stopFn) {
+            try { stopFn(); } catch (e) { /* game already torn down */ }
+            stopFn = null;
+        }
+        viewport.innerHTML = '';
+    }
+
+    function mount(mode) {
+        var tpl = document.getElementById('tpl-' + mode);
+        if (!tpl || !window.__GAMES || !window.__GAMES[mode]) return;
+        unmount();
+        viewport.appendChild(tpl.content.cloneNode(true));
+        try {
+            stopFn = window.__GAMES[mode](viewport) || null;
+        } catch (e) {
+            stopFn = null;
+        }
+        picker.hidden = true;
+        switchBtn.hidden = false;
+        document.title = TITLES[mode];
+    }
+
+    function showPicker() {
+        unmount();
+        picker.hidden = false;
+        switchBtn.hidden = true;
+        document.title = HOME_TITLE;
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.pk-card'), function (card) {
+        card.addEventListener('click', function () { mount(card.dataset.mode); });
+    });
+    switchBtn.addEventListener('click', showPicker);
+    document.title = HOME_TITLE;
+})();
+</script>
+</body>
+</html>

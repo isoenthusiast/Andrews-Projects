@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Loading… — a game</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --gold1: #f7971e;
+        --gold2: #ffd200;
+        --muted: #a0a0c0;
+        --ok: #4ade80;
+        --bad: #f87171;
+        --dim: #6b6b8f;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        padding: 16px;
+        color: #fff;
+        overflow-x: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ---------------- fake OS window ---------------- */
+    .window {
+        position: relative;
+        z-index: 2;
+        width: min(760px, 100%);
+        background: rgba(18, 16, 38, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+        transition: transform .5s cubic-bezier(.5, -0.3, .5, 1.3), opacity .45s;
+    }
+    .window.gone { transform: scale(.72) translateY(70px); opacity: 0; pointer-events: none; }
+    .window.shake { animation: shake .3s; }
+    @keyframes shake {
+        25% { transform: translateX(-7px); }
+        50% { transform: translateX(7px); }
+        75% { transform: translateX(-4px); }
+    }
+
+    .titlebar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+    .wtitle { flex: 1; text-align: center; font-size: .76rem; color: var(--dim); letter-spacing: .5px; }
+    .closebtn {
+        width: 30px; height: 24px; border: none; border-radius: 6px;
+        background: transparent; color: var(--dim); font-size: .85rem;
+        cursor: pointer; transition: .18s; font-family: inherit;
+    }
+    .closebtn:hover { background: rgba(255, 95, 87, .85); color: #fff; }
+    .closebtn.ready { background: #ff5f57; color: #fff; animation: readyPulse 1s infinite; }
+    @keyframes readyPulse {
+        50% { box-shadow: 0 0 0 6px rgba(255, 95, 87, .28); }
+    }
+
+    .screen { padding: 20px 22px 18px; }
+
+    .brand {
+        display: flex; align-items: baseline; justify-content: center; gap: 10px;
+        margin-bottom: 14px; text-align: center;
+    }
+    .brand h1 {
+        font-size: 1.35rem; letter-spacing: 3px; text-transform: uppercase;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .brand span { font-size: .68rem; color: var(--dim); font-family: ui-monospace, Consolas, monospace; }
+
+    .modlist {
+        display: flex; flex-wrap: wrap; gap: 5px 16px; justify-content: center;
+        font-family: ui-monospace, Consolas, monospace; font-size: .7rem;
+        color: var(--dim); margin-bottom: 16px;
+    }
+    .mod { display: flex; align-items: center; gap: 5px; transition: color .3s; }
+    .mod .mstate { width: 1em; display: inline-block; }
+    .mod.active { color: var(--gold2); }
+    .mod.done { color: var(--ok); }
+    .mod.skip { color: #8b8bb0; text-decoration: line-through; }
+
+    .objective { font-size: 1.02rem; font-weight: 600; color: #e8e8ff; min-height: 3.1em; text-align: center; margin-bottom: 14px; }
+    .stage-no {
+        display: block; font-size: .66rem; font-weight: 700; letter-spacing: 3px;
+        color: var(--gold2); margin-bottom: 5px; opacity: .85;
+    }
+
+    /* ---------------- progress bar ---------------- */
+    .barwrap { width: 100%; max-width: 540px; margin: 0 auto; padding: 10px 0; }
+    .bar {
+        position: relative; height: 36px; border-radius: 10px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        cursor: pointer; touch-action: none; transition: border-color .2s, box-shadow .2s;
+    }
+    .bar:hover { border-color: rgba(255, 255, 255, 0.25); }
+    .bar.disabled { cursor: default; }
+    .bar.active { border-color: var(--gold2); box-shadow: 0 0 0 4px rgba(255, 210, 0, .14); }
+
+    .fill {
+        position: absolute; top: 0; left: 0; bottom: 0; width: 0%; overflow: hidden;
+        border-radius: 10px;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        box-shadow: 0 0 20px rgba(255, 210, 0, .45);
+        transition: width .12s linear;
+    }
+    .fill::after {
+        content: ''; position: absolute; inset: 0; opacity: .45;
+        background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, .35) 0 10px, transparent 10px 20px);
+        animation: stripes .7s linear infinite;
+    }
+    @keyframes stripes { to { background-position: 28px 0; } }
+
+    .pct {
+        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+        font-size: .8rem; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0, 0, 0, .65);
+        font-variant-numeric: tabular-nums; pointer-events: none;
+    }
+
+    .chunk {
+        position: absolute; top: 4px; left: calc(78% - 52px); height: 28px;
+        display: flex; align-items: center; padding: 0 11px; border-radius: 8px;
+        background: linear-gradient(180deg, #ff6b6b, #b03030); color: #fff;
+        font-size: .7rem; font-weight: 700; cursor: grab; touch-action: none; z-index: 3;
+        box-shadow: 0 4px 16px rgba(255, 80, 80, .5); animation: chunkPulse 1.1s ease-in-out infinite;
+    }
+    .chunk.dragging { cursor: grabbing; animation: none; z-index: 9; box-shadow: 0 14px 34px rgba(0, 0, 0, .55); }
+    .chunk.poof { transition: transform .25s, opacity .25s; transform: scale(.2) rotate(120deg) !important; opacity: 0; }
+    @keyframes chunkPulse { 50% { transform: translateY(-3px); } }
+
+    /* ---------------- stage area ---------------- */
+    #stageArea { min-height: 0; }
+
+    .row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 12px 0 4px; }
+
+    .captcha {
+        display: flex; gap: 14px; justify-content: center; margin: 8px 0 14px;
+        font-family: ui-monospace, Consolas, monospace; font-size: 2.1rem; font-weight: 800;
+    }
+    .captcha span { display: inline-block; text-shadow: 0 4px 12px rgba(0, 0, 0, .55); }
+    .captcha.shake { animation: shake .35s; }
+
+    .capInput {
+        font: inherit; font-size: .95rem; font-weight: 700; letter-spacing: 2px;
+        text-align: center; text-transform: uppercase; color: #fff;
+        background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .18);
+        border-radius: 10px; padding: 10px 14px; width: 200px; outline: none; transition: .2s;
+        user-select: text; -webkit-user-select: text;
+    }
+    .capInput:focus { border-color: var(--gold2); box-shadow: 0 0 0 4px rgba(255, 210, 0, .15); }
+
+    .plaincode { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 10px; }
+    .plaincode b { color: var(--gold2); letter-spacing: 2px; }
+
+    .btn {
+        font: inherit; font-size: .85rem; font-weight: 600; color: #e8e8ff;
+        background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14);
+        padding: 9px 16px; border-radius: 10px; cursor: pointer; transition: .18s;
+    }
+    .btn:hover { background: rgba(255, 255, 255, .16); transform: translateY(-1px); }
+    .btn:active { transform: scale(.97); }
+    .btn.primary {
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        color: #2a1a00; border: none; box-shadow: 0 6px 18px rgba(247, 151, 30, .32);
+    }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.ghost { background: transparent; border-style: dashed; color: var(--muted); font-size: .78rem; }
+    .btn.big { font-size: 1rem; padding: 13px 26px; }
+    .btn.pop { animation: pop .35s; }
+    @keyframes pop { 0% { transform: scale(.7); } 60% { transform: scale(1.14); } 100% { transform: scale(1); } }
+
+    .msg { text-align: center; font-size: .9rem; color: var(--muted); min-height: 1.5em; margin-top: 12px; transition: color .2s; }
+    .msg.ok { color: var(--ok); font-weight: 600; }
+    .msg.bad { color: var(--bad); font-weight: 600; }
+    .msg.hint { color: var(--gold2); }
+
+    .controls { display: flex; gap: 10px; justify-content: center; align-items: center; margin-top: 14px; }
+    #hintBtn { background: rgba(255, 210, 0, .14); border-color: rgba(255, 210, 0, .4); color: var(--gold2); }
+    #hintBtn:hover { background: rgba(255, 210, 0, .24); }
+
+    .tips {
+        text-align: center; font-size: .74rem; color: #5f5f80; margin-top: 16px;
+        font-style: italic; min-height: 1.3em; transition: opacity .4s;
+    }
+
+    .fakebtn {
+        position: absolute; z-index: 6; font: inherit; font-size: .7rem; font-weight: 800;
+        letter-spacing: .5px; color: #2a1a00; border: none; border-radius: 8px;
+        padding: 9px 13px; cursor: pointer; animation: pop .3s;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        box-shadow: 0 8px 20px rgba(0, 0, 0, .5);
+    }
+    .fakebtn:hover { filter: brightness(1.12); }
+
+    /* ---------------- start + end overlays ---------------- */
+    .overlay {
+        position: fixed; inset: 0; z-index: 10;
+        display: flex; align-items: center; justify-content: center; padding: 20px;
+        background: rgba(10, 8, 25, .78); backdrop-filter: blur(6px);
+        transition: opacity .45s;
+    }
+    .overlay.hide { opacity: 0; pointer-events: none; }
+
+    .card {
+        width: min(460px, 100%); text-align: center; padding: 30px 26px;
+        background: rgba(24, 21, 48, .92); border: 1px solid rgba(255, 255, 255, .13);
+        border-radius: 18px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+    }
+    .card h2 {
+        font-size: 2rem; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 6px;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .card p { color: var(--muted); font-size: .92rem; line-height: 1.55; }
+    .card .note { font-size: .78rem; color: #6f6f95; margin-top: 16px; }
+    .card .btn { margin-top: 22px; }
+    .endsub { color: var(--gold2) !important; font-weight: 700; margin-top: 10px; }
+
+    .endstats { display: flex; justify-content: center; gap: 26px; margin: 20px 0 4px; }
+    .endstats div { display: flex; flex-direction: column; gap: 3px; }
+    .endstats span { font-size: 1.5rem; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
+    .endstats small { font-size: .66rem; letter-spacing: 2px; text-transform: uppercase; color: var(--dim); }
+    .endicon { font-size: 3rem; margin-bottom: 6px; }
+
+    #confetti { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+
+    @media (max-height: 720px) {
+        .screen { padding: 14px 16px 12px; }
+        .modlist { margin-bottom: 10px; }
+        .objective { font-size: .95rem; min-height: 2.9em; margin-bottom: 8px; }
+        .tips { margin-top: 10px; }
+    }
+    @media (max-width: 420px) {
+        .captcha { font-size: 1.6rem; gap: 9px; }
+        .brand h1 { font-size: 1.05rem; }
+        .modlist { font-size: .62rem; gap: 4px 10px; }
+    }
+</style>
+</head>
+<body>
+
+<!-- ============ fake OS window ============ -->
+<div class="window" id="win">
+    <div class="titlebar">
+        <div class="dots"><i class="dot r"></i><i class="dot y"></i><i class="dot g"></i></div>
+        <div class="wtitle" id="winTitle">Loading… — Not Responding</div>
+        <button class="closebtn" id="winClose" title="Close">✕</button>
+    </div>
+
+    <div class="screen">
+        <div class="brand">
+            <h1>Loading…</h1>
+            <span>v7.0</span>
+        </div>
+
+        <div class="modlist" id="modlist"></div>
+
+        <div class="objective" id="objective"></div>
+
+        <div class="barwrap" id="barwrap">
+            <div class="bar" id="bar">
+                <div class="fill" id="fill"></div>
+                <div class="pct" id="pct">0%</div>
+            </div>
+        </div>
+
+        <div id="stageArea"></div>
+
+        <div class="msg" id="msg" aria-live="polite"></div>
+
+        <div class="controls" id="controls">
+            <button class="btn" id="hintBtn" style="display:none">💡 Hint</button>
+            <button class="btn" id="skipBtn" style="display:none">Skip stage ➡</button>
+            <button class="btn ghost" id="soundBtn" title="Sound on/off">🔊</button>
+        </div>
+
+        <div class="tips" id="tips">Tip: Do not turn off your computer.</div>
+    </div>
+</div>
+
+<!-- ============ start screen ============ -->
+<div class="overlay" id="startscreen">
+    <div class="card">
+        <h2>Loading…</h2>
+        <p><b>A game about a loading bar that will not finish.</b></p>
+        <p style="margin-top:12px">
+            You are trapped inside 7 loaded modules. Each one is stuck in its own
+            silly way — and there is a trick to every single one.
+        </p>
+        <p style="margin-top:12px">Can you break out of all 7 and escape?</p>
+        <button class="btn primary big" id="startBtn">▶ Start</button>
+        <p class="note">Stuck? A 💡 Hint button appears after a few seconds.</p>
+    </div>
+</div>
+
+<!-- ============ ending ============ -->
+<div class="overlay hide" id="endscreen">
+    <div class="card">
+        <div class="endicon">🔓</div>
+        <h2>You escaped!</h2>
+        <p class="endsub" id="endRank">🥇 LEGEND</p>
+        <div class="endstats">
+            <div><span id="endTime">0:00</span><small>time</small></div>
+            <div><span id="endHints">0</span><small>hints</small></div>
+            <div><span id="endSkips">0</span><small>skips</small></div>
+        </div>
+        <p style="margin-top:14px">7 modules loaded. The bar finally gave up.</p>
+        <p class="note">No loading bars were harmed. 🙂</p>
+        <button class="btn primary big" id="replay">▶ Play again</button>
+    </div>
+</div>
+
+<canvas id="confetti"></canvas>
+
+<script>
+(function () {
+    'use strict';
+
+    const $ = (id) => document.getElementById(id);
+
+    const MODULES = [
+        'graphics.dll',
+        'patience.dll',
+        'input_mouse.dll',
+        'focus_mode.dll',
+        'chunk_repair.dll',
+        'human_check.dll',
+        'window_manager.dll'
+    ];
+
+    const TIPS = [
+        'Tip: Do not turn off your computer.',
+        'Tip: 99% is a state of mind.',
+        'Tip: Loading bars can smell fear.',
+        'Tip: The bar is not stuck. It is thinking.',
+        'Tip: Have you tried waiting harder?',
+        'Tip: This bar fills faster if you believe in it.',
+        'Tip: Nobody actually knows what 100% means.',
+        'Tip: Do not unplug anything. Seriously.'
+    ];
+
+    const WORDS = ['BANANA', 'ROCKET', 'PENGUIN', 'MONKEY', 'PUZZLE', 'COOKIE',
+        'DRAGON', 'TIGER', 'WIZARD', 'PLANET', 'GUITAR', 'CACTUS'];
+
+    const CONFETTI_COLORS = ['#f7971e', '#ffd200', '#4ade80', '#60a5fa', '#f472b6', '#a78bfa', '#22d3ee'];
+
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+    // ---------------------------------------------------------------- state
+    const state = {
+        idx: -1,
+        progress: 0,
+        running: false,
+        done: false,
+        finished: false,
+        cleanups: [],
+        tick: null,
+        flags: {},
+        hintsUsed: 0,
+        hintLevel: 0,
+        skips: 0,
+        startTime: 0,
+        sound: true,
+        lastPointer: null,
+        hintTimer: 0,
+        skipTimer: 0
+    };
+
+    let lastMsg = null;
+    let tipTimer = 0;
+
+    // ---------------------------------------------------------------- audio
+    let ac = null;
+    function audio() {
+        if (!ac) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) return null;
+            try { ac = new Ctx(); } catch (e) { return null; }
+        }
+        if (ac.state === 'suspended') { try { ac.resume(); } catch (e) { /* ignore */ } }
+        return ac;
+    }
+    function tone(freq, dur, type, vol, delay) {
+        if (!state.sound) return;
+        const a = audio();
+        if (!a) return;
+        try {
+            const t0 = a.currentTime + (delay || 0);
+            const osc = a.createOscillator();
+            const gain = a.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.setValueAtTime(freq, t0);
+            gain.gain.setValueAtTime(vol || 0.05, t0);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+            osc.connect(gain);
+            gain.connect(a.destination);
+            osc.start(t0);
+            osc.stop(t0 + dur + 0.03);
+        } catch (e) { /* ignore */ }
+    }
+    const blip = (f, d) => tone(f || 520, d || 0.06, 'square', 0.04, 0);
+    const buzz = () => tone(120, 0.16, 'sawtooth', 0.05, 0);
+    const chime = () => { tone(660, .12, 'sine', .06, 0); tone(880, .12, 'sine', .06, .09); tone(1180, .22, 'sine', .055, .18); };
+    const fanfare = () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, .32, 'triangle', .07, i * 0.13)); };
+
+    // ---------------------------------------------------------------- helpers
+    function on(el, type, fn, opts) {
+        el.addEventListener(type, fn, opts);
+        state.cleanups.push(() => el.removeEventListener(type, fn, opts));
+    }
+
+    function render() {
+        $('fill').style.width = state.progress + '%';
+        $('pct').textContent = Math.floor(state.progress) + '%';
+    }
+    function setP(v) {
+        state.progress = Math.max(0, Math.min(100, v));
+        render();
+    }
+    function addP(v) { setP(state.progress + v); }
+
+    function setMsg(text, kind) {
+        if (text === lastMsg) return;
+        lastMsg = text;
+        const el = $('msg');
+        el.textContent = text;
+        el.className = 'msg' + (kind ? ' ' + kind : '');
+    }
+
+    function nudge() {
+        const w = $('win');
+        w.classList.remove('shake');
+        void w.offsetWidth;
+        w.classList.add('shake');
+    }
+
+    // ---------------------------------------------------------------- loop
+    let lastFrame = 0;
+    function loop(t) {
+        if (!state.running) return;
+        const dt = Math.min(0.05, Math.max(0, (t - lastFrame) / 1000));
+        lastFrame = t;
+        if (state.tick) state.tick(t, dt);
+        requestAnimationFrame(loop);
+    }
+    function startLoop() { lastFrame = performance.now(); state.running = true; requestAnimationFrame(loop); }
+    function stopLoop() { state.running = false; }
+
+    // ---------------------------------------------------------------- modules list
+    function buildModules() {
+        $('modlist').innerHTML = MODULES.map((m, i) =>
+            '<div class="mod" data-i="' + i + '"><span class="mstate">…</span><span>' + m + '</span></div>'
+        ).join('');
+    }
+    function markModule(i, status) {
+        const el = document.querySelector('.mod[data-i="' + i + '"]');
+        if (!el) return;
+        el.className = 'mod ' + status;
+        el.querySelector('.mstate').textContent =
+            status === 'done' ? '✔' : status === 'active' ? '⏳' : status === 'skip' ? '⏭' : '…';
+    }
+
+    // ---------------------------------------------------------------- stages
+    function completeStage() {
+        if (state.done) return;
+        state.done = true;
+        state.tick = null;
+        setP(100);
+        chime();
+        setMsg('✔ ' + MODULES[state.idx] + ' loaded!', 'ok');
+        markModule(state.idx, 'done');
+        const at = state.idx;
+        setTimeout(function () { if (state.idx === at) nextStage(); }, 800);
+    }
+
+    function clearStage() {
+        while (state.cleanups.length) {
+            try { state.cleanups.pop()(); } catch (e) { /* ignore */ }
+        }
+        clearTimeout(state.hintTimer);
+        clearTimeout(state.skipTimer);
+        state.tick = null;
+        state.flags = {};
+        lastMsg = null;
+        $('stageArea').innerHTML = '';
+        document.querySelectorAll('.fakebtn').forEach((b) => b.remove());
+    }
+
+    function startStage(i) {
+        clearStage();
+
+        state.idx = i;
+        state.done = false;
+        state.hintLevel = 0;
+        setP(0);
+        $('bar').className = 'bar';
+        $('winClose').classList.remove('ready');
+        $('hintBtn').style.display = 'none';
+        $('hintBtn').textContent = '💡 Hint';
+        $('skipBtn').style.display = 'none';
+
+        const st = STAGES[i];
+        markModule(i, 'active');
+        $('objective').innerHTML = '<span class="stage-no">STAGE ' + (i + 1) + ' / ' + STAGES.length + '</span>' + st.objective;
+
+        st.setup();
+        setMsg(st.msg || '');
+        startLoop();
+
+        state.hintTimer = setTimeout(function () {
+            if (!state.done) { $('hintBtn').style.display = ''; $('hintBtn').classList.add('pop'); }
+        }, 8000);
+
+        state.skipTimer = setTimeout(function () {
+            if (!state.done) $('skipBtn').style.display = '';
+        }, 45000);
+    }
+
+    function nextStage() {
+        const next = state.idx + 1;
+        if (next >= STAGES.length) return;
+        startStage(next);
+    }
+
+    const STAGES = [
+        // ------------------------------------------------ 1: click it
+        {
+            objective: 'Loading pixels… it is stuck at 41% and going nowhere.',
+            msg: 'Downloading pixels…',
+            hints: [
+                'That bar looks awfully clickable.',
+                'Click the bar over and over until it reaches 100%!'
+            ],
+            setup: function () {
+                state.flags.stalled = false;
+                on($('bar'), 'pointerdown', function () {
+                    if (state.done) return;
+                    addP(5);
+                    blip(480 + state.progress * 4, 0.05);
+                    if (state.progress >= 100) { completeStage(); return; }
+                    setMsg(pick(['Hey — it moved!', 'Keep clicking!', 'It likes being clicked.']));
+                });
+                state.tick = function (now, dt) {
+                    if (state.progress < 41) {
+                        addP(34 * dt);
+                    } else if (!state.flags.stalled) {
+                        state.flags.stalled = true;
+                        setMsg('Hmm. It stopped. Weird.');
+                    }
+                };
+            }
+        },
+
+        // ------------------------------------------------ 2: hold it
+        {
+            objective: 'It will not budge. A single tap is not enough.',
+            msg: 'Press and hold…',
+            hints: [
+                'A quick click does nothing here.',
+                'Press and HOLD the bar down — do not let go until it fills!'
+            ],
+            setup: function () {
+                state.flags.holding = false;
+                const bar = $('bar');
+                const release = function () {
+                    state.flags.holding = false;
+                    bar.classList.remove('active');
+                };
+                on(bar, 'pointerdown', function (e) {
+                    if (state.done) return;
+                    state.flags.holding = true;
+                    bar.classList.add('active');
+                    try { bar.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+                });
+                on(bar, 'pointerup', release);
+                on(bar, 'pointercancel', release);
+                on(window, 'pointerup', release);
+                on(window, 'pointercancel', release);
+
+                state.tick = function (now, dt) {
+                    if (state.flags.holding) {
+                        addP(42 * dt);
+                        setMsg('Holding… do not let go!');
+                    } else {
+                        addP(-26 * dt);
+                        if (state.progress < 1) setMsg('Press and HOLD the bar down.');
+                    }
+                    if (state.progress >= 100) completeStage();
+                };
+            }
+        },
+
+        // ------------------------------------------------ 3: keep moving
+        {
+            objective: '"Session idle." It falls asleep when you stop.',
+            msg: 'Keep the mouse moving…',
+            hints: [
+                'It only loads while the mouse is moving.',
+                'Keep wiggling the mouse around until the bar fills up.'
+            ],
+            setup: function () {
+                state.flags.lastMove = performance.now();
+                const moved = function () { state.flags.lastMove = performance.now(); };
+                on(window, 'pointermove', moved);
+                on(window, 'touchmove', moved, { passive: true });
+                state.tick = function (now, dt) {
+                    const moving = (now - state.flags.lastMove) < 150;
+                    addP((moving ? 26 : -20) * dt);
+                    setMsg(moving ? 'Session active ✔' : 'Session idle… keep moving! 🖱️');
+                    if (state.progress >= 100) completeStage();
+                };
+            }
+        },
+
+        // ------------------------------------------------ 4: do not touch
+        {
+            objective: '"Verifying… please do not touch your computer."',
+            msg: 'Verifying…',
+            hints: [
+                'Do not touch the mouse or the keyboard.',
+                'Hands off everything. Just wait and watch!'
+            ],
+            setup: function () {
+                $('bar').classList.add('disabled');
+                state.flags.anchor = state.lastPointer ? { x: state.lastPointer.x, y: state.lastPointer.y } : null;
+                state.flags.graceUntil = performance.now() + 2500;
+                state.flags.recoverUntil = 0;
+
+                function trip(text) {
+                    if (state.done) return;
+                    const now = performance.now();
+                    if (now < state.flags.recoverUntil) return;
+                    state.flags.recoverUntil = now + 350;
+                    setP(state.progress - 35);
+                    nudge();
+                    buzz();
+                    setMsg(text, 'bad');
+                    state.flags.anchor = state.lastPointer ? { x: state.lastPointer.x, y: state.lastPointer.y } : null;
+                }
+
+                on(window, 'pointermove', function (e) {
+                    const now = performance.now();
+                    if (now < state.flags.graceUntil) {
+                        state.flags.anchor = { x: e.clientX, y: e.clientY };
+                        return;
+                    }
+                    if (!state.flags.anchor) { state.flags.anchor = { x: e.clientX, y: e.clientY }; return; }
+                    const dx = e.clientX - state.flags.anchor.x;
+                    const dy = e.clientY - state.flags.anchor.y;
+                    if (Math.sqrt(dx * dx + dy * dy) > 70) trip('You moved! Hands off the mouse. 🖐️');
+                });
+
+                on(window, 'pointerdown', function (e) {
+                    if (performance.now() < state.flags.graceUntil) return;
+                    if (e.target.closest('button, input')) return;
+                    trip('Do not click! Just wait and watch.');
+                });
+
+                on(window, 'keydown', function (e) {
+                    if (e.key === 'Escape') return;
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+                    if (performance.now() < state.flags.graceUntil) return;
+                    trip('No keys! Hands off everything.');
+                });
+
+                state.tick = function (now, dt) {
+                    const left = (state.flags.graceUntil - now) / 1000;
+                    if (left > 0) {
+                        setMsg('Verifying… hands off! Starting in ' + Math.ceil(left) + '…');
+                        return;
+                    }
+                    addP(20 * dt);
+                    setMsg('Verifying… do NOT touch the mouse. 🖐️');
+                    if (state.progress >= 100) completeStage();
+                };
+            }
+        },
+
+        // ------------------------------------------------ 5: drag the chunk
+        {
+            objective: 'A corrupted chunk is jammed onto the end of the bar.',
+            msg: 'Repairing… nope, that chunk is in the way.',
+            hints: [
+                'That red block does not belong there.',
+                'Drag the red block OFF the bar and drop it outside.'
+            ],
+            setup: function () {
+                setP(78);
+                const bar = $('bar');
+                const chunk = document.createElement('div');
+                chunk.className = 'chunk';
+                chunk.textContent = '⚠ corrupt';
+                bar.appendChild(chunk);
+
+                let dragging = false;
+                let sx = 0, sy = 0;
+
+                on(chunk, 'pointerdown', function (e) {
+                    if (state.done || dragging) return;
+                    dragging = true;
+                    sx = e.clientX;
+                    sy = e.clientY;
+                    chunk.classList.add('dragging');
+                    try { chunk.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+                    e.preventDefault();
+                });
+
+                on(chunk, 'pointermove', function (e) {
+                    if (!dragging) return;
+                    const dx = e.clientX - sx;
+                    const dy = e.clientY - sy;
+                    chunk.style.transform = 'translate(' + dx + 'px,' + dy + 'px) rotate(' + (dx * 0.35) + 'deg)';
+                });
+
+                function drop(e) {
+                    if (!dragging) return;
+                    dragging = false;
+                    chunk.classList.remove('dragging');
+
+                    const r = bar.getBoundingClientRect();
+                    const pad = 8;
+                    const inside = e.clientX > r.left - pad && e.clientX < r.right + pad &&
+                        e.clientY > r.top - pad && e.clientY < r.bottom + pad;
+
+                    if (inside) {
+                        chunk.style.transform = '';
+                        setMsg('Nope — it belongs on the bar. Drag it off the edge!', 'bad');
+                        nudge();
+                        buzz();
+                        return;
+                    }
+
+                    chunk.style.transform = 'translate(' + (e.clientX - sx) + 'px,' + (e.clientY - sy) + 'px)';
+                    chunk.classList.add('poof');
+                    blip(900, 0.09);
+                    setMsg('Chunk removed! Finishing up…', 'ok');
+                    setTimeout(function () {
+                        if (chunk.parentNode) chunk.parentNode.removeChild(chunk);
+                        setP(100);
+                        completeStage();
+                    }, 240);
+                }
+
+                on(chunk, 'pointerup', drop);
+                on(window, 'pointerup', drop);
+            }
+        },
+
+        // ------------------------------------------------ 6: type the code
+        {
+            objective: 'Human verification required. (How rude.)',
+            msg: 'Waiting for a human…',
+            hints: [
+                'Copy the letters into the box and press Enter.',
+                'Type the code exactly as shown — capitals are fine.'
+            ],
+            setup: function () {
+                setP(99);
+                const word = pick(WORDS);
+                const colors = ['#f7971e', '#ffd200', '#4ade80', '#60a5fa', '#f472b6', '#a78bfa', '#22d3ee'];
+                const area = $('stageArea');
+
+                const wrap = document.createElement('div');
+                wrap.innerHTML =
+                    '<div class="captcha" id="capWord">' +
+                    word.split('').map(function (ch, i) {
+                        const rot = (Math.random() * 22 - 11).toFixed(1);
+                        return '<span style="transform:rotate(' + rot + 'deg);color:' + colors[i % colors.length] + '">' + ch + '</span>';
+                    }).join('') +
+                    '</div>' +
+                    '<div class="row">' +
+                    '<input class="capInput" id="capInput" maxlength="14" autocomplete="off" spellcheck="false" placeholder="type the code" />' +
+                    '<button class="btn primary" id="capGo">Verify</button>' +
+                    '</div>' +
+                    '<div class="row"><button class="btn ghost" id="roboBtn">☐ I am not a robot</button></div>';
+                area.appendChild(wrap);
+
+                const input = $('capInput');
+                const capWord = $('capWord');
+                let attempts = 0;
+
+                function success() {
+                    if (state.done) return;
+                    setMsg('Human confirmed. Thank you, human. 🧑', 'ok');
+                    blip(1046, 0.1);
+                    setTimeout(completeStage, 350);
+                }
+
+                function check() {
+                    if (state.done) return;
+                    const guess = (input.value || '').trim().toUpperCase();
+                    if (!guess) return;
+                    if (guess === word) { success(); return; }
+                    attempts++;
+                    buzz();
+                    capWord.classList.remove('shake');
+                    void capWord.offsetWidth;
+                    capWord.classList.add('shake');
+                    setMsg('Not quite — copy the letters exactly.', 'bad');
+                    if (attempts >= 3 && !$('plainCode')) {
+                        const p = document.createElement('div');
+                        p.className = 'plaincode';
+                        p.id = 'plainCode';
+                        p.innerHTML = 'Here it is in plain letters: <b>' + word + '</b>';
+                        area.appendChild(p);
+                    }
+                    input.select();
+                }
+
+                on($('capGo'), 'click', check);
+                on(input, 'keydown', function (e) { if (e.key === 'Enter') check(); });
+
+                let roboClicks = 0;
+                on($('roboBtn'), 'click', function () {
+                    roboClicks++;
+                    if (roboClicks >= 2) {
+                        $('roboBtn').disabled = true;
+                        $('roboBtn').style.opacity = '.5';
+                        setMsg('Nice try. The CODE is the way through.', 'hint');
+                    } else {
+                        $('roboBtn').style.transform = 'translateX(' + (Math.random() > .5 ? 40 : -40) + 'px)';
+                        setMsg('Thanks! …but you still have to type the code. 🙂', 'hint');
+                    }
+                });
+
+                setTimeout(function () { try { input.focus(); } catch (e) { /* ignore */ } }, 200);
+            }
+        },
+
+        // ------------------------------------------------ 7: close the window
+        {
+            objective: 'Still 0%. This window is REALLY stuck.',
+            msg: 'This window is not responding.',
+            hints: [
+                'Fake buttons only make more buttons.',
+                'Close the window! Click the ✕ in the top-right corner.'
+            ],
+            setup: function () {
+                $('bar').classList.add('disabled');
+                $('winClose').classList.add('ready');
+
+                const win = $('win');
+                const labels = ['CONTINUE', 'FINISH LOADING', 'CLICK FOR 100%', 'RESUME', 'DONE ✔', 'TRY AGAIN'];
+
+                function spawnFake() {
+                    const b = document.createElement('button');
+                    b.className = 'fakebtn';
+                    b.textContent = pick(labels);
+                    b.style.left = (6 + Math.random() * 68) + '%';
+                    b.style.top = (20 + Math.random() * 60) + '%';
+                    b.addEventListener('click', function () {
+                        if (state.finished) return;
+                        buzz();
+                        nudge();
+                        const count = document.querySelectorAll('.fakebtn').length;
+                        if (count < 22) { spawnFake(); spawnFake(); }
+                        setMsg(pick([
+                            'The button made more buttons.',
+                            'That one was a decoy.',
+                            'Still loading… still loading…',
+                            'Buttons are not the answer.'
+                        ]), 'bad');
+                    });
+                    win.appendChild(b);
+                }
+
+                for (let i = 0; i < 3; i++) spawnFake();
+
+                on(window, 'keydown', function (e) {
+                    if (e.key === 'Escape') escape();
+                });
+
+                state.tick = function (now) {
+                    setP(Math.abs(Math.sin(now / 700)) * 2);
+                };
+            }
+        }
+    ];
+
+    // ---------------------------------------------------------------- hint / skip
+    function showHint() {
+        const st = STAGES[state.idx];
+        if (!st || state.done) return;
+        const h = st.hints[state.hintLevel];
+        if (!h) return;
+        state.hintLevel++;
+        state.hintsUsed++;
+        setMsg('💡 ' + h, 'hint');
+        const btn = $('hintBtn');
+        if (state.hintLevel >= st.hints.length) {
+            btn.style.display = 'none';
+        } else {
+            btn.textContent = '💡 Hint ' + (state.hintLevel + 1);
+        }
+        btn.classList.remove('pop');
+        void btn.offsetWidth;
+        btn.classList.add('pop');
+    }
+
+    function skipStage() {
+        if (state.done || state.finished) return;
+        state.done = true;
+        state.tick = null;
+        state.skips++;
+        setMsg('Skipped! The loading bar somehow respects that.', 'hint');
+        markModule(state.idx, 'skip');
+        const at = state.idx;
+        setTimeout(function () { if (state.idx === at) nextStage(); }, 500);
+    }
+
+    // ---------------------------------------------------------------- escape & ending
+    function escape() {
+        if (state.finished) return;
+        state.finished = true;
+        stopLoop();
+        fanfare();
+        $('winClose').classList.remove('ready');
+        document.querySelectorAll('.fakebtn').forEach(function (b) { b.remove(); });
+        $('win').classList.add('gone');
+        setTimeout(showEnding, 520);
+    }
+
+    function formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = Math.floor(sec % 60);
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function showEnding() {
+        const secs = (performance.now() - state.startTime) / 1000;
+        $('endTime').textContent = formatTime(secs);
+        $('endHints').textContent = state.hintsUsed;
+        $('endSkips').textContent = state.skips;
+
+        let rank;
+        if (state.hintsUsed === 0 && state.skips === 0) rank = '🥇 LEGEND — zero hints, zero skips!';
+        else if (state.hintsUsed <= 2 && state.skips === 0) rank = '🥈 Sneaky — a very tidy escape.';
+        else if (state.skips === 0) rank = '🥉 Escaper — the bar never stood a chance.';
+        else rank = '🎖️ Loaded — the bar finally gave up.';
+        $('endRank').textContent = rank;
+
+        $('endscreen').classList.remove('hide');
+        startConfetti();
+    }
+
+    function reset() {
+        stopConfetti();
+        $('endscreen').classList.add('hide');
+        $('win').classList.remove('gone');
+        $('winClose').classList.remove('ready');
+        state.finished = false;
+        state.hintsUsed = 0;
+        state.skips = 0;
+        state.hintLevel = 0;
+        buildModules();
+        state.startTime = performance.now();
+        startStage(0);
+    }
+
+    // ---------------------------------------------------------------- confetti
+    const cv = $('confetti');
+    const cx = cv.getContext('2d');
+    let parts = [];
+    let confRAF = 0;
+
+    function sizeCanvas() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+
+    function startConfetti() {
+        sizeCanvas();
+        parts = [];
+        for (let i = 0; i < 170; i++) {
+            parts.push({
+                x: Math.random() * cv.width,
+                y: -20 - Math.random() * cv.height * 0.7,
+                w: 6 + Math.random() * 8,
+                h: 9 + Math.random() * 11,
+                vx: -45 + Math.random() * 90,
+                vy: 70 + Math.random() * 160,
+                rot: Math.random() * 6.283,
+                vr: -4 + Math.random() * 8,
+                c: pick(CONFETTI_COLORS)
+            });
+        }
+        cancelAnimationFrame(confRAF);
+        let last = performance.now();
+        (function tick(t) {
+            const dt = Math.min(0.05, (t - last) / 1000);
+            last = t;
+            cx.clearRect(0, 0, cv.width, cv.height);
+            for (let i = 0; i < parts.length; i++) {
+                const p = parts[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.rot += p.vr * dt;
+                p.vy += 34 * dt;
+                if (p.y > cv.height + 30) {
+                    p.y = -20;
+                    p.x = Math.random() * cv.width;
+                    p.vy = 70 + Math.random() * 160;
+                }
+                cx.save();
+                cx.translate(p.x, p.y);
+                cx.rotate(p.rot);
+                cx.fillStyle = p.c;
+                cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                cx.restore();
+            }
+            confRAF = requestAnimationFrame(tick);
+        })(last);
+    }
+
+    function stopConfetti() {
+        cancelAnimationFrame(confRAF);
+        cx.clearRect(0, 0, cv.width, cv.height);
+    }
+
+    // ---------------------------------------------------------------- tips
+    let tipIndex = 0;
+    function startTips() {
+        clearInterval(tipTimer);
+        tipTimer = setInterval(function () {
+            tipIndex = (tipIndex + 1) % TIPS.length;
+            const el = $('tips');
+            el.style.opacity = '0';
+            setTimeout(function () { el.textContent = TIPS[tipIndex]; el.style.opacity = '1'; }, 400);
+        }, 6000);
+    }
+
+    // ---------------------------------------------------------------- boot
+    function init() {
+        buildModules();
+        sizeCanvas();
+
+        window.addEventListener('pointermove', function (e) {
+            state.lastPointer = { x: e.clientX, y: e.clientY };
+        }, { passive: true });
+        window.addEventListener('resize', sizeCanvas);
+
+        $('hintBtn').addEventListener('click', showHint);
+        $('skipBtn').addEventListener('click', skipStage);
+
+        $('soundBtn').addEventListener('click', function () {
+            state.sound = !state.sound;
+            $('soundBtn').textContent = state.sound ? '🔊' : '🔇';
+            if (state.sound) blip(700, 0.06);
+        });
+
+        // The ✕ only works once you reach the final stage.
+        $('winClose').addEventListener('click', function () {
+            if (state.idx === STAGES.length - 1 && !state.finished) { escape(); return; }
+            setMsg("You cannot close a loading screen. That is not how this works.", 'bad');
+            nudge();
+            buzz();
+        });
+
+        $('startBtn').addEventListener('click', function () {
+            audio();
+            $('startscreen').classList.add('hide');
+            setMsg(pick(TIPS).replace('Tip: ', ''));
+            state.startTime = performance.now();
+            startStage(0);
+            startTips();
+        });
+
+        $('replay').addEventListener('click', reset);
+
+        render();
+    }
+
+    init();
+})();
+</script>
+</body>
+</html>

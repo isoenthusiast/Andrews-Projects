@@ -1,0 +1,6 @@
+{
+    "name": "loading",
+    "version": "1.0.0",
+    "description": "A meta puzzle game — escape a loading screen that refuses to finish",
+    "private": true
+}

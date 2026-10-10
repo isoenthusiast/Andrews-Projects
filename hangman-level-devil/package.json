@@ -1,0 +1,6 @@
+{
+    "name": "hangman-level-devil",
+    "version": "1.0.0",
+    "description": "Hangman + Level Devil - a two-game collection with a mode picker and a switch button",
+    "private": true
+}

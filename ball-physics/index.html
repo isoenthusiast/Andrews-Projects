@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quiet Balls — a calm physics sandbox</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+        --gold1: #f7971e;
+        --gold2: #ffd200;
+        --muted: #a0a0c0;
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        color: #fff;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: crosshair;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    }
+    canvas.grabbing { cursor: grabbing; }
+
+    .hud {
+        position: fixed;
+        z-index: 5;
+        transition: opacity .35s;
+        pointer-events: none;
+    }
+    .hud.hidden { opacity: 0; }
+
+    .title { top: 16px; left: 20px; }
+    .title h1 {
+        font-size: 1.25rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .title p { font-size: .72rem; color: #6f6f95; letter-spacing: 1px; margin-top: 2px; }
+
+    .count { top: 18px; right: 20px; font-size: .75rem; color: #6f6f95; letter-spacing: 1px; }
+
+    .status {
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        font-size: .8rem; letter-spacing: 3px; text-transform: uppercase;
+        color: rgba(255, 255, 255, .35);
+    }
+
+    .dock {
+        position: fixed;
+        z-index: 6;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: min(940px, calc(100% - 24px));
+        padding: 10px 14px;
+        background: rgba(20, 18, 42, .62);
+        border: 1px solid rgba(255, 255, 255, .1);
+        border-radius: 16px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
+        transition: opacity .35s, transform .35s;
+    }
+    .dock.hidden { opacity: 0; transform: translateX(-50%) translateY(20px); pointer-events: none; }
+
+    .group { display: flex; align-items: center; gap: 8px; }
+
+    .sep { width: 1px; height: 26px; background: rgba(255, 255, 255, .12); }
+
+    .btn {
+        font: inherit;
+        font-size: .8rem;
+        font-weight: 600;
+        color: #e8e8ff;
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .13);
+        padding: 8px 13px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: .16s;
+        white-space: nowrap;
+    }
+    .btn:hover { background: rgba(255, 255, 255, .17); transform: translateY(-1px); }
+    .btn:active { transform: scale(.96); }
+    .btn.primary {
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        color: #2a1a00;
+        border: none;
+        box-shadow: 0 6px 18px rgba(247, 151, 30, .3);
+    }
+    .btn.primary:hover { filter: brightness(1.08); }
+    .btn.on { background: rgba(255, 210, 0, .18); border-color: rgba(255, 210, 0, .45); color: var(--gold2); }
+
+    .slider {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: .72rem;
+        color: var(--muted);
+        letter-spacing: .5px;
+    }
+    .slider output {
+        display: inline-block;
+        min-width: 2.6em;
+        text-align: right;
+        color: var(--gold2);
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+    }
+    input[type=range] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 92px;
+        height: 4px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, .18);
+        outline: none;
+        cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px; height: 14px; border-radius: 50%;
+        background: linear-gradient(180deg, var(--gold2), var(--gold1));
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .5);
+        cursor: grab;
+    }
+    input[type=range]::-moz-range-thumb {
+        width: 14px; height: 14px; border: none; border-radius: 50%;
+        background: var(--gold1);
+    }
+
+    .hintline {
+        position: fixed;
+        z-index: 5;
+        left: 50%;
+        bottom: 4px;
+        transform: translateX(-50%);
+        font-size: .66rem;
+        color: #4d4d70;
+        letter-spacing: .4px;
+        pointer-events: none;
+        transition: opacity .35s;
+        text-align: center;
+        width: 100%;
+    }
+    .hintline.hidden { opacity: 0; }
+
+    @media (max-width: 780px) {
+        .title p { display: none; }
+        .dock { gap: 6px; padding: 9px 10px; bottom: 12px; }
+        .btn { font-size: .74rem; padding: 7px 10px; }
+        input[type=range] { width: 66px; }
+        .sep { display: none; }
+        .hintline { display: none; }
+    }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div class="hud title">
+    <h1>Quiet Balls</h1>
+    <p>a calm physics sandbox</p>
+</div>
+
+<div class="hud count" id="count">0 balls</div>
+<div class="hud status" id="status"></div>
+
+<div class="dock" id="dock">
+    <div class="group">
+        <button class="btn primary" id="addBtn">➕ Ball</button>
+        <button class="btn" id="rainBtn">🌧 Rain</button>
+        <button class="btn" id="shakeBtn">✨ Shake</button>
+        <button class="btn" id="clearBtn">🧹 Clear</button>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+        <label class="slider">gravity <input type="range" id="grav" min="0" max="3000" step="50" value="1400" /><output id="gravOut">1400</output></label>
+        <label class="slider">bounce <input type="range" id="bounce" min="5" max="95" step="1" value="55" /><output id="bounceOut">0.55</output></label>
+    </div>
+    <div class="sep"></div>
+    <div class="group">
+        <button class="btn" id="pauseBtn">⏸ Pause</button>
+        <button class="btn" id="soundBtn">🔊</button>
+    </div>
+</div>
+
+<div class="hintline" id="hintline">tap empty space to drop a ball · drag a ball and fling it · press H to hide the controls</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const TAU = Math.PI * 2;
+    const canvas = document.getElementById('scene');
+    const ctx = canvas.getContext('2d');
+
+    const PALETTE = ['#f7971e', '#ffd200', '#4ade80', '#60a5fa', '#f472b6',
+        '#a78bfa', '#22d3ee', '#fb923c', '#34d399', '#e879f9'];
+
+    // C major pentatonic — every collision is in tune, so it never sounds bad
+    const SCALE = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99, 880.00];
+
+    const cfg = {
+        gravity: 1400,
+        bounce: 0.55,
+        paused: false,
+        sound: true,
+        max: 110,
+        trail: 0.26
+    };
+
+    let W = 0, H = 0, DPR = 1;
+
+    const balls = [];
+    const grid = new Map();
+    let idc = 0;
+
+    const pick = (a) => a[(Math.random() * a.length) | 0];
+    const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+
+    // ------------------------------------------------------------ audio
+    let AC = null, master = null, budget = 0, budgetAt = 0;
+
+    function audio() {
+        if (AC) {
+            if (AC.state === 'suspended') { try { AC.resume(); } catch (e) { /* ignore */ } }
+            return AC;
+        }
+        const Ctor = window.AudioContext || window.webkitAudioContext;
+        if (!Ctor) return null;
+        try {
+            AC = new Ctor();
+            master = AC.createGain();
+            master.gain.value = 0.5;
+            master.connect(AC.destination);
+        } catch (e) { return null; }
+        return AC;
+    }
+
+    function note(freq, vol, dur, type) {
+        if (!cfg.sound) return;
+        const a = audio();
+        if (!a) return;
+        try {
+            const t0 = a.currentTime;
+            const osc = a.createOscillator();
+            const gain = a.createGain();
+            const lp = a.createBiquadFilter();
+            osc.type = type || 'triangle';
+            osc.frequency.setValueAtTime(freq, t0);
+            lp.type = 'lowpass';
+            lp.frequency.value = 2600;
+            gain.gain.setValueAtTime(0.0001, t0);
+            gain.gain.linearRampToValueAtTime(vol, t0 + 0.008);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+            osc.connect(lp); lp.connect(gain); gain.connect(master);
+            osc.start(t0);
+            osc.stop(t0 + dur + 0.05);
+        } catch (e) { /* ignore */ }
+    }
+
+    // A soft marimba-ish ping, throttled so a big pile of balls stays peaceful
+    function impact(radius, speed) {
+        const now = performance.now();
+        if (now - budgetAt > 110) { budgetAt = now; budget = 6; }
+        if (budget <= 0) return;
+        budget--;
+        const i = clamp(Math.round(9 - (radius - 8) / 2.4), 0, SCALE.length - 1);
+        note(SCALE[i], Math.min(0.075, 0.014 + speed / 8000), 0.3 + radius * 0.01, 'triangle');
+    }
+
+    // ------------------------------------------------------------ world
+    function resize() {
+        DPR = Math.min(2, window.devicePixelRatio || 1);
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = Math.max(1, Math.floor(W * DPR));
+        canvas.height = Math.max(1, Math.floor(H * DPR));
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+
+    function addBall(x, y, r) {
+        if (balls.length >= cfg.max) balls.shift();
+        r = r || (9 + Math.random() * 17);
+        const b = {
+            id: ++idc,
+            x: x, y: y,
+            vx: 0, vy: 0,
+            r: r,
+            m: r * r,
+            c: pick(PALETTE),
+            held: false,
+            px: x, py: y, pt: performance.now(),
+            ox: 0, oy: 0
+        };
+        balls.push(b);
+        return b;
+    }
+
+    function ballAt(x, y) {
+        for (let i = balls.length - 1; i >= 0; i--) {
+            const b = balls[i];
+            const dx = x - b.x, dy = y - b.y;
+            const rr = (b.r + 6);
+            if (dx * dx + dy * dy <= rr * rr) return b;
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------ physics
+    function step(dt) {
+        const g = cfg.gravity;
+        const e = cfg.bounce;
+
+        for (let i = 0; i < balls.length; i++) {
+            const b = balls[i];
+            if (b.held) continue;
+
+            b.vy += g * dt;
+            b.vx *= 0.9994;
+            b.x += b.vx * dt;
+            b.y += b.vy * dt;
+
+            // side walls
+            if (b.x - b.r < 0) {
+                b.x = b.r;
+                if (-b.vx > 45) impact(b.r, -b.vx);
+                b.vx = Math.abs(b.vx) * e;
+            } else if (b.x + b.r > W) {
+                b.x = W - b.r;
+                if (b.vx > 45) impact(b.r, b.vx);
+                b.vx = -Math.abs(b.vx) * e;
+            }
+
+            // floor
+            if (b.y + b.r > H) {
+                b.y = H - b.r;
+                const speed = Math.abs(b.vy);
+                if (speed > 40) impact(b.r, speed);
+                b.vy = -speed * e;
+                b.vx *= 0.985;
+                // let it come fully to rest instead of buzzing forever
+                if (Math.abs(b.vy) < 28 && Math.abs(b.vx) < 12) { b.vy = 0; b.vx *= 0.85; }
+            }
+        }
+
+        for (let it = 0; it < 2; it++) collide();
+    }
+
+    function collide() {
+        const n = balls.length;
+        if (n < 2) return;
+
+        let maxR = 0;
+        for (let i = 0; i < n; i++) if (balls[i].r > maxR) maxR = balls[i].r;
+        const cs = maxR * 2 + 1;
+
+        grid.clear();
+        for (let i = 0; i < n; i++) {
+            const b = balls[i];
+            const k = (Math.floor(b.x / cs) + 512) * 4096 + (Math.floor(b.y / cs) + 512);
+            let arr = grid.get(k);
+            if (!arr) { arr = []; grid.set(k, arr); }
+            arr.push(i);
+        }
+
+        for (let i = 0; i < n; i++) {
+            const a = balls[i];
+            const cx = Math.floor(a.x / cs);
+            const cy = Math.floor(a.y / cs);
+            for (let ox = 0; ox <= 1; ox++) {
+                for (let oy = -1; oy <= 1; oy++) {
+                    if (ox === 0 && oy !== 0) continue;
+                    const k = (cx + ox + 512) * 4096 + (cy + oy + 512);
+                    const arr = grid.get(k);
+                    if (!arr) continue;
+                    for (let m = 0; m < arr.length; m++) {
+                        const j = arr[m];
+                        if (j <= i) continue;
+                        resolve(a, balls[j]);
+                    }
+                }
+            }
+        }
+    }
+
+    function resolve(a, b) {
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        const rr = a.r + b.r;
+        let d2 = dx * dx + dy * dy;
+        if (d2 >= rr * rr) return;
+
+        let d = Math.sqrt(d2);
+        if (d < 0.0001) { d = 0.0001; dx = 0.0001; dy = 0; }
+
+        const nx = dx / d, ny = dy / d;
+        const im1 = a.held ? 0 : 1 / a.m;
+        const im2 = b.held ? 0 : 1 / b.m;
+        const imSum = im1 + im2;
+        if (imSum === 0) return;
+
+        // push apart
+        const corr = ((rr - d) / imSum) * 0.8;
+        a.x -= nx * corr * im1; a.y -= ny * corr * im1;
+        b.x += nx * corr * im2; b.y += ny * corr * im2;
+
+        // bounce
+        const rvx = b.vx - a.vx, rvy = b.vy - a.vy;
+        const vn = rvx * nx + rvy * ny;
+        if (vn > 0) return;
+
+        const j = -(1 + cfg.bounce) * vn / imSum;
+        a.vx -= j * nx * im1; a.vy -= j * ny * im1;
+        b.vx += j * nx * im2; b.vy += j * ny * im2;
+
+        // a touch of tangential friction so piles settle
+        const tx = -ny, ty = nx;
+        const vt = rvx * tx + rvy * ty;
+        const jt = (-vt / imSum) * 0.12;
+        a.vx -= jt * tx * im1; a.vy -= jt * ty * im1;
+        b.vx += jt * tx * im2; b.vy += jt * ty * im2;
+
+        if (-vn > 70) impact(Math.min(a.r, b.r), -vn);
+    }
+
+    // ------------------------------------------------------------ rendering
+    function drawBall(b) {
+        ctx.globalAlpha = 0.15;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r * 1.6, 0, TAU);
+        ctx.fillStyle = b.c;
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, TAU);
+        ctx.fillStyle = b.c;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(b.x - b.r * 0.28, b.y - b.r * 0.32, b.r * 0.33, 0, TAU);
+        ctx.fillStyle = 'rgba(255,255,255,.45)';
+        ctx.fill();
+
+        if (b.held) {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.r + 6, 0, TAU);
+            ctx.strokeStyle = 'rgba(255,255,255,.45)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    }
+
+    function render() {
+        // translucent erase => soft motion trails, background gradient stays visible
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.fillStyle = 'rgba(0,0,0,' + cfg.trail + ')';
+        ctx.fillRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'source-over';
+
+        const fg = ctx.createLinearGradient(0, H - 110, 0, H);
+        fg.addColorStop(0, 'rgba(247,151,30,0)');
+        fg.addColorStop(1, 'rgba(247,151,30,.10)');
+        ctx.fillStyle = fg;
+        ctx.fillRect(0, H - 110, W, 110);
+
+        for (let i = 0; i < balls.length; i++) drawBall(balls[i]);
+    }
+
+    // ------------------------------------------------------------ loop
+    const FIXED = 1 / 120;
+    let acc = 0, last = performance.now();
+
+    function frame(t) {
+        const dt = Math.min(0.05, Math.max(0, (t - last) / 1000));
+        last = t;
+
+        if (!cfg.paused) {
+            acc += dt;
+            let steps = 0;
+            while (acc >= FIXED && steps < 6) { step(FIXED); acc -= FIXED; steps++; }
+            if (steps >= 6) acc = 0;
+        }
+
+        render();
+        updateCount();
+        requestAnimationFrame(frame);
+    }
+
+    // ------------------------------------------------------------ input
+    let drag = null;
+    let moveQueued = null;
+
+    canvas.addEventListener('pointerdown', function (e) {
+        audio();
+        const x = e.clientX, y = e.clientY;
+        const b = ballAt(x, y);
+
+        if (b) {
+            drag = b;
+            b.held = true;
+            b.vx = 0; b.vy = 0;
+            b.ox = x - b.x;
+            b.oy = y - b.y;
+            b.px = x; b.py = y; b.pt = performance.now();
+            canvas.classList.add('grabbing');
+            try { canvas.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        } else {
+            const nb = addBall(x, y, 9 + Math.random() * 15);
+            nb.vy = 120;
+            note(pick([659.25, 783.99, 880]), 0.05, 0.22, 'sine');
+        }
+        e.preventDefault();
+    }, { passive: false });
+
+    canvas.addEventListener('pointermove', function (e) {
+        if (!drag) return;
+        moveQueued = { x: e.clientX, y: e.clientY };
+    }, { passive: true });
+
+    function applyDrag() {
+        if (!drag || !moveQueued) return;
+        const x = moveQueued.x, y = moveQueued.y;
+        moveQueued = null;
+
+        const now = performance.now();
+        const dt = Math.max(0.012, (now - drag.pt) / 1000);
+
+        const vx = (x - drag.px) / dt;
+        const vy = (y - drag.py) / dt;
+        drag.vx = drag.vx * 0.55 + vx * 0.45;
+        drag.vy = drag.vy * 0.55 + vy * 0.45;
+
+        drag.px = x; drag.py = y; drag.pt = now;
+
+        drag.x = clamp(x - drag.ox, drag.r, Math.max(drag.r, W - drag.r));
+        drag.y = clamp(y - drag.oy, drag.r, Math.max(drag.r, H - drag.r));
+    }
+
+    function endDrag() {
+        if (!drag) return;
+        drag.held = false;
+        drag.vx = clamp(drag.vx, -3600, 3600);
+        drag.vy = clamp(drag.vy, -3600, 3600);
+        if (Math.abs(drag.vx) + Math.abs(drag.vy) > 260) {
+            note(pick([392, 440, 523.25]), 0.045, 0.24, 'sine');
+        }
+        drag = null;
+        moveQueued = null;
+        canvas.classList.remove('grabbing');
+    }
+
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    window.addEventListener('blur', endDrag);
+    canvas.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    // ------------------------------------------------------------ controls
+    const el = (id) => document.getElementById(id);
+
+    function updateCount() {
+        el('count').textContent = balls.length + (balls.length === 1 ? ' ball' : ' balls');
+    }
+
+    function flash(text) {
+        const s = el('status');
+        s.textContent = text;
+        clearTimeout(flash.t);
+        flash.t = setTimeout(function () { s.textContent = ''; }, 900);
+    }
+
+    el('addBtn').addEventListener('click', function () {
+        audio();
+        const r = 9 + Math.random() * 17;
+        addBall(r + Math.random() * (W - r * 2), -r - 10, r);
+    });
+
+    el('rainBtn').addEventListener('click', function () {
+        audio();
+        flash('rain');
+        for (let i = 0; i < 14; i++) {
+            setTimeout(function () {
+                const r = 8 + Math.random() * 16;
+                const b = addBall(r + Math.random() * Math.max(1, W - r * 2), -r - 6 - Math.random() * 60, r);
+                b.vx = -70 + Math.random() * 140;
+            }, i * 55);
+        }
+    });
+
+    el('shakeBtn').addEventListener('click', function () {
+        audio();
+        flash('shake');
+        for (let i = 0; i < balls.length; i++) {
+            const b = balls[i];
+            if (b.held) continue;
+            b.vx += -520 + Math.random() * 1040;
+            b.vy -= 320 + Math.random() * 620;
+        }
+        [329.63, 392.00, 523.25].forEach(function (f, i) {
+            setTimeout(function () { note(f, 0.05, 0.5, 'sine'); }, i * 60);
+        });
+    });
+
+    el('clearBtn').addEventListener('click', function () {
+        audio();
+        balls.length = 0;
+        drag = null;
+        [659.25, 523.25, 392.00].forEach(function (f, i) {
+            setTimeout(function () { note(f, 0.045, 0.35, 'sine'); }, i * 70);
+        });
+    });
+
+    el('pauseBtn').addEventListener('click', function () {
+        cfg.paused = !cfg.paused;
+        el('pauseBtn').textContent = cfg.paused ? '▶ Play' : '⏸ Pause';
+        el('pauseBtn').classList.toggle('on', cfg.paused);
+        flash(cfg.paused ? 'paused' : '');
+    });
+
+    el('soundBtn').addEventListener('click', function () {
+        cfg.sound = !cfg.sound;
+        el('soundBtn').textContent = cfg.sound ? '🔊' : '🔇';
+        el('soundBtn').classList.toggle('on', !cfg.sound);
+        if (cfg.sound) { audio(); note(659.25, 0.05, 0.25, 'sine'); }
+    });
+
+    el('grav').addEventListener('input', function () {
+        cfg.gravity = +this.value;
+        el('gravOut').textContent = cfg.gravity;
+    });
+
+    el('bounce').addEventListener('input', function () {
+        cfg.bounce = +this.value / 100;
+        el('bounceOut').textContent = cfg.bounce.toFixed(2);
+    });
+
+    window.addEventListener('keydown', function (e) {
+        if (e.target.tagName === 'INPUT') return;
+        const k = e.key.toLowerCase();
+        if (k === 'h') {
+            el('dock').classList.toggle('hidden');
+            document.querySelectorAll('.hud').forEach(function (n) { n.classList.toggle('hidden'); });
+            el('hintline').classList.toggle('hidden');
+        } else if (k === 'b') {
+            el('addBtn').click();
+        } else if (k === 'r') {
+            el('rainBtn').click();
+        } else if (k === 'x') {
+            el('shakeBtn').click();
+        } else if (k === 'c') {
+            el('clearBtn').click();
+        } else if (k === 'p' || e.code === 'Space') {
+            e.preventDefault();
+            el('pauseBtn').click();
+        }
+    });
+
+    window.addEventListener('resize', resize);
+
+    // ------------------------------------------------------------ boot
+    resize();
+
+    // a gentle opening shower of balls
+    for (let i = 0; i < 9; i++) {
+        setTimeout(function () {
+            const r = 10 + Math.random() * 16;
+            const b = addBall(r + Math.random() * Math.max(1, W - r * 2), -r - 20 - i * 8, r);
+            b.vx = -40 + Math.random() * 80;
+        }, 140 * i);
+    }
+
+    requestAnimationFrame(function (t) { last = t; frame(t); });
+})();
+</script>
+</body>
+</html>
