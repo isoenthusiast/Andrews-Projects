@@ -113,6 +113,20 @@
     #switchBtn:hover { filter: brightness(1.08); }
     #switchBtn[hidden] { display: none; }
 
+    /* EN / 中 toggle: fixed on the title screen, a chip inside the HUD row in game */
+    .lang-toggle {
+        padding: 8px 13px;
+        border-radius: 999px;
+        font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: .6px;
+        cursor: pointer;
+        color: #eaf5d8;
+        background: rgba(12,20,10,0.82);
+        border: 1px solid rgba(166,216,74,0.45);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+    }
+    .lang-toggle:hover { filter: brightness(1.15); }
+    #picker .lang-toggle { position: fixed; top: 16px; right: 18px; z-index: 30; }
+
 </style>
 </head>
 <body>
@@ -120,6 +134,7 @@
 <button id="switchBtn" hidden>☰ 切换游戏</button>
 
 <div id="picker">
+    <button class="lang-toggle" data-lang-toggle title="Switch language · 切换语言">EN</button>
     <div class="pk">
         <h1>Andrew 的游戏合集</h1>
         <p class="pk-sub">Three games · one page · 一个入口</p>
@@ -128,7 +143,7 @@
                 <span class="pk-seal seal-gwd">守</span>
                 <span class="pk-name">长城守卫战</span>
                 <span class="pk-en">Great Wall Defense</span>
-                <span class="pk-desc">在古道两旁修筑宝塔，挡住 20 波蛮族大军。箭塔、火炮、寒冰与雷龙四种炮塔，两场首领战。</span>
+                <span class="pk-desc">在古道两旁修筑宝塔，挡住一波波蛮族大军。波数自选 20–100，箭塔、火炮、寒冰与雷龙四种炮塔，每 10 波一场首领战。</span>
                 <span class="pk-save" data-save="gwd">暂无存档</span>
                 <span class="pk-go">开始游戏 →</span>
             </button>
@@ -136,7 +151,7 @@
                 <span class="pk-seal seal-pvz">植</span>
                 <span class="pk-name">植物大战僵尸 3</span>
                 <span class="pk-en">Plants vs. Zombies 3</span>
-                <span class="pk-desc">经典 5×9 草坪：种向日葵收阳光，用豌豆、坚果、樱桃炸弹守住 20 波僵尸，割草机兜底。</span>
+                <span class="pk-desc">经典 5×9 草坪：种向日葵收阳光，用豌豆、坚果、樱桃炸弹守住僵尸潮。波数自选 20–100，割草机兜底。</span>
                 <span class="pk-save" data-save="pvz">暂无存档</span>
                 <span class="pk-go">开始游戏 →</span>
             </button>
@@ -144,7 +159,7 @@
                 <span class="pk-seal seal-comb">合</span>
                 <span class="pk-name">组合模式</span>
                 <span class="pk-en">Combined · Wall × Lawn</span>
-                <span class="pk-desc">同一片战场上同时种植物与修宝塔：阳光买植物、银两买炮塔，两套防御一起挡住蛮族与僵尸的 20 波联军。</span>
+                <span class="pk-desc">同一片战场上同时种植物与修宝塔：阳光买植物、银两买炮塔，两套防御一起挡住蛮族与僵尸的联军。波数自选 20–100。</span>
                 <span class="pk-save" data-save="comb">暂无存档</span>
                 <span class="pk-go">开始游戏 →</span>
             </button>
@@ -407,6 +422,46 @@
         color: #f2cf7a; min-height: 18px; margin-bottom: 8px;
     }
 
+    /* ---------------- Wave count slider ---------------- */
+    .wave-len {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 9px;
+        font-size: 0.7rem; letter-spacing: .8px;
+        color: #cbb99a;
+    }
+    .wave-len b {
+        margin-left: auto;
+        color: #f2cf7a; font-size: 0.78rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .wave-len input[type=range] {
+        flex: 1 1 auto; min-width: 0; height: 20px;
+        -webkit-appearance: none; appearance: none;
+        background: transparent; cursor: pointer;
+    }
+    .wave-len input[type=range]::-webkit-slider-runnable-track {
+        height: 5px; border-radius: 3px;
+        background: linear-gradient(90deg, rgba(232,193,105,0.85), rgba(168,135,60,0.35));
+        border: 1px solid rgba(232,193,105,0.25);
+    }
+    .wave-len input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 15px; height: 15px; margin-top: -6px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #fff3cf, #e8c169 60%, #a8873c);
+        border: 1px solid #6d4f1c;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.55);
+    }
+    .wave-len input[type=range]::-moz-range-track {
+        height: 5px; border-radius: 3px;
+        background: rgba(232,193,105,0.5);
+        border: 1px solid rgba(232,193,105,0.25);
+    }
+    .wave-len input[type=range]::-moz-range-thumb {
+        width: 14px; height: 14px; border-radius: 50%;
+        background: #e8c169; border: 1px solid #6d4f1c;
+    }
+
     .speed-group { display: flex; gap: 6px; }
     .speed-group button {
         flex: 1; padding: 7px 0; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
@@ -475,6 +530,7 @@
             <div class="stat gold" id="statGoldBox"><span class="ico">🪙</span><div><b id="statGold">150</b><small>银两 SILVER</small></div></div>
             <div class="stat life" id="statLifeBox"><span class="ico">🏯</span><div><b id="statLife">20</b><small>城墙 WALL</small></div></div>
             <div class="stat wave"><span class="ico">⚔️</span><div><b id="statWave">0 / 20</b><small>波次 WAVE</small></div></div>
+            <button class="lang-toggle" data-lang-toggle title="Switch language · 切换语言">EN</button>
         </div>
     </header>
 
@@ -494,9 +550,16 @@
 
             <div class="box">
                 <h3>波次 · WAVE</h3>
+                <div class="wave-len">
+                    <label for="waveTotal">总波数</label>
+                    <input type="range" id="waveTotal" min="20" max="100" step="10" value="20"
+                        aria-label="总波数" title="总波数" />
+                    <b id="waveTotalVal">20</b>
+                </div>
                 <div class="banner" id="waveBanner">准备迎敌</div>
                 <div class="wave-preview" id="wavePreview"></div>
                 <button class="btn" id="startWave" style="width:100%">开始第 1 波</button>
+                <p class="hint">每 20 波难度再上一档。</p>
             </div>
 
             <div class="box" id="selBox" style="display:none">
@@ -696,15 +759,13 @@
     .packet.cool { cursor: not-allowed; }
 
     .packet .gl {
-        width: 100%; height: 44px;
+        width: 100%; flex: 1 1 auto;
         border-radius: 6px;
         display: grid; place-items: center;
-        font-size: 1.35rem; font-weight: 800;
-        color: #fff8ea;
-        text-shadow: 0 2px 3px rgba(0,0,0,0.55);
+        padding: 1px;
         box-shadow: inset 0 -3px 8px rgba(0,0,0,0.3);
     }
-    .packet .nm { font-size: 0.6rem; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+    .packet .gl .pic { display: block; }
     .packet .ct { font-size: 0.72rem; font-weight: 800; color: #4d3208; font-variant-numeric: tabular-nums; }
     .packet .cd {
         position: absolute; left: 0; right: 0; bottom: 0;
@@ -872,6 +933,46 @@
         text-align: center; font-size: 0.8rem; letter-spacing: 1px;
         color: #dcf3ac; min-height: 18px; margin-bottom: 8px;
     }
+
+    /* ---------------- Wave count slider ---------------- */
+    .wave-len {
+        display: flex; align-items: center; gap: 8px;
+        margin-bottom: 9px;
+        font-size: 0.7rem; letter-spacing: .8px;
+        color: #8b9a7a;
+    }
+    .wave-len b {
+        margin-left: auto;
+        color: #dcf3ac; font-size: 0.78rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+    .wave-len input[type=range] {
+        flex: 1 1 auto; min-width: 0; height: 20px;
+        -webkit-appearance: none; appearance: none;
+        background: transparent; cursor: pointer;
+    }
+    .wave-len input[type=range]::-webkit-slider-runnable-track {
+        height: 5px; border-radius: 3px;
+        background: linear-gradient(90deg, rgba(166,216,74,0.85), rgba(111,148,48,0.35));
+        border: 1px solid rgba(166,216,74,0.25);
+    }
+    .wave-len input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 15px; height: 15px; margin-top: -6px; border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #f4ffe4, #a6d84a 60%, #5f8b22);
+        border: 1px solid #2f4a12;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.55);
+    }
+    .wave-len input[type=range]::-moz-range-track {
+        height: 5px; border-radius: 3px;
+        background: rgba(166,216,74,0.5);
+        border: 1px solid rgba(166,216,74,0.25);
+    }
+    .wave-len input[type=range]::-moz-range-thumb {
+        width: 14px; height: 14px; border-radius: 50%;
+        background: #a6d84a; border: 1px solid #2f4a12;
+    }
     .banner.big { color: #ff9d6e; font-weight: 700; }
 
     .speed-group { display: flex; gap: 6px; }
@@ -961,6 +1062,7 @@
             <div class="stat comb-only wall" id="statWallBox"><span class="ico">🏯</span><div><b id="statWall">20</b><small>城墙 WALL</small></div></div>
             <div class="stat life" id="statLifeBox"><span class="ico">🚜</span><div><b id="statLife">5</b><small>割草机 MOWERS</small></div></div>
             <div class="stat wave"><span class="ico">🧟</span><div><b id="statWave">0 / 20</b><small>波次 WAVE</small></div></div>
+            <button class="lang-toggle" data-lang-toggle title="Switch language · 切换语言">EN</button>
         </div>
     </header>
 
@@ -991,9 +1093,16 @@
 
             <div class="box">
                 <h3>波次 · WAVE</h3>
+                <div class="wave-len">
+                    <label for="waveTotal">总波数</label>
+                    <input type="range" id="waveTotal" min="20" max="100" step="10" value="20"
+                        aria-label="总波数" title="总波数" />
+                    <b id="waveTotalVal">20</b>
+                </div>
                 <div class="banner" id="waveBanner">先种几株向日葵积攒阳光</div>
                 <div class="wave-preview" id="wavePreview"></div>
                 <button class="btn" id="startWave" style="width:100%">开始第 1 波</button>
+                <p class="hint">每 20 波难度再上一档。</p>
             </div>
 
             <div class="box" id="selBox" style="display:none">
@@ -1080,6 +1189,10 @@ window.setTimeout = function (fn, ms) {
 };
 
 
+// Canvas text goes through the same dictionary as the DOM (floats, pause
+// hint, boss names) so it follows the language toggle too.
+const tr = s => (window.__I18N ? window.__I18N.t(s) : s);
+
 /* =========================================================================
    长城守卫战 · Great Wall Defense
    A single-file canvas tower defense game with an ancient Chinese theme.
@@ -1089,7 +1202,10 @@ window.setTimeout = function (fn, ms) {
 const CELL = 40, COLS = 24, ROWS = 15;
 const W = COLS * CELL, H = ROWS * CELL;
 const MAX_LEVEL = 3;
-const TOTAL_WAVES = 20;
+// 波数由侧栏滑块决定：20 起步、10 波一档、最多 100。难度按波表周期分档 ——
+// 表中 20 行走完一圈就是一个难度档，敌人血量与数量都往上抬一档。
+const WAVE_MIN = 20, WAVE_MAX = 100, WAVE_STEP = 10;
+let totalWaves = WAVE_MIN;
 
 const CJK = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", "SimHei", sans-serif';
 const UI  = "'Segoe UI', system-ui, sans-serif";
@@ -1271,13 +1387,15 @@ let buildType = null;
 let waves = [];
 
 function buildWaves() {
-    waves = WAVE_TABLE.map((row, idx) => {
-        const w = idx + 1;
-        const hpMul = 1 + (w - 1) * 0.20;
+    waves = [];
+    for (let w = 1; w <= totalWaves; w++) {
+        const row = waveRow(w);
+        const hpMul = waveHpMul(w);
+        const countMul = waveCountMul(w);
         const list = [];
         for (const key of Object.keys(row)) {
             if (key === 'boss') continue;
-            const count = Math.round(row[key]);
+            const count = Math.round(row[key] * countMul);
             const type = ENEMY_TYPES[key];
             for (let i = 0; i < count; i++) {
                 list.push({ kind: key, hp: Math.round(type.hp * hpMul) });
@@ -1292,8 +1410,60 @@ function buildWaves() {
             const bossType = ENEMY_TYPES[row.boss];
             list.push({ kind: row.boss, hp: Math.round(bossType.hp * (1 + (w - 1) * 0.09)) });
         }
-        return { number: w, list };
-    });
+        waves.push({ number: w, list });
+    }
+}
+
+// 第 w 波套用波表里的哪一行：走完一圈从头再来，同时难度升一档。
+function waveRow(w) { return WAVE_TABLE[(w - 1) % WAVE_TABLE.length]; }
+function waveTier(w) { return Math.floor((w - 1) / WAVE_TABLE.length); }
+function waveCountMul(w) { return 1 + waveTier(w) * 0.3; }
+function waveHpMul(w) {
+    const pos = ((w - 1) % WAVE_TABLE.length) + 1;
+    return (1 + (pos - 1) * 0.20) * (1 + waveTier(w) * 0.35);
+}
+
+function compositionOf(waveIndex) {
+    const w = waveIndex + 1;
+    if (w > totalWaves) return [];
+    const row = waveRow(w);
+    if (!row) return [];
+    const countMul = waveCountMul(w);
+    const out = [];
+    for (const key of Object.keys(row)) {
+        const kind = key === 'boss' ? row.boss : key;
+        out.push({ kind, count: key === 'boss' ? 1 : Math.max(1, Math.round(row[key] * countMul)) });
+    }
+    return out;
+}
+
+// ------------------------------- Wave count ------------------------------
+function clampWaveTotal(n) {
+    return clamp(Math.round((Number(n) || WAVE_MIN) / WAVE_STEP) * WAVE_STEP, WAVE_MIN, WAVE_MAX);
+}
+
+function syncWaveTotal() {
+    const input = el('waveTotal');
+    if (!input) return;
+    input.value = totalWaves;
+    el('waveTotalVal').textContent = totalWaves;
+}
+
+// 滑块选的是整局的总波数：已经打过的波不动，多出来的部分重新生成。
+function setWaveTotal(n) {
+    const next = clampWaveTotal(n);
+    if (next === totalWaves) { syncWaveTotal(); return; }
+    if (next <= state.wave) {
+        toast('总波数不能少于当前第 ' + state.wave + ' 波', true);
+        syncWaveTotal();
+        return;
+    }
+    totalWaves = next;
+    buildWaves();
+    savePrefs();
+    syncWaveTotal();
+    updateHud();
+    renderWavePanel();
 }
 
 function compositionOf(waveIndex) {
@@ -1357,7 +1527,7 @@ function onWaveCleared() {
     addGold(bonus);
     pushFloat(W / 2, 110, '波次清空  +' + bonus, '#f2cf7a');
 
-    if (state.wave >= TOTAL_WAVES) {
+    if (state.wave >= totalWaves) {
         state.phase = 'won';
         clearSave();
         Sfx.win();
@@ -2014,7 +2184,7 @@ function drawEnemies() {
         if (t.boss) {
             ctx.fillStyle = '#f2cf7a';
             ctx.font = 'bold 10px ' + UI;
-            ctx.fillText(t.name, 0, by - 5);
+            ctx.fillText(tr(t.name), 0, by - 5);
         }
         ctx.restore();
     }
@@ -2109,9 +2279,9 @@ function drawFx() {
         ctx.textAlign = 'center';
         ctx.lineWidth = 3;
         ctx.strokeStyle = 'rgba(255,248,230,0.85)';
-        ctx.strokeText(f.text, f.x, f.y);
+        ctx.strokeText(tr(f.text), f.x, f.y);
         ctx.fillStyle = f.color;
-        ctx.fillText(f.text, f.x, f.y);
+        ctx.fillText(tr(f.text), f.x, f.y);
         ctx.restore();
     }
 }
@@ -2180,7 +2350,7 @@ function draw() {
         ctx.fillStyle = '#f2cf7a';
         ctx.font = 'bold 34px ' + CJK;
         ctx.textAlign = 'center';
-        ctx.fillText('暫 停', W / 2, H / 2);
+        ctx.fillText(tr('暫 停'), W / 2, H / 2);
         ctx.font = '13px ' + UI;
         ctx.fillStyle = '#e6d5ae';
         ctx.fillText('Press SPACE to resume', W / 2, H / 2 + 26);
@@ -2194,7 +2364,7 @@ const el = id => document.getElementById(id);
 function updateHud() {
     el('statGold').textContent = state.gold;
     el('statLife').textContent = state.life;
-    el('statWave').textContent = state.wave + ' / ' + TOTAL_WAVES;
+    el('statWave').textContent = state.wave + ' / ' + totalWaves;
     for (const btn of document.querySelectorAll('.tower-btn')) {
         const type = btn.dataset.type;
         btn.classList.toggle('poor', state.gold < TOWER_TYPES[type].cost);
@@ -2351,7 +2521,8 @@ function showOverlay(kind) {
             '<li>点击左侧炮塔，再点击地图空地建造。</li>' +
             '<li>点击已建炮塔可 <b>升级</b> 或 <b>拆除</b>。</li>' +
             '<li>敌人走完全程会削减 <b>城墙</b>，归零即败。</li>' +
-            '<li>共 <b>20 波</b>，第 10 与 20 波有 <b>首领</b> —— 击退它们即可取胜。</li>' +
+            '<li>波数在右侧滑块里自选：20–100 波，每 20 波难度再上一档。</li>' +
+            '<li>每 10 波是一场 <b>首领战</b> —— 击退最后一个首领即可取胜。</li>' +
             '<li>进度会 <b>自动保存</b>，也可随时在右侧手动保存。</li>' +
             '<li>快捷键：<kbd>1</kbd>–<kbd>4</kbd> 选塔 · <kbd>Esc</kbd> 取消 · <kbd>空格</kbd> 暂停 · <kbd>N</kbd> 下一波</li>' +
             '</ul>' +
@@ -2372,7 +2543,7 @@ function showOverlay(kind) {
             '<div class="card">' +
             '<h2>長城永固</h2>' +
             '<div class="sub">Victory</div>' +
-            '<p>全部 20 波敌军尽数击退！城墙完壁，百姓安宁。' +
+            '<p>所有波次敌军尽数击退！城墙完壁，百姓安宁。' +
             '剩余城墙 <b>' + state.life + '</b>，余银 <b>' + state.gold + '</b>。</p>' +
             '<button class="btn" id="ovBtn">再战一场</button>' +
             '</div>';
@@ -2444,7 +2615,7 @@ function toast(msg, bad) {
 }
 
 function savePrefs() {
-    Store.write(PREFS_KEY, JSON.stringify({ speed: state.speed, muted: Sfx.muted }));
+    Store.write(PREFS_KEY, JSON.stringify({ speed: state.speed, muted: Sfx.muted, waves: totalWaves }));
 }
 
 function applyPrefs() {
@@ -2454,12 +2625,14 @@ function applyPrefs() {
             const p = JSON.parse(raw);
             if (p && p.speed >= 1 && p.speed <= 3) state.speed = p.speed;
             if (p && typeof p.muted === 'boolean') Sfx.setMuted(p.muted);
+            if (p && typeof p.waves === 'number') totalWaves = clampWaveTotal(p.waves);
         } catch (e) { /* ignore corrupt prefs */ }
     }
     for (const btn of el('speedGroup').children) {
         btn.classList.toggle('on', Number(btn.dataset.speed) === state.speed);
     }
     el('btnMute').textContent = Sfx.muted ? '🔇 静音' : '🔊 音效';
+    syncWaveTotal();
 }
 
 function serializeGame() {
@@ -2474,6 +2647,7 @@ function serializeGame() {
         betweenTimer: state.betweenTimer,
         spawnTimer: state.spawnTimer,
         speed: state.speed,
+        waves: totalWaves,
         spawnQueue: state.spawnQueue.map(s => ({ k: s.kind, h: s.hp })),
         towers: towers.map(t => ({ y: t.type, c: t.c, r: t.r, l: t.level, i: t.invested })),
         enemies: state.phase !== 'running' ? [] : enemies.filter(e => e.alive).map(e => {
@@ -2496,7 +2670,7 @@ function serializeGame() {
 function validSave(d) {
     if (!d || d.v !== SAVE_VERSION) return false;
     if (typeof d.gold !== 'number' || typeof d.life !== 'number') return false;
-    if (typeof d.wave !== 'number' || d.wave < 0 || d.wave > TOTAL_WAVES) return false;
+    if (typeof d.wave !== 'number' || d.wave < 0 || d.wave > clampWaveTotal(d.waves)) return false;
     if (!Array.isArray(d.towers) || !Array.isArray(d.enemies)) return false;
     if (d.phase !== 'running' && d.phase !== 'prep') return false;
 
@@ -2520,12 +2694,15 @@ function validSave(d) {
 function restoreGame(d) {
     resetState();
 
+    totalWaves = clampWaveTotal(d.waves);
+    buildWaves();
     state.gold = Math.max(0, Math.floor(d.gold));
     state.life = Math.max(1, Math.floor(d.life));
-    state.wave = clamp(Math.floor(d.wave), 0, TOTAL_WAVES);
+    state.wave = clamp(Math.floor(d.wave), 0, totalWaves);
     state.t = d.t || 0;
     state.spawnTimer = d.spawnTimer || 0;
     state.paused = false;
+    syncWaveTotal();
 
     for (const t of d.towers) {
         const tw = {
@@ -2640,8 +2817,8 @@ function loadGame() {
 // ------------------------------- Game flow -------------------------------
 function newGame() {
     resetState();
-    buildWaves();
     applyPrefs();
+    buildWaves();
     clearSave();          // a fresh run supersedes whatever was stored
     hideOverlay();
     updateHud();
@@ -2753,6 +2930,9 @@ el('speedGroup').addEventListener('click', evt => {
     savePrefs();
 });
 
+el('waveTotal').addEventListener('input', () => { el('waveTotalVal').textContent = el('waveTotal').value; });
+el('waveTotal').addEventListener('change', () => setWaveTotal(el('waveTotal').value));
+
 el('btnPause').addEventListener('click', togglePause);
 el('btnRestart').addEventListener('click', newGame);
 el('btnMute').addEventListener('click', () => {
@@ -2840,11 +3020,11 @@ function frame(now) {
 // ------------------------------- Boot ------------------------------------
 function boot() {
     resetState();
+    applyPrefs();          // the saved wave count has to be known before waves are built
     buildWaves();
     buildBackground();
     renderBuildList();
     renderSelectedPanel();
-    applyPrefs();
     updateHud();
     renderWavePanel();
     if (auto && readSave()) loadGame(); else showOverlay('start');
@@ -2898,10 +3078,15 @@ window.setTimeout = function (fn, ms) {
 };
 
 
+// Canvas text goes through the same dictionary as the DOM (floats, pause
+// hint, boss names) so it follows the language toggle too.
+const tr = s => (window.__I18N ? window.__I18N.t(s) : s);
+
 /* =========================================================================
    植物大战僵尸 3 · Plants vs. Zombies 3
    A single-file canvas lane-defense game. Plant on the lawn, harvest sun,
-   and stop 20 waves of zombies before they reach the house.
+   and stop wave after wave of zombies before they reach the house. The run
+   length is picked on a slider (20–100 waves, 10 at a time).
    ========================================================================= */
 
 // ------------------------------- Constants -------------------------------
@@ -2910,8 +3095,8 @@ const LAWN_X = 70, LAWN_Y = 30;
 const CANVAS_W = 1000, CANVAS_H = 560;
 const LAWN_R = LAWN_X + COLS * CELL_W;      // 970
 const LAWN_B = LAWN_Y + ROWS * CELL_H;      // 530
-const TOTAL_WAVES = 20;
-const FLAG_WAVES = [5, 10, 15, 20];
+const WAVE_MIN = 20, WAVE_MAX = 100, WAVE_STEP = 10;
+let totalWaves = WAVE_MIN;
 const RABBIT_COST = 1000;   // 兔子园丁：一次性买断，自动收集阳光
 
 const CJK = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", "SimHei", sans-serif';
@@ -3221,7 +3406,9 @@ const Sfx = (() => {
 
 // ------------------------------- State -----------------------------------
 const cv = document.getElementById('game');
-const ctx = cv.getContext('2d');
+// `let` because the seed packets redraw the same plant art onto small
+// off-screen canvases, temporarily swapping this binding while they do.
+let ctx = cv.getContext('2d');
 const el = id => document.getElementById(id);
 
 let state, plants, zombies, shots, suns, mowers, fx, floats;
@@ -3275,16 +3462,18 @@ function resetState() {
 let waves = [];
 
 function buildWaves() {
-    waves = (COMBO ? COMBO_WAVE_TABLE : WAVE_TABLE).map((row, idx) => {
-        const w = idx + 1;
-        const hpMul = 1 + (w - 1) * 0.08;
+    waves = [];
+    for (let w = 1; w <= totalWaves; w++) {
+        const row = waveRow(w);
+        const hpMul = waveHpMul(w);
+        const countMul = waveCountMul(w);
         const list = [];
         for (const key of Object.keys(row)) {
             if (key === 'boss' || key === 'boss2') { list.push({ kind: row[key], t: 0 }); continue; }
-            for (let i = 0; i < row[key]; i++) list.push({ kind: key, t: 0 });
+            for (let i = 0; i < Math.round(row[key] * countMul); i++) list.push({ kind: key, t: 0 });
         }
         const n = list.length;
-        const dur = Math.max(16, 18 + w * 1.2);
+        const dur = Math.max(16, 18 + (((w - 1) % waveTable().length) + 1) * 1.2);
         let idx2 = 0;
         for (const e of list) {
             if (ZOMBIE_TYPES[e.kind].flag || ZOMBIE_TYPES[e.kind].boss) e.t = 0;
@@ -3295,8 +3484,47 @@ function buildWaves() {
         // keep spawns from stacking on top of each other
         let last = -1;
         for (const e of list) { e.t = Math.max(e.t, last + 0.45); last = e.t; }
-        return { hpMul, list, total: n, dur };
-    });
+        waves.push({ hpMul, list, total: n, dur });
+    }
+}
+
+// 第 w 波套用波表里的哪一行：走完一圈从头再来，同时难度升一档。
+function waveTable() { return COMBO ? COMBO_WAVE_TABLE : WAVE_TABLE; }
+function waveRow(w) { return waveTable()[(w - 1) % waveTable().length]; }
+function waveTier(w) { return Math.floor((w - 1) / waveTable().length); }
+function waveCountMul(w) { return 1 + waveTier(w) * 0.3; }
+function waveHpMul(w) {
+    const pos = ((w - 1) % waveTable().length) + 1;
+    return (1 + (pos - 1) * 0.08) * (1 + waveTier(w) * 0.40);
+}
+
+// ------------------------------- Wave count ------------------------------
+function clampWaveTotal(n) {
+    return clamp(Math.round((Number(n) || WAVE_MIN) / WAVE_STEP) * WAVE_STEP, WAVE_MIN, WAVE_MAX);
+}
+
+function syncWaveTotal() {
+    const input = el('waveTotal');
+    if (!input) return;
+    input.value = totalWaves;
+    el('waveTotalVal').textContent = totalWaves;
+}
+
+// 滑块选的是整局的总波数：已经打过的波不动，多出来的部分重新生成。
+function setWaveTotal(n) {
+    const next = clampWaveTotal(n);
+    if (next === totalWaves) { syncWaveTotal(); return; }
+    if (next <= state.wave) {
+        toast('总波数不能少于当前第 ' + state.wave + ' 波', true);
+        syncWaveTotal();
+        return;
+    }
+    totalWaves = next;
+    buildWaves();
+    savePrefs();
+    syncWaveTotal();
+    updateHud();
+    renderWavePanel();
 }
 
 function currentWaveData() { return waves[state.wave - 1] || null; }
@@ -3313,7 +3541,7 @@ function startWave() {
     state.betweenTimer = null;
     state.bossSpawnTimer = 8;
 
-    const isFlag = FLAG_WAVES.indexOf(state.wave) >= 0;
+    const isFlag = state.wave % 5 === 0;
     if (isFlag) {
         banner('一大波僵尸正在接近！', true);
         Sfx.horn();
@@ -3356,7 +3584,7 @@ function updateWaves(dt) {
 
 function onWaveCleared() {
     if (state.phase !== 'running') return;
-    if (state.wave >= TOTAL_WAVES) {
+    if (state.wave >= totalWaves) {
         state.phase = 'won';
         Sfx.win();
         showOverlay('victory');
@@ -3366,7 +3594,8 @@ function onWaveCleared() {
     state.phase = 'prep';
     state.betweenTimer = 10;
     banner('第 ' + state.wave + ' 波已清除');
-    addSun(25);
+    // 长局里阳光也得跟上，否则后面几档只能干看着
+    addSun(25 + waveTier(state.wave) * 15);
     saveGame(true);
     renderWavePanel();
     updateHud();
@@ -4437,7 +4666,7 @@ function drawInvader(z) {
         ctx.font = 'bold 11px ' + CJK;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(T.name, z.x, by - 10);
+        ctx.fillText(tr(T.name), z.x, by - 10);
         ctx.restore();
     }
     if (z.slowT > 0) {
@@ -4506,14 +4735,75 @@ function stem(x, y, s, toY, color) {
     ctx.beginPath(); ctx.moveTo(x, y + 26 * s); ctx.lineTo(x, toY); ctx.stroke();
 }
 
-function face(x, y, r, mood) {
+function face(x, y, r, mood, mouth) {
+    const ex = r * 0.42, er = r * 0.29, pr = r * 0.15;
     ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(x - r * 0.42, y, r * 0.28, 0, 6.29); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + r * 0.42, y, r * 0.28, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(x - ex, y, er, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + ex, y, er, 0, 6.29); ctx.fill();
     ctx.fillStyle = '#241a10';
-    const px = mood === 'angry' ? -r * 0.22 : r * 0.10;
-    ctx.beginPath(); ctx.arc(x - r * 0.42 + px, y, r * 0.14, 0, 6.29); ctx.fill();
-    ctx.beginPath(); ctx.arc(x + r * 0.42 + px, y, r * 0.14, 0, 6.29); ctx.fill();
+    const px = mood === 'angry' ? -r * 0.20 : r * 0.10;
+    ctx.beginPath(); ctx.arc(x - ex + px, y, pr, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + ex + px, y, pr, 0, 6.29); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.arc(x - ex + px + pr * 0.45, y - pr * 0.5, pr * 0.36, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + ex + px + pr * 0.45, y - pr * 0.5, pr * 0.36, 0, 6.29); ctx.fill();
+    if (mood === 'angry') {
+        ctx.strokeStyle = '#241a10';
+        ctx.lineWidth = Math.max(1, r * 0.11);
+        ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x - ex * 1.3, y - er * 1.6); ctx.lineTo(x - ex * 0.45, y - er * 0.95); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + ex * 1.3, y - er * 1.6); ctx.lineTo(x + ex * 0.45, y - er * 0.95); ctx.stroke();
+    }
+    if (!mouth) return;
+    ctx.strokeStyle = '#241a10';
+    ctx.lineWidth = Math.max(1, r * 0.13);
+    ctx.lineCap = 'round';
+    if (mouth === 'smile') {
+        ctx.beginPath(); ctx.arc(x, y + r * 0.34, r * 0.36, 0.32 * Math.PI, 0.68 * Math.PI); ctx.stroke();
+    } else if (mouth === 'flat') {
+        ctx.beginPath(); ctx.moveTo(x - r * 0.3, y + r * 0.6); ctx.lineTo(x + r * 0.3, y + r * 0.6); ctx.stroke();
+    } else if (mouth === 'open') {
+        ctx.fillStyle = '#3d1512';
+        ctx.beginPath(); ctx.ellipse(x, y + r * 0.62, r * 0.3, r * 0.38, 0, 0, 6.29); ctx.fill();
+    }
+}
+
+// 一圈花瓣：外圈深、内圈亮，花心才看得出层次。
+function petalRing(cx, cy, radius, len, wid, count, phase, fill, tip) {
+    for (let i = 0; i < count; i++) {
+        const a = i * (Math.PI * 2 / count) + phase;
+        ctx.save();
+        ctx.translate(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius);
+        ctx.rotate(a);
+        ctx.fillStyle = fill;
+        ctx.beginPath(); ctx.ellipse(len * 0.55, 0, len * 0.62, wid, 0, 0, 6.29); ctx.fill();
+        ctx.fillStyle = tip;
+        ctx.beginPath(); ctx.ellipse(len * 1.02, 0, len * 0.22, wid * 0.6, 0, 0, 6.29); ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 豌豆脑袋：带体积的球 + 一到两根炮管，射手 / 寒冰 / 双发 / 三线共用。
+function peaHead(x, y, s, cold, barrels) {
+    const head = cold ? '#4aa3d9' : '#6ab04c';
+    const dark = cold ? '#2a6c96' : '#3f7a2a';
+    const light = cold ? '#bdeeff' : '#c3ed9a';
+    for (const [by, bh] of barrels) {
+        ctx.fillStyle = dark;
+        roundRect(ctx, x + 5 * s, y + by * s, 23 * s, bh * s, bh * 0.45 * s); ctx.fill();
+        ctx.fillStyle = cold ? '#7fd4f0' : '#8fc95f';
+        roundRect(ctx, x + 7 * s, y + (by + 1.8) * s, 19 * s, (bh - 3.6) * s, (bh - 3.6) * 0.45 * s); ctx.fill();
+        ctx.fillStyle = '#14301c';
+        ctx.beginPath();
+        ctx.ellipse(x + 26.5 * s, y + (by + bh / 2) * s, 2.4 * s, bh * 0.3 * s, 0, 0, 6.29);
+        ctx.fill();
+    }
+    const g = ctx.createRadialGradient(x - 8 * s, y - 9 * s, 1.5 * s, x, y, 19 * s);
+    g.addColorStop(0, light); g.addColorStop(0.5, head); g.addColorStop(1, dark);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, 16 * s, 0, 6.29); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.38)';
+    ctx.beginPath(); ctx.ellipse(x - 8 * s, y - 9 * s, 4.6 * s, 2.8 * s, -0.6, 0, 6.29); ctx.fill();
 }
 
 // 融合植物：两株植物的形象并排，外面罩一层金色光环。
@@ -4546,109 +4836,203 @@ function drawPlantArt(key, x, y, s, t) {
     shadow(-0, 30 * s - bob, 22 * s, 7 * s);
 
     if (key === 'sunflower') {
-        stem(0, -0, s, -12 * s);
+        stem(0, 0, s, -16 * s);
         leafPair(0, 0, s);
-        ctx.fillStyle = '#f2c14e';
-        for (let i = 0; i < 12; i++) {
-            const a = i * Math.PI / 6 + Math.sin(t * 1.6) * 0.05;
-            ctx.save();
-            ctx.translate(Math.cos(a) * 20 * s, -22 * s + Math.sin(a) * 20 * s);
-            ctx.rotate(a);
-            ctx.beginPath(); ctx.ellipse(0, 0, 12 * s, 6.5 * s, 0, 0, 6.29); ctx.fill();
-            ctx.restore();
+        const cy = -26 * s, sway = Math.sin(t * 1.6) * 0.05;
+        petalRing(0, cy, 9 * s, 13 * s, 6.6 * s, 12, sway + 0.26, '#d9a52c', '#f5c94f');
+        petalRing(0, cy, 6 * s, 11 * s, 5.6 * s, 10, sway, '#f2c14e', '#ffe38f');
+        const cg = ctx.createRadialGradient(-4 * s, cy - 5 * s, 2 * s, 0, cy, 16 * s);
+        cg.addColorStop(0, '#a9722a'); cg.addColorStop(0.6, '#8a5a1e'); cg.addColorStop(1, '#5e3c11');
+        ctx.fillStyle = cg;
+        ctx.beginPath(); ctx.arc(0, cy, 14 * s, 0, 6.29); ctx.fill();
+        ctx.fillStyle = 'rgba(60,38,10,0.45)';
+        for (let i = 0; i < 14; i++) {
+            const a = i * 2.399, rr = 4 + (i % 5) * 1.7;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * rr * s, cy + Math.sin(a) * rr * s, 1.4 * s, 0, 6.29);
+            ctx.fill();
         }
-        ctx.fillStyle = '#b8862c';
-        ctx.beginPath(); ctx.arc(0, -22 * s, 15 * s, 0, 6.29); ctx.fill();
-        ctx.fillStyle = '#8a5a1e';
-        ctx.beginPath(); ctx.arc(0, -22 * s, 12 * s, 0, 6.29); ctx.fill();
-        face(0, -23 * s, 11 * s);
+        face(0, cy - 1 * s, 10 * s, null, 'smile');
     } else if (key === 'peashooter' || key === 'snowpea' || key === 'repeater') {
         const cold = key === 'snowpea';
-        const head = cold ? '#4aa3d9' : '#6ab04c';
         const dark = cold ? '#2a6c96' : '#3f7a2a';
         stem(0, 0, s, -6 * s, dark);
         leafPair(0, 0, s);
-        ctx.fillStyle = head;
-        ctx.beginPath(); ctx.arc(-2 * s, -18 * s, 17 * s, 0, 6.29); ctx.fill();
         ctx.fillStyle = dark;
-        roundRect(ctx, 8 * s, -25 * s, 22 * s, 15 * s, 7 * s); ctx.fill();
-        if (key === 'repeater') { roundRect(ctx, 8 * s, -9 * s, 20 * s, 13 * s, 6 * s); ctx.fill(); }
-        ctx.fillStyle = cold ? '#bfe9ff' : '#9ede63';
-        ctx.beginPath(); ctx.arc(28 * s, -18 * s + (key === 'repeater' ? -2 * s : 0), 7 * s, 0, 6.29); ctx.fill();
-        if (key === 'repeater') { ctx.beginPath(); ctx.arc(27 * s, -2.5 * s, 6 * s, 0, 6.29); ctx.fill(); }
-        face(-4 * s, -20 * s, 14 * s);
+        ctx.beginPath(); ctx.ellipse(-7 * s, -3 * s, 6 * s, 3.4 * s, -0.7, 0, 6.29); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(7 * s, -3 * s, 6 * s, 3.4 * s, 0.7, 0, 6.29); ctx.fill();
+        if (key === 'repeater') {
+            peaHead(-2 * s, -20 * s, s, cold, [[-16, 12], [-2, 12]]);
+            face(-6 * s, -20 * s, 12 * s, null, 'smile');
+        } else {
+            peaHead(-2 * s, -18 * s, s, cold, [[-7, 14]]);
+            face(-6 * s, -18 * s, 12 * s, null, 'smile');
+        }
         if (cold) {
-            ctx.fillStyle = 'rgba(255,255,255,0.85)';
-            for (let i = 0; i < 3; i++) {
+            ctx.fillStyle = 'rgba(226,248,255,0.8)';
+            for (let i = 0; i < 4; i++) {
+                const a = t * 1.6 + i * 1.9;
                 ctx.beginPath();
-                ctx.arc(-14 * s + i * 12 * s, -34 * s + Math.sin(t * 3 + i) * 3 * s, 2.2 * s, 0, 6.29);
+                ctx.arc(-2 * s + Math.cos(a) * 15 * s, -18 * s + Math.sin(a) * 13 * s, 2.1 * s, 0, 6.29);
                 ctx.fill();
             }
+            ctx.strokeStyle = 'rgba(205,242,255,0.85)';
+            ctx.lineWidth = 2 * s;
+            ctx.beginPath(); ctx.arc(-2 * s, -18 * s, 16 * s, Math.PI * 1.02, Math.PI * 1.78); ctx.stroke();
         }
     } else if (key === 'wallnut') {
-        ctx.fillStyle = '#b0793a';
-        ctx.beginPath(); ctx.ellipse(0, -4 * s, 25 * s, 30 * s, 0, 0, 6.29); ctx.fill();
-        ctx.strokeStyle = '#7a4f1f'; ctx.lineWidth = 3 * s; ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,0.20)';
-        ctx.beginPath(); ctx.ellipse(-9 * s, -16 * s, 8 * s, 11 * s, -0.4, 0, 6.29); ctx.fill();
-        face(0, -8 * s, 16 * s, 'angry');
-        ctx.strokeStyle = '#241a10'; ctx.lineWidth = 3 * s; ctx.lineCap = 'round';
+        const ng = ctx.createLinearGradient(-22 * s, -34 * s, 20 * s, 26 * s);
+        ng.addColorStop(0, '#d29a55'); ng.addColorStop(0.45, '#b0793a'); ng.addColorStop(1, '#7d5222');
+        ctx.fillStyle = ng;
         ctx.beginPath();
-        ctx.moveTo(-8 * s, 2 * s);
-        ctx.quadraticCurveTo(0, 8 * s, 8 * s, 2 * s);
+        ctx.moveTo(0, -36 * s);
+        ctx.bezierCurveTo(20 * s, -36 * s, 27 * s, -20 * s, 26 * s, -2 * s);
+        ctx.bezierCurveTo(25 * s, 16 * s, 16 * s, 27 * s, 0, 27 * s);
+        ctx.bezierCurveTo(-16 * s, 27 * s, -25 * s, 16 * s, -26 * s, -2 * s);
+        ctx.bezierCurveTo(-27 * s, -20 * s, -20 * s, -36 * s, 0, -36 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#8a5a26';
+        ctx.beginPath();
+        ctx.moveTo(-7 * s, -33 * s);
+        ctx.quadraticCurveTo(0, -43 * s, 7 * s, -33 * s);
+        ctx.quadraticCurveTo(0, -37 * s, -7 * s, -33 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(90,56,20,0.7)';
+        ctx.lineWidth = 2.6 * s;
+        ctx.beginPath();
+        ctx.moveTo(0, -30 * s);
+        ctx.quadraticCurveTo(-6 * s, -4 * s, 0, 25 * s);
         ctx.stroke();
+        ctx.fillStyle = 'rgba(255,240,210,0.26)';
+        ctx.beginPath(); ctx.ellipse(-11 * s, -16 * s, 7 * s, 11 * s, -0.35, 0, 6.29); ctx.fill();
+        face(0, -8 * s, 15 * s, 'angry', 'flat');
+        ctx.strokeStyle = 'rgba(70,42,14,0.45)';
+        ctx.lineWidth = 2 * s; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(14 * s, 13 * s); ctx.lineTo(20 * s, 5 * s); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-18 * s, 9 * s); ctx.lineTo(-13 * s, 16 * s); ctx.stroke();
     } else if (key === 'threepeater') {
-        stem(0, 0, s, -18 * s, '#1a5240');
+        stem(0, 0, s, -14 * s, '#1f6b4d');
         leafPair(0, 0, s);
-        const heads = [[-30, 0.85], [-14, 1], [2, 0.85]];
-        for (const [dy, hs] of heads) {
-            ctx.save();
-            ctx.translate(0, dy * s);
-            ctx.fillStyle = '#2f7d5a';
-            ctx.beginPath(); ctx.arc(-2 * s, -18 * s, 13 * hs * s, 0, 6.29); ctx.fill();
-            ctx.fillStyle = '#1a5240';
-            roundRect(ctx, 6 * s, -24 * s, 20 * hs * s, 12 * hs * s, 6 * s); ctx.fill();
-            ctx.fillStyle = '#9ede63';
-            ctx.beginPath(); ctx.arc(26 * hs * s, -18 * s, 5.5 * hs * s, 0, 6.29); ctx.fill();
-            ctx.restore();
+        ctx.strokeStyle = '#1f6b4d';
+        ctx.lineWidth = 4.5 * s; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(0, -10 * s); ctx.quadraticCurveTo(-7 * s, -28 * s, -4 * s, -46 * s); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -8 * s); ctx.quadraticCurveTo(9 * s, -12 * s, 6 * s, 2 * s); ctx.stroke();
+        for (const [hx, hy, hs] of [[-4, -46, 0.8], [0, -22, 0.92], [4, 2, 0.8]]) {
+            peaHead(hx * s, hy * s, s * hs, false, [[-7, 13]]);
+            face(hx * s - 5 * s * hs, hy * s, 9 * s * hs, null, 'smile');
         }
-        face(0, -48 * s, 13 * s);
     } else if (key === 'cherry') {
-        const pulse = 1 + Math.sin(t * 12) * 0.06;
-        ctx.save(); ctx.scale(pulse, pulse);
-        ctx.strokeStyle = '#4a7c2a'; ctx.lineWidth = 3 * s;
-        ctx.beginPath(); ctx.moveTo(-8 * s, -22 * s); ctx.quadraticCurveTo(0, -34 * s, 8 * s, -26 * s); ctx.stroke();
+        const pulse = 1 + Math.sin(t * 12) * 0.05;
+        ctx.save();
+        ctx.scale(pulse, pulse);
+        ctx.strokeStyle = '#4a7c2a';
+        ctx.lineWidth = 3.4 * s; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(-10 * s, -16 * s); ctx.quadraticCurveTo(-6 * s, -33 * s, 2 * s, -36 * s); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(11 * s, -12 * s); ctx.quadraticCurveTo(10 * s, -28 * s, 2 * s, -36 * s); ctx.stroke();
+        ctx.fillStyle = '#5ebd4c';
+        ctx.beginPath(); ctx.ellipse(11 * s, -32 * s, 9 * s, 5 * s, -0.55, 0, 6.29); ctx.fill();
+        ctx.strokeStyle = 'rgba(40,90,30,0.55)';
+        ctx.lineWidth = 1.4 * s;
+        ctx.beginPath(); ctx.moveTo(4 * s, -35 * s); ctx.lineTo(18 * s, -30 * s); ctx.stroke();
         for (const [dx, dy] of [[-11, 2], [11, 6]]) {
-            ctx.fillStyle = '#c0392b';
+            const cg = ctx.createRadialGradient(dx * s - 5 * s, dy * s - 7 * s, 1.5 * s, dx * s, dy * s, 16 * s);
+            cg.addColorStop(0, '#f0705f'); cg.addColorStop(0.55, '#cc3a2c'); cg.addColorStop(1, '#8d1f18');
+            ctx.fillStyle = cg;
             ctx.beginPath(); ctx.arc(dx * s, dy * s, 15 * s, 0, 6.29); ctx.fill();
-            ctx.fillStyle = 'rgba(255,255,255,0.25)';
-            ctx.beginPath(); ctx.arc(dx * s - 5 * s, dy * s - 6 * s, 5 * s, 0, 6.29); ctx.fill();
-            face(dx * s, dy * s - 2 * s, 11 * s, 'angry');
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            ctx.beginPath(); ctx.ellipse(dx * s - 5.5 * s, dy * s - 7 * s, 4.2 * s, 2.6 * s, -0.6, 0, 6.29); ctx.fill();
+            ctx.beginPath(); ctx.arc(dx * s + 6 * s, dy * s + 6 * s, 1.7 * s, 0, 6.29); ctx.fill();
+            face(dx * s, dy * s - 2 * s, 11 * s, 'angry', 'open');
         }
         ctx.restore();
     } else if (key === 'potatomine') {
-        ctx.fillStyle = '#8d6e3a';
-        ctx.beginPath(); ctx.ellipse(0, 16 * s, 24 * s, 13 * s, 0, 0, 6.29); ctx.fill();
-        ctx.fillStyle = '#6b5127';
-        ctx.beginPath(); ctx.ellipse(0, 12 * s, 19 * s, 10 * s, 0, 0, 6.29); ctx.fill();
-        ctx.fillStyle = '#a8853f';
-        ctx.beginPath(); ctx.arc(-6 * s, 8 * s, 4 * s, 0, 6.29); ctx.fill();
-        face(0, 10 * s, 12 * s, 'angry');
+        ctx.fillStyle = '#57411f';
+        ctx.beginPath(); ctx.ellipse(0, 21 * s, 27 * s, 12 * s, 0, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#6f5528';
+        ctx.beginPath(); ctx.ellipse(0, 17 * s, 22 * s, 10 * s, 0, 0, 6.29); ctx.fill();
+        const pg = ctx.createRadialGradient(-7 * s, 2 * s, 2 * s, 0, 10 * s, 22 * s);
+        pg.addColorStop(0, '#c79a53'); pg.addColorStop(0.6, '#9d6b3b'); pg.addColorStop(1, '#6a441f');
+        ctx.fillStyle = pg;
+        ctx.beginPath();
+        ctx.moveTo(-18 * s, 15 * s);
+        ctx.bezierCurveTo(-19 * s, 0, -11 * s, -8 * s, 0, -8 * s);
+        ctx.bezierCurveTo(11 * s, -8 * s, 19 * s, 0, 18 * s, 15 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = 'rgba(70,44,18,0.4)';
+        for (const [dx, dy] of [[-12, 6], [9, 2], [-3, 9], [13, 9], [-16, 12]]) {
+            ctx.beginPath(); ctx.arc(dx * s, dy * s, 1.8 * s, 0, 6.29); ctx.fill();
+        }
+        face(0, 3 * s, 11 * s, 'angry', 'flat');
         const blink = 0.5 + 0.5 * Math.sin(t * 9);
-        ctx.fillStyle = 'rgba(224,60,40,' + (0.35 + blink * 0.65) + ')';
-        ctx.beginPath(); ctx.arc(15 * s, 4 * s, 4.5 * s, 0, 6.29); ctx.fill();
+        ctx.strokeStyle = '#3f3f3f';
+        ctx.lineWidth = 3.2 * s; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(15 * s, 9 * s); ctx.lineTo(20 * s, 1 * s); ctx.stroke();
+        const lg = ctx.createRadialGradient(21 * s, -1 * s, 0.5 * s, 21 * s, -1 * s, 12 * s);
+        lg.addColorStop(0, 'rgba(255,190,120,' + (0.3 + blink * 0.45).toFixed(2) + ')');
+        lg.addColorStop(1, 'rgba(224,60,40,0)');
+        ctx.fillStyle = lg;
+        ctx.beginPath(); ctx.arc(21 * s, -1 * s, 12 * s, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#3b3b3b';
+        ctx.beginPath(); ctx.arc(21 * s, -1 * s, 4 * s, 0, 6.29); ctx.fill();
+        ctx.fillStyle = 'rgba(255,150,90,' + (0.45 + blink * 0.5).toFixed(2) + ')';
+        ctx.beginPath(); ctx.arc(21 * s, -1 * s, 2.6 * s, 0, 6.29); ctx.fill();
     } else if (key === 'jalapeno') {
         ctx.save();
-        ctx.rotate(-0.2);
+        ctx.rotate(-0.14);
+        // 热浪光晕画在辣椒后面，免得把辣椒本身糊成一团。
+        const aura = ctx.createRadialGradient(0, 2 * s, 10 * s, 0, 2 * s, 34 * s);
+        const heat = 0.22 + 0.16 * Math.sin(t * 7);
+        aura.addColorStop(0, 'rgba(255,170,80,0)');
+        aura.addColorStop(0.55, 'rgba(255,170,80,' + heat.toFixed(3) + ')');
+        aura.addColorStop(1, 'rgba(255,140,40,0)');
+        ctx.fillStyle = aura;
+        ctx.beginPath(); ctx.arc(0, 2 * s, 34 * s, 0, 6.29); ctx.fill();
+
+        // 上粗下尖的椒身
         ctx.fillStyle = '#d94f2b';
-        ctx.beginPath(); ctx.ellipse(0, -6 * s, 14 * s, 24 * s, 0, 0, 6.29); ctx.fill();
-        ctx.fillStyle = '#8e2c12';
-        ctx.beginPath(); ctx.ellipse(0, -22 * s, 8 * s, 8 * s, 0, 0, 6.29); ctx.fill();
-        ctx.strokeStyle = '#4a7c2a'; ctx.lineWidth = 4 * s; ctx.lineCap = 'round';
-        ctx.beginPath(); ctx.moveTo(0, -28 * s); ctx.lineTo(6 * s, -38 * s); ctx.stroke();
-        face(0, -8 * s, 12 * s, 'angry');
-        ctx.fillStyle = 'rgba(255,200,120,' + (0.25 + 0.25 * Math.sin(t * 7)) + ')';
-        ctx.beginPath(); ctx.arc(0, -6 * s, 26 * s, 0, 6.29); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(-14 * s, -20 * s);
+        ctx.bezierCurveTo(-19 * s, -2 * s, -15 * s, 14 * s, -3 * s, 23 * s);
+        ctx.bezierCurveTo(3 * s, 27 * s, 11 * s, 16 * s, 14 * s, -2 * s);
+        ctx.bezierCurveTo(16 * s, -16 * s, 8 * s, -24 * s, -14 * s, -20 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(255,190,140,0.45)';
+        ctx.beginPath();
+        ctx.moveTo(-10 * s, -14 * s);
+        ctx.bezierCurveTo(-14 * s, -2 * s, -11 * s, 8 * s, -6 * s, 16 * s);
+        ctx.bezierCurveTo(-8 * s, 6 * s, -7 * s, -4 * s, -4 * s, -13 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(90,20,10,0.28)';
+        ctx.beginPath();
+        ctx.moveTo(9 * s, -18 * s);
+        ctx.bezierCurveTo(13 * s, -6 * s, 12 * s, 6 * s, 4 * s, 18 * s);
+        ctx.bezierCurveTo(9 * s, 8 * s, 8 * s, -6 * s, 3 * s, -17 * s);
+        ctx.closePath();
+        ctx.fill();
+
+        // 绿色椒蒂和椒柄
+        ctx.fillStyle = '#4a7c2a';
+        ctx.beginPath();
+        ctx.moveTo(-13 * s, -19 * s);
+        ctx.quadraticCurveTo(-10 * s, -30 * s, -1 * s, -29 * s);
+        ctx.quadraticCurveTo(10 * s, -28 * s, 12 * s, -18 * s);
+        ctx.quadraticCurveTo(2 * s, -23 * s, -13 * s, -19 * s);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#4a7c2a'; ctx.lineWidth = 4.5 * s; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-1 * s, -28 * s);
+        ctx.quadraticCurveTo(3 * s, -36 * s, 9 * s, -39 * s);
+        ctx.stroke();
+
+        face(0, -6 * s, 12 * s, 'angry', 'open');
         ctx.restore();
     }
     ctx.restore();
@@ -4810,7 +5194,7 @@ function drawZombie(z) {
         ctx.fillStyle = '#f2e6cd';
         ctx.font = 'bold 11px ' + CJK;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(T.name, z.x, by - 10);
+        ctx.fillText(tr(T.name), z.x, by - 10);
     }
 }
 
@@ -5005,7 +5389,7 @@ function drawFx() {
     for (const f of floats) {
         ctx.globalAlpha = clamp(f.life, 0, 1);
         ctx.fillStyle = f.color;
-        ctx.fillText(f.text, f.x, f.y);
+        ctx.fillText(tr(f.text), f.x, f.y);
     }
     ctx.globalAlpha = 1;
 }
@@ -5017,9 +5401,9 @@ function progressFraction() {
     if (state.phase === 'running') {
         const spawned = state.waveTotal - state.spawnQueue.length;
         const frac = state.waveTotal ? spawned / state.waveTotal : 0;
-        return clamp((state.wave - 1 + frac) / TOTAL_WAVES, 0, 1);
+        return clamp((state.wave - 1 + frac) / totalWaves, 0, 1);
     }
-    return clamp(state.wave / TOTAL_WAVES, 0, 1);
+    return clamp(state.wave / totalWaves, 0, 1);
 }
 
 function drawProgress() {
@@ -5041,9 +5425,9 @@ function drawProgress() {
     ctx.strokeStyle = 'rgba(166,216,74,0.55)'; ctx.lineWidth = 2;
     roundRect(ctx, x0, y0, w, h, h / 2); ctx.stroke();
 
-    for (let i = 1; i <= TOTAL_WAVES / 5; i++) {
-        const fx2 = x0 + w * (i * 5 / TOTAL_WAVES);
-        ctx.fillStyle = i === TOTAL_WAVES / 5 ? '#c0392b' : 'rgba(242,230,205,0.85)';
+    for (let i = 1; i <= totalWaves / 5; i++) {
+        const fx2 = x0 + w * (i * 5 / totalWaves);
+        ctx.fillStyle = i === totalWaves / 5 ? '#c0392b' : 'rgba(242,230,205,0.85)';
         ctx.fillRect(fx2 - 1.5, y0 - 4, 3, h + 8);
     }
 
@@ -5113,10 +5497,10 @@ function draw() {
         ctx.fillStyle = '#dcf3ac';
         ctx.font = 'bold 40px ' + CJK;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('暂停', CANVAS_W / 2, CANVAS_H / 2 - 10);
+        ctx.fillText(tr('暂停'), CANVAS_W / 2, CANVAS_H / 2 - 10);
         ctx.font = '14px ' + UI;
         ctx.fillStyle = '#a8b998';
-        ctx.fillText('按空格继续', CANVAS_W / 2, CANVAS_H / 2 + 30);
+        ctx.fillText(tr('按空格继续'), CANVAS_W / 2, CANVAS_H / 2 + 30);
     }
 }
 
@@ -5169,7 +5553,7 @@ function flashStat(id) {
 function updateHud() {
     el('statSun').textContent = Math.floor(state.sun);
     el('statLife').textContent = mowersLeft();
-    el('statWave').textContent = state.wave + ' / ' + TOTAL_WAVES;
+    el('statWave').textContent = state.wave + ' / ' + totalWaves;
     updateRabbitButton();
     if (COMBO) {
         el('statGold').textContent = Math.floor(state.gold);
@@ -5219,6 +5603,34 @@ function toast(msg, bad) {
     toast._timer = setTimeout(() => t.classList.remove('show'), 1900);
 }
 
+// 种子卡上的图标直接用游戏里的植物画法绘制，保证和种到草坪上的样子一致：
+// 把 drawPlantArt 画到一块离屏画布上，再贴进卡片。
+const PIC_W = 54, PIC_H = 54, PIC_SCALE = 0.45;
+
+function plantIconCanvas(key) {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const c = document.createElement('canvas');
+    c.className = 'pic';
+    c.width = PIC_W * dpr;
+    c.height = PIC_H * dpr;
+    c.style.width = PIC_W + 'px';
+    c.style.height = PIC_H + 'px';
+    c.setAttribute('aria-label', (PLANT_TYPES[key] || {}).name || key);
+    c.setAttribute('role', 'img');
+
+    const real = ctx;
+    ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    try {
+        ctx.save();
+        ctx.translate(PIC_W / 2, PIC_H * 0.565);
+        drawPlantArt(key, 0, 0, PIC_SCALE, 0);
+        ctx.restore();
+    } catch (e) { /* a blank packet is better than a broken tray */ }
+    ctx = real;
+    return c;
+}
+
 function renderPackets() {
     const box = el('packets');
     box.innerHTML = '';
@@ -5228,10 +5640,10 @@ function renderPackets() {
         d.className = 'packet';
         d.dataset.key = key;
         d.innerHTML =
-            '<div class="gl" style="background:linear-gradient(180deg,' + T.color + ',' + T.dark + ')">' + T.glyph + '</div>' +
-            '<div class="nm">' + T.name + '</div>' +
+            '<div class="gl" style="background:linear-gradient(180deg,' + T.color + ',' + T.dark + ')"></div>' +
             '<div class="ct">☀ ' + T.cost + '</div>' +
             '<div class="cd"></div>';
+        d.querySelector('.gl').appendChild(plantIconCanvas(key));
         d.title = T.name + ' · ' + T.cost + ' 阳光 · 冷却 ' + T.cd + 's · ' + T.desc;
         d.addEventListener('click', () => selectPacket(key));
         box.appendChild(d);
@@ -5475,14 +5887,15 @@ function showOverlay(kind) {
                 '<div class="card">' +
                 '<h2>组合模式</h2>' +
                 '<div class="sub">长城守卫战 × 植物大战僵尸 3 · Combined</div>' +
-                '<p>同一片草坪上，蛮族与僵尸一起杀来。用 <b>阳光</b> 种植物，用 <b>银两</b> 修宝塔，守住 20 波。</p>' +
+                '<p>同一片草坪上，蛮族与僵尸一起杀来。用 <b>阳光</b> 种植物，用 <b>银两</b> 修宝塔，守住你选定的波数。</p>' +
                 '<ul>' +
                 '<li>左边是 <b>长城关门</b>：漏过去的敌人会啃掉 <b>城墙</b>（🏯 20 点），啃光就失守。</li>' +
                 '<li><b>植物</b>：点顶部卡片选中，再点草坪空格种下；阳光从天上掉，也靠向日葵产。</li>' +
                 '<li><b>炮塔</b>：点侧栏 <b>炮塔 · TOWERS</b> 卡片（或按 <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd>）修建，射程是圆形的，能跨行打。</li>' +
                 '<li>击杀敌人掉 <b>银两</b>；点已建成的炮塔可以升级（最高 3 级）或拆除退款。</li>' +
                 '<li>植物之间可以 <b>拖拽融合</b>；每行还有一台割草机兜底。</li>' +
-                '<li>第 10 波是 <b>巨人僵尸 + 将军</b>，第 20 波是 <b>僵尸博士 + 黑龙</b>。</li>' +
+                '<li>波数在右侧滑块里自选：20–100 波，每 20 波难度再上一档。</li>' +
+                '<li>每 10 波是一场 <b>首领战</b>：巨人僵尸 + 将军 / 僵尸博士 + 黑龙轮番上阵。</li>' +
                 '<li>快捷键：<kbd>1</kbd>–<kbd>9</kbd> 选植物 · <kbd>Q</kbd><kbd>W</kbd><kbd>E</kbd><kbd>R</kbd> 选炮塔 · <kbd>Esc</kbd> 取消 · <kbd>空格</kbd> 暂停</li>' +
                 '</ul>' +
                 saveRow +
@@ -5493,13 +5906,14 @@ function showOverlay(kind) {
                 '<div class="card">' +
                 '<h2>植物大战僵尸 3</h2>' +
                 '<div class="sub">Plants vs. Zombies 3 · Lawn Defense</div>' +
-                '<p>僵尸从右侧草坪涌来，别让它们踏进屋子。种下植物，收集阳光，守住 20 波！</p>' +
+                '<p>僵尸从右侧草坪涌来，别让它们踏进屋子。种下植物，收集阳光，守住你选定的波数！</p>' +
                 '<ul>' +
                 '<li>点击顶部卡片选植物，再点草坪空格种下。</li>' +
                 '<li>向日葵产阳光，射手打僵尸，坚果墙挡路。</li>' +
                 '<li>点击天上或向日葵掉落的 <b>阳光</b> 才能收进账。</li>' +
                 '<li>每行有台 <b>割草机</b>，僵尸突破时自动启动 —— 但只救一次。</li>' +
-                '<li>挨过 <b>20 波</b>，第 10 波是巨人僵尸，第 20 波是僵尸博士。</li>' +
+                '<li>波数在右侧滑块里自选：20–100 波，每 20 波难度再上一档。</li>' +
+                '<li>每 10 波是一场 <b>首领战</b>：巨人僵尸与僵尸博士轮番上阵。</li>' +
                 '<li>把一株植物 <b>拖到</b> 另一株植物身上即可 <b>融合</b> 成更强的植物。</li>' +
                 '<li>快捷键：<kbd>1</kbd>–<kbd>9</kbd> 选植物 · <kbd>Esc</kbd> 取消 · <kbd>空格</kbd> 暂停</li>' +
                 '</ul>' +
@@ -5521,7 +5935,7 @@ function showOverlay(kind) {
             '<div class="card">' +
             '<h2>' + (COMBO ? '长城与草坪都守住了' : '草坪守住了') + '</h2>' +
             '<div class="sub">Victory</div>' +
-            '<p>20 波敌人全部倒下！' +
+            '<p>所有波次敌人全部倒下！' +
             (COMBO
                 ? '剩余城墙 <b>' + state.wall + '</b> 点，割草机 <b>' + mowersLeft() + '</b> 台，余下银两 <b>' +
                   Math.floor(state.gold) + '</b>、阳光 <b>' + Math.floor(state.sun) + '</b>。'
@@ -5588,7 +6002,7 @@ const Store = (() => {
 
 function savePrefs() {
     Store.write(PREFS_KEY, JSON.stringify({
-        speed: state.speed, muted: Sfx.muted
+        speed: state.speed, muted: Sfx.muted, waves: totalWaves
     }));
 }
 
@@ -5599,6 +6013,7 @@ function applyPrefs() {
             const p = JSON.parse(raw);
             if (p && p.speed >= 1 && p.speed <= 3) state.speed = p.speed;
             if (p && typeof p.muted === 'boolean') Sfx.setMuted(p.muted);
+            if (p && typeof p.waves === 'number') totalWaves = clampWaveTotal(p.waves);
         } catch (e) { /* ignore corrupt prefs */ }
     }
     for (const btn of el('speedGroup').children) {
@@ -5606,6 +6021,7 @@ function applyPrefs() {
     }
     el('btnMute').textContent = Sfx.muted ? '🔇 静音' : '🔊 音效';
     updateRabbitButton();
+    syncWaveTotal();
 }
 
 function serializeGame() {
@@ -5622,6 +6038,7 @@ function serializeGame() {
         skySunTimer: state.skySunTimer,
         bossSpawnTimer: state.bossSpawnTimer,
         speed: state.speed,
+        waves: totalWaves,
         rabbit: state.rabbit,
         cooldowns: state.cooldowns,
         spawnQueue: state.spawnQueue.map(s => ({ k: s.kind, t: s.t, h: s.hpMul })),
@@ -5643,13 +6060,17 @@ function serializeGame() {
 
 function validSave(d) {
     return d && d.v === SAVE_VERSION && typeof d.sun === 'number' &&
-        typeof d.wave === 'number' && Array.isArray(d.plants) && Array.isArray(d.zombies) &&
+        typeof d.wave === 'number' && d.wave <= clampWaveTotal(d.waves) &&
+        Array.isArray(d.plants) && Array.isArray(d.zombies) &&
         Array.isArray(d.mowers) && d.mowers.length === ROWS &&
         (!COMBO || Array.isArray(d.towers));
 }
 
 function restoreGame(d) {
     resetState();
+    totalWaves = clampWaveTotal(d.waves);
+    buildWaves();
+    syncWaveTotal();
     state.sun = d.sun;
     state.wave = d.wave;
     state.t = d.t || 0;
@@ -5750,6 +6171,7 @@ function newGame() {
     clearSave();
     resetState();
     applyPrefs();
+    buildWaves();
     buildType = null; shovelMode = false; selected = null; towerSel = null; towerType = null;
     syncSelectionUI();
     updateHud();
@@ -5915,6 +6337,8 @@ function wireButtons() {
         el('btnUpgrade').addEventListener('click', () => { Sfx.unlock(); upgradeSelectedTower(); });
         el('btnSell').addEventListener('click', () => { Sfx.unlock(); sellSelectedTower(); });
     }
+    el('waveTotal').addEventListener('input', () => { el('waveTotalVal').textContent = el('waveTotal').value; });
+    el('waveTotal').addEventListener('change', () => setWaveTotal(el('waveTotal').value));
     el('btnPause').addEventListener('click', togglePause);
     el('btnMute').addEventListener('click', () => {
         Sfx.unlock();
@@ -5988,8 +6412,9 @@ function frame(now) {
 
 // ------------------------------- Boot ------------------------------------
 function boot() {
-    buildWaves();
     resetState();
+    applyPrefs();          // the saved wave count has to be known before waves are built
+    buildWaves();
     bg = buildBackground();
     if (COMBO) {
         el('appSeal').textContent = '合';
@@ -6000,7 +6425,6 @@ function boot() {
     renderPlantList();
     renderTowerList();
     renderFusionList();
-    applyPrefs();
     wireInput();
     wireButtons();
     syncSelectionUI();
@@ -6028,6 +6452,505 @@ return function stop() {
 
 window.__GAMES.pvz = function (root, auto) { return createLawnGame(root, auto, false); };
 window.__GAMES.comb = function (root, auto) { return createLawnGame(root, auto, true); };
+</script>
+<script>
+/* =========================================================================
+   语言 · Language toggle
+   The page is authored in Chinese and that stays the single source of truth.
+   This layer swaps English in at render time: a dictionary of whole strings
+   plus fragments, a DOM pass over text nodes and title attributes, and one
+   persisted setting shared by the picker and all three games. Every node it
+   translates keeps its Chinese original, so switching back is lossless and
+   nothing has to be re-rendered or reloaded.
+   ========================================================================= */
+window.__I18N = (() => {
+    'use strict';
+
+    const KEY = 'gwd_lang_v1';
+    const CJK = /[\u3400-\u9fff\u3000-\u303f\uff00-\uffef]/;
+    const SKIP_TAG = { SCRIPT: 1, STYLE: 1, TEMPLATE: 1 };
+    const ATTRS = ['title', 'placeholder', 'aria-label'];
+
+    // zh -> en. Longest key wins, so a full sentence always beats the
+    // fragments inside it; the fragments keep composed strings readable
+    // ("阳光不足，需要 1000 ☀" -> "Not enough sun, need 1000 ☀").
+    const DICT = {
+        // ---- collection / picker ----
+        'Andrew 的游戏合集': "Andrew's Game Collection",
+        'Andrew 的游戏合集 · Game Collection': "Andrew's Game Collection",
+        'Three games · one page · 一个入口': 'Three games · one page · one hub',
+        '游戏内点击右下角': 'In game, tap',
+        '☰ 切换游戏': '☰ Switch game',
+        '可随时回到这里 · 三款游戏各自保存进度': 'at the bottom right to return here · each game keeps its own save',
+        '在古道两旁修筑宝塔，挡住一波波蛮族大军。波数自选 20–100，箭塔、火炮、寒冰与雷龙四种炮塔，每 10 波一场首领战。':
+            'Raise pagodas along the ancient road and hold back wave after wave of the horde. Pick 20–100 waves, with four towers — archer, cannon, frost and lightning dragon — and a boss fight every 10 waves.',
+        '暂无存档': 'No save yet',
+        '开始游戏 →': 'Play →',
+        '经典 5×9 草坪：种向日葵收阳光，用豌豆、坚果、樱桃炸弹守住僵尸潮。波数自选 20–100，割草机兜底。':
+            'The classic 5×9 lawn: grow sunflowers for sun and hold the zombie tide with peas, wall-nuts and cherry bombs. Pick 20–100 waves; the mowers catch what slips through.',
+        '同一片战场上同时种植物与修宝塔：阳光买植物、银两买炮塔，两套防御一起挡住蛮族与僵尸的联军。波数自选 20–100。':
+            'Plants and pagodas on one battlefield: sun buys plants, silver buys towers, and both defences hold off the invaders and zombies together. Pick 20–100 waves.',
+        '长城守卫战': 'Great Wall Defense',
+        '植物大战僵尸 3': 'Plants vs. Zombies 3',
+        '组合模式': 'Combined Mode',
+        '存档 · 第 ': 'Save · wave ',
+
+        // ---- shared HUD + panel headings ----
+        '阳光 SUN': 'SUN',
+        '银两 SILVER': 'SILVER',
+        '城墙 WALL': 'WALL',
+        '割草机 MOWERS': 'MOWERS',
+        '波次 WAVE': 'WAVE',
+        '建造 · BUILD': 'BUILD',
+        '波次 · WAVE': 'WAVE',
+        '选中 · SELECTED': 'SELECTED',
+        '设置 · SETTINGS': 'SETTINGS',
+        '存档 · SAVE': 'SAVE',
+        '植物 · PLANTS': 'PLANTS',
+        '炮塔 · TOWERS': 'TOWERS',
+        '融合 · FUSION': 'FUSION',
+        '等级': 'Level',
+        '生命值': 'Health',
+        '攻击力': 'Attack',
+        '射程': 'Range',
+        '射速': 'Fire rate',
+        '射速 · 特效': 'Rate · effect',
+        '特效': 'Effect',
+        '升级': 'Upgrade',
+        '拆除': 'Demolish',
+        '铲除': 'Dig up',
+        '暂停': 'Pause',
+        '继续': 'Resume',
+        '🔊 音效': '🔊 Sound',
+        '🔇 静音': '🔇 Muted',
+        '保存进度': 'Save progress',
+        '读取存档': 'Load save',
+        '重新开始': 'Restart',
+        '清除存档': 'Clear save',
+        '再次点击确认': 'Click again to confirm',
+        '确认重开？': 'Restart?',
+        '存档已清除': 'Save cleared',
+        '存档已损坏，无法读取': 'Save is corrupt and cannot be read',
+        '无法保存：浏览器禁用了本地存储': 'Cannot save: the browser has blocked local storage',
+        '无法写入存档（浏览器限制）': 'Cannot write the save (browser restriction)',
+        '没有找到存档': 'No save found',
+        '已读取存档 · 第 ': 'Save loaded · wave ',
+        '进度已保存 · 第 ': 'Progress saved · wave ',
+        '进度已保存': 'Progress saved',
+        '已重新开始': 'Restarted',
+        '保存于 ': 'Saved ',
+        '继续上一局': 'Continue last run',
+        '进度会在每波结束时自动保存。': 'Progress saves automatically at the end of every wave.',
+        '进度会在每波结束时自动保存。点击右下角': 'Progress saves automatically at the end of every wave. Tap',
+        '可返回合集。': 'at the bottom right to return to the collection.',
+        '自动保存': 'auto-save',
+        '快捷键：': 'Hotkeys: ',
+
+        // ---- Wall game: panels, wave box, overlays ----
+        '准备迎敌': 'Brace for the assault',
+        '布防完毕，准备迎敌': 'Defences ready — brace for the assault',
+        '开始第 1 波': 'Start wave 1',
+        '开始第 ': 'Start wave ',
+        '第 ': 'Wave ',
+        ' 波': '',
+        '波': '',
+        '提前迎敌': 'Call the wave early',
+        '下一波 ': 'Next wave ',
+        ' 秒后来袭 · 提前召唤有奖赏': ' s away · calling it early pays a bonus',
+        '提前召唤 (+': 'Call early (+',
+        '波次清空  +': 'Wave cleared  +',
+        ' 波进行中 · 剩余 ': ' in progress · ',
+        ' 敌': ' enemies left',
+        '战斗中…': 'In battle…',
+        '全勝！': 'TOTAL VICTORY!',
+        '已通关': 'Cleared',
+        '城墙失守': 'The wall has fallen',
+        '游戏结束': 'Game over',
+        '共 ': '',
+        '每 10 波是一场 ': 'Every 10 waves brings a ',
+        '首领战': 'boss fight',
+        '首领': 'bosses',
+        ' —— 击退最后一个首领即可取胜。': ' — beat the last one to win.',
+        '蛮族大军顺着古道南下，直逼长城。在道路两旁修筑宝塔，守住城门！':
+            'The horde marches down the ancient road for the Great Wall. Build pagodas along both sides and hold the gate!',
+        '点击左侧炮塔，再点击地图空地建造。': 'Click a tower on the left, then an empty map tile to build.',
+        '点击炮塔再点击地图空地建造。按': 'Click a tower, then an empty map tile to build. Press',
+        '点击已建炮塔可 ': 'Click a built tower to ',
+        '敌人走完全程会削减 ': 'Enemies that walk the whole road drain the ',
+        '，归零即败。': ' — at zero you lose.',
+        '，也可随时在右侧手动保存。': ', and you can save by hand from the right.',
+        ' 选塔 · ': ' pick towers · ',
+        ' 取消 · ': ' cancel · ',
+        ' 暂停 · ': ' pause · ',
+        ' 下一波': ' next wave',
+        '点击右下角 ': 'Tap ',
+        '可随时切到《植物大战僵尸 3》。': ' at the bottom right to switch to Plants vs. Zombies 3.',
+        '开始布防': 'Start building',
+        '爆炸半径': 'Blast radius',
+        '减速效果': 'Slow',
+        '连锁目标': 'Chain targets',
+        '已满级': 'Max level',
+        '升级 · ': 'Upgrade · ',
+        '拆除 +': 'Sell +',
+        ' 银两': ' silver',
+        ' 城墙': ' wall',
+        '未知敌情': 'Unknown enemy',
+        '流寇': 'Raider',
+        '快马': 'Fast Rider',
+        '盾兵': 'Shield Trooper',
+        '邪僧': 'Wicked Monk',
+        '将军': 'General',
+        '黑龙': 'Black Dragon',
+        '箭塔': 'Archer Tower',
+        '火炮台': 'Cannon Tower',
+        '寒冰塔': 'Frost Tower',
+        '雷龙塔': 'Lightning Dragon Tower',
+        '快速单体 · 性价比高': 'Fast single target · great value',
+        '范围溅射 · 克制成群': 'Splash damage · beats crowds',
+        '减速敌人 · 拖住阵型': 'Slows enemies · holds the line',
+        '连锁闪电 · 多目标': 'Chain lightning · multi-target',
+        '暫 停': 'PAUSED',
+
+        // ---- PvZ: plants ----
+        '向日葵': 'Sunflower',
+        '豌豆射手': 'Peashooter',
+        '坚果墙': 'Wall-nut',
+        '寒冰射手': 'Snow Pea',
+        '双发射手': 'Repeater',
+        '三线射手': 'Threepeater',
+        '樱桃炸弹': 'Cherry Bomb',
+        '土豆雷': 'Potato Mine',
+        '火爆辣椒': 'Jalapeno',
+        '每 11 秒产出 25 阳光': 'Produces 25 sun every 11 s',
+        '向前发射豌豆': 'Fires a pea down its lane',
+        '高血量肉盾，替后排挡刀': 'High-HP shield for the plants behind it',
+        '冰豌豆减速僵尸': 'Frozen peas slow zombies down',
+        '一次连发两颗豌豆': 'Two peas per shot',
+        '同时攻击上中下三条线': 'Hits the lane above, its own and the lane below',
+        '引爆 3×3 范围，瞬间清场': 'Detonates a 3×3 area',
+        '埋伏 14 秒后炸飞一只僵尸': 'Arms for 14 s, then blows a zombie sky-high',
+        '烧光整整一条线': 'Burns a whole lane',
+        // fused plants
+        '双子向日葵': 'Twin Sunflower',
+        '阳光产量翻倍': 'Double sun output',
+        '太阳花射手': 'Sun Shooter',
+        '一边产阳光一边发射豌豆': 'Makes sun and fires peas',
+        '阳光寒冰': 'Sun Frost',
+        '产阳光并减速僵尸': 'Makes sun and slows zombies',
+        '阳光坚果': 'Sun-nut',
+        '又硬又能产阳光': 'Tough and makes sun',
+        '阳光双发': 'Sun Repeater',
+        '产阳光 + 双发豌豆': 'Sun plus double peas',
+        '坚果射手': 'Nut Shooter',
+        '四千血量的豌豆炮台': 'A 4000 HP pea turret',
+        '重装双发': 'Armoured Repeater',
+        '厚甲双发，站着不倒': 'Heavy armour and double peas',
+        '寒冰双发': 'Frost Repeater',
+        '双发冰豌豆': 'Double frozen peas',
+        '极寒射手': 'Deep Freeze',
+        '减速更强更久': 'Stronger and longer slow',
+        '四发射手': 'Quad Shooter',
+        '一轮四颗豌豆': 'Four peas a volley',
+        '五线射手': 'Fivepeater',
+        '同时打五条线': 'Hits all five lanes',
+        '高坚果': 'Tall-nut',
+        '八千血量的墙': 'An 8000 HP wall',
+        '灭世之核': 'World-Ender',
+        '5×5 范围瞬间清场': 'Clears a 5×5 area',
+        '烈焰风暴': 'Inferno',
+        '烧光整整三条线': 'Burns three whole lanes',
+        '连环雷区': 'Mine Field',
+        '埋好后炸飞附近三只僵尸': 'Blows up three nearby zombies',
+
+        // ---- PvZ: zombies ----
+        '普通僵尸': 'Basic Zombie',
+        '路障僵尸': 'Conehead Zombie',
+        '铁桶僵尸': 'Buckethead Zombie',
+        '旗帜僵尸': 'Flag Zombie',
+        '巨人僵尸': 'Gargantuar',
+        '僵尸博士': 'Dr. Zomboss',
+        '僵尸': 'zombie',
+        '敌人': 'enemies',
+
+        // ---- PvZ: panels, hints, overlays ----
+        '点击顶部卡片选中植物，再点击草坪空格种下。按': 'Click a card at the top to pick a plant, then click an empty lawn tile to plant it. Press',
+        '点击顶部卡片选植物，再点草坪空格种下。': 'Click a card at the top to pick a plant, then an empty lawn tile to plant it.',
+        '快捷选择，': 'to pick,',
+        '快捷选择。': 'to pick.',
+        ' 取消。': ' to cancel.',
+        ' 选植物 · ': ' pick plants · ',
+        ' 选炮塔 · ': ' pick towers · ',
+        '先种几株向日葵积攒阳光': 'Plant a few sunflowers first to bank some sun',
+        '产阳光': 'Sun',
+        '状态': 'Status',
+        '引信': 'Fuse',
+        '已就绪 · 等僵尸来': 'Armed · waiting for zombies',
+        ' s 后埋伏完成': ' s until armed',
+        '减速': 'Slow',
+        '攻击线路': 'Lanes',
+        ' 条': ' lanes',
+        '溅射 ': 'Splash ',
+        '减速 ×': 'Slow ×',
+        '连锁 ': 'Chain ',
+        '可升 3 级': '3 levels',
+        '拆除 · +': 'Demolish · +',
+        '马上开始第 ': 'Wave ',
+        ' 波 · ': ' starts in ',
+        ' 波进行中…': ' in progress…',
+        '全部波次已清除': 'Every wave cleared',
+        '草坪失守': 'The lawn has fallen',
+        '一大波僵尸正在接近！': 'A huge wave of zombies is closing in!',
+        ' 波来了': ' has arrived',
+        ' 波已清除': ' cleared',
+        '这里已经有植物了': 'There is already a plant here',
+        '这里已经有炮塔了': 'There is already a tower here',
+        '这里没有植物': 'No plant here',
+        ' 还在冷却中': ' is still cooling down',
+        '阳光不足，需要 ': 'Not enough sun, need ',
+        '银两不足，需要 ': 'Not enough silver, need ',
+        ' 无法融合': ' cannot be fused',
+        '融合 · ': 'FUSION · ',
+        '已铲除': 'Dug up',
+        '割草机启动！': 'Lawn mower!',
+        '这座塔已经升到满级': 'This tower is already at max level',
+        '升级 Lv.': 'Upgrade Lv.',
+        '铲子：铲除已种下的植物': 'Shovel: dig up a planted plant',
+        '点一下草坪上的植物即可铲除': 'Click a plant on the lawn to dig it up',
+        '炮塔花的是 ': 'Towers are paid for with ',
+        '（打怪掉落）。点击卡片选中，再点草坪空地修建；选中已建成的炮塔可升级或拆除。按':
+            ' (dropped by kills). Click a card to pick one, then an empty lawn tile to build; click a built tower to upgrade or demolish it. Press',
+        '把一株植物': 'Drag a plant',
+        '拖到': 'onto',
+        '另一株植物身上，两者消失，长出一株更强的融合植物。': 'another and both vanish, growing one stronger fused plant.',
+        '拖拽融合': 'dragged together to fuse',
+        '融合': 'fuse',
+        '僵尸吃掉了你的脑子': 'The zombies ate your brains',
+        '长城失守了': 'The wall has fallen',
+        '城墙被踏平': 'The wall was trampled flat',
+        '……你坚持到了第 ': '…you held out until wave ',
+        ' 波。': '.',
+        '再来一局': 'Play again',
+        '长城与草坪都守住了': 'Wall and lawn both held',
+        '草坪守住了': 'The lawn held',
+        '所有波次敌人全部倒下！': 'Every wave is down!',
+        '剩余城墙 ': 'Wall left ',
+        ' 点，割草机 ': ' · mowers ',
+        ' 台，余下银两 ': ' · silver left ',
+        '、阳光 ': ' · sun ',
+        '房子安然无恙，剩余割草机 ': 'The house is untouched · mowers left ',
+        ' 台，余下阳光 ': ' · sun left ',
+        '再种一次': 'Plant again',
+        '僵尸从右侧草坪涌来，别让它们踏进屋子。种下植物，收集阳光，守住你选定的波数！':
+            'Zombies pour in from the right — keep them out of the house. Plant, gather sun, and survive the wave count you picked!',
+        '向日葵产阳光，射手打僵尸，坚果墙挡路。': 'Sunflowers make sun, shooters kill zombies, wall-nuts block the way.',
+        '点击天上或向日葵掉落的 ': 'Click the ',
+        '阳光': 'sun',
+        '才能收进账。': ' that falls from the sky or drops from a sunflower to bank it.',
+        '每行有台 ': 'Each row has one ',
+        '割草机': 'mower',
+        '，僵尸突破时自动启动 —— 但只救一次。': ' that fires automatically when a zombie breaks through — but only once.',
+        '挨过 ': 'Survive ',
+        '波数在右侧滑块里自选：20–100 波，每 20 波难度再上一档。':
+            'Pick the wave count on the slider on the right: 20–100, and every 20 waves the difficulty steps up.',
+        '：巨人僵尸与僵尸博士轮番上阵。': ': the Gargantuar and Dr. Zomboss take turns.',
+        '把一株植物 ': 'Drag one plant ',
+        ' 另一株植物身上即可 ': ' another to ',
+        ' 成更强的植物。': ' into a stronger plant.',
+
+        // ---- rabbit gardener ----
+        '雇一只': 'Hire a',
+        '兔子园丁': 'rabbit gardener',
+        '，它会满草坪跑去捡起落下的阳光。买断一次，本局永久生效，无需升级。':
+            ', which runs around the lawn collecting sun. One-off purchase, permanent for the run, no upgrades.',
+        '🐰 兔子园丁 · ☀ ': '🐰 Rabbit gardener · ☀ ',
+        '🐰 兔子园丁：在岗': '🐰 Rabbit gardener: on duty',
+        '兔子园丁已经在草坪上忙着了': 'The rabbit gardener is already busy',
+        '兔子园丁上岗：它会把阳光捡回来': 'Rabbit gardener hired — it will fetch the sun',
+        '按空格继续': 'Press Space to resume',
+
+        // ---- combined mode overlay ----
+        '同一片草坪上，蛮族与僵尸一起杀来。用 ': 'On one lawn, invaders and zombies attack together. Use ',
+        ' 种植物，用 ': ' to plant, ',
+        ' 修宝塔，守住你选定的波数。': ' to raise pagodas, and hold the wave count you picked.',
+        '左边是 ': 'On the left is the ',
+        '长城关门': 'Great Wall gate',
+        '：漏过去的敌人会啃掉 ': ': anything that slips through drains the ',
+        '（🏯 20 点），啃光就失守。': ' (🏯 20 points) — at zero you lose.',
+        '：点顶部卡片选中，再点草坪空格种下；阳光从天上掉，也靠向日葵产。':
+            ': pick a card at the top, then an empty lawn tile; sun falls from the sky and comes from sunflowers.',
+        '：点侧栏 ': ': click a card in the sidebar ',
+        ' 卡片（或按 ': ' (or press ',
+        '）修建，射程是圆形的，能跨行打。': ') to build — its range is a circle, so it can shoot across rows.',
+        '；点已建成的炮塔可以升级（最高 3 级）或拆除退款。':
+            '; click a built tower to upgrade it (max level 3) or demolish it for a refund.',
+        '植物之间可以 ': 'Plants can be ',
+        '；每行还有一台割草机兜底。': '; each row also has a mower as a backstop.',
+        '：巨人僵尸 + 将军、僵尸博士 + 黑龙轮番上阵。':
+            ': the Gargantuar + General and Dr. Zomboss + Dragon take turns.',
+
+        // ---- leftovers: panel fragments, save metadata, punctuation ----
+        '植物': 'Plants',
+        '炮塔': 'Towers',
+        '银两': 'silver',
+        '存档进度：第 ': 'Saved run · wave ',
+        ' 波 · 银两 ': ' · silver ',
+        ' 波 · 阳光 ': ' · sun ',
+        ' · 银两 ': ' · silver ',
+        ' · 城墙 ': ' · wall ',
+        ' · 割草机 ': ' · mowers ',
+        '，余银 ': ', silver left ',
+        '击杀敌人掉 ': 'Kills drop ',
+        '敌军攻破了城门……你坚守到了第 ': 'The enemy broke the gate… you held out until wave ',
+        '所有波次敌军尽数击退！城墙完壁，百姓安宁。': 'Every wave beaten back! The wall stands and the people are safe.',
+        '总波数': 'Total waves',
+        '每 20 波难度再上一档。': 'Every 20 waves the difficulty steps up.',
+        '長城永固': 'The wall stands',
+        ' 暂停': ' pause',
+        '冷却': 'cooldown',
+        ' 阳光 · 冷却 ': ' sun · cooldown ',
+        ' 银两 · 射程 ': ' silver · range ',
+        '＝': '=',
+        '。': '.',
+        '，': ',',
+        '！': '!',
+        '？': '?',
+        '、': ', ',
+        '；': '; ',
+        '：': ': '
+    };
+
+    const zhKeys = Object.keys(DICT).sort((a, b) => b.length - a.length);
+    let fragRe = null;
+    function fragPattern() {
+        if (!fragRe) {
+            const escaped = zhKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            fragRe = new RegExp(escaped.join('|'), 'g');
+        }
+        return fragRe;
+    }
+
+    let lang = 'zh';
+    try {
+        const saved = window.localStorage.getItem(KEY);
+        if (saved === 'en' || saved === 'zh') lang = saved;
+    } catch (e) { /* storage blocked - Chinese it is */ }
+
+    // Whole string first, then the longest fragments inside it. Whitespace
+    // around the node keeps its shape; HTML collapses any doubled space.
+    function t(s) {
+        if (lang !== 'en' || !s || !CJK.test(s)) return s;
+        const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s);
+        const core = m[2];
+        if (DICT[core] !== undefined) return m[1] + DICT[core] + m[3];
+        const out = core.replace(fragPattern(), k => (DICT[k] !== undefined ? DICT[k] : k));
+        return out === core ? s : m[1] + out + m[3];
+    }
+
+    // Nodes keep their Chinese original, so a toggle back to 中文 is exact.
+    const zhText = new WeakMap();
+    const zhAttr = new WeakMap();
+    let zhTitle = null;
+
+    function doText(node) {
+        const v = node.nodeValue;
+        if (lang === 'en') {
+            if (!v || !CJK.test(v)) return;
+            const en = t(v);
+            if (en !== v) { zhText.set(node, v); node.nodeValue = en; }
+            return;
+        }
+        const zh = zhText.get(node);
+        if (zh === undefined) return;
+        zhText.delete(node);
+        // the page wrote fresh Chinese over our English - leave it alone
+        if (!CJK.test(v)) node.nodeValue = zh;
+    }
+
+    function doAttrs(elm) {
+        let saved = zhAttr.get(elm);
+        for (const a of ATTRS) {
+            const v = elm.getAttribute(a);
+            if (v == null) continue;
+            if (lang === 'en') {
+                if (!CJK.test(v)) continue;
+                const en = t(v);
+                if (en === v) continue;
+                if (!saved) { saved = {}; zhAttr.set(elm, saved); }
+                saved[a] = v;
+                elm.setAttribute(a, en);
+            } else if (saved && saved[a] !== undefined) {
+                // the page rewrote it in Chinese over our English - leave it be
+                if (!CJK.test(v)) elm.setAttribute(a, saved[a]);
+                delete saved[a];
+            }
+        }
+    }
+
+    function walk(node) {
+        for (let n = node.firstChild; n; n = n.nextSibling) {
+            if (n.nodeType === 3) { doText(n); continue; }
+            if (n.nodeType !== 1) continue;
+            if (SKIP_TAG[n.tagName] || n.hasAttribute('data-lang-toggle')) continue;
+            doAttrs(n);
+            walk(n);
+        }
+    }
+
+    function doTitle() {
+        if (lang === 'en') {
+            const v = document.title;
+            if (!CJK.test(v)) return;
+            const en = t(v);
+            if (en !== v) { zhTitle = v; document.title = en; }
+        } else if (zhTitle !== null && document.title !== zhTitle) {
+            document.title = zhTitle;
+            zhTitle = null;
+        }
+    }
+
+    function label() {
+        for (const b of document.querySelectorAll('[data-lang-toggle]')) {
+            b.textContent = lang === 'en' ? '中' : 'EN';
+            const hint = lang === 'en' ? '切换到中文 · Switch to Chinese' : 'Switch to English · 切换语言';
+            b.setAttribute('title', hint);
+            b.setAttribute('aria-label', hint);
+        }
+    }
+
+    function apply() {
+        label();
+        doTitle();
+        walk(document.body);
+    }
+
+    function set(next) {
+        lang = next === 'en' ? 'en' : 'zh';
+        try { window.localStorage.setItem(KEY, lang); } catch (e) { /* storage blocked */ }
+        apply();
+    }
+
+    document.addEventListener('click', e => {
+        const btn = e.target && e.target.closest ? e.target.closest('[data-lang-toggle]') : null;
+        if (!btn) return;
+        e.preventDefault();
+        set(lang === 'en' ? 'zh' : 'en');
+    });
+
+    // The games rebuild their own DOM on a timer, so keep sweeping the page.
+    // Text that is already English has no CJK left in it and costs one test.
+    function tick() {
+        apply();
+        window.requestAnimationFrame(tick);
+    }
+    window.requestAnimationFrame(tick);
+
+    return {
+        get lang() { return lang; },
+        t,
+        set,
+        apply
+    };
+})();
 </script>
 <script>
 
@@ -6064,14 +6987,14 @@ function refreshSaves() {
     const p = readSave(SAVE_KEYS.pvz);
     const c = readSave(SAVE_KEYS.comb);
     setSaveText('gwd', g
-        ? '存档 · 第 ' + g.wave + ' / 20 波 · 银两 ' + g.gold + ' · 城墙 ' + g.life
+        ? '存档 · 第 ' + g.wave + ' / ' + (g.waves || 20) + ' 波 · 银两 ' + g.gold + ' · 城墙 ' + g.life
         : '暂无存档');
     setSaveText('pvz', p
-        ? '存档 · 第 ' + p.wave + ' / 20 波 · 阳光 ' + Math.floor(p.sun) + ' · 割草机 ' +
+        ? '存档 · 第 ' + p.wave + ' / ' + (p.waves || 20) + ' 波 · 阳光 ' + Math.floor(p.sun) + ' · 割草机 ' +
           (p.mowers || []).filter(m => m.s === 'idle').length
         : '暂无存档');
     setSaveText('comb', c
-        ? '存档 · 第 ' + c.wave + ' / 20 波 · 阳光 ' + Math.floor(c.sun) + ' · 银两 ' + (c.gold || 0) +
+        ? '存档 · 第 ' + c.wave + ' / ' + (c.waves || 20) + ' 波 · 阳光 ' + Math.floor(c.sun) + ' · 银两 ' + (c.gold || 0) +
           ' · 城墙 ' + (c.wall != null ? c.wall : '-')
         : '暂无存档');
 }

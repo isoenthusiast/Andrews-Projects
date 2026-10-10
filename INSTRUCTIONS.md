@@ -80,13 +80,14 @@
 
 **Location:** `tower-defense/index.html`
 
-Three games share this one page. Opening it shows a **title screen with a mode picker** — one card per game, each showing that game's current save (wave and resources) or *暂无存档*.
+Three games share this one page. Opening it shows a **title screen with a mode picker** — one card per game, each showing that game's current save (wave and resources) or *暂无存档*. Every game has a **总波数 (Total waves)** slider in its 波次 · WAVE panel: pick **20 to 100 waves in steps of 10**, and each 20-wave block raises the difficulty tier. The choice is remembered per game.
 
 | Action | How |
 |---|---|
 | Start a game | Click its card on the title screen |
 | Continue | If that game has a save, clicking its card resumes it straight away |
 | Switch games | Click **☰ 切换游戏** (bottom-right corner) at any time |
+| Choose the run length | Drag **总波数** in the 波次 · WAVE panel — 20–100 waves, 10 at a time |
 | Keep progress | Each game saves separately, so switching never costs you anything |
 
 Only one game is mounted at a time, so the three never interfere. Everything below applies to each game individually.
@@ -103,8 +104,9 @@ Only one game is mounted at a time, so the three never interfere. Everything bel
 - Build **pagoda towers** on the empty ground beside the road. Every tower covers a circular **range** — place them so the road passes through it.
 - Kill invaders to earn **silver** (银两). You start with 150 silver and 20 points of **wall** (城墙).
 - If an invader reaches the gate, you lose wall. A normal enemy costs 1 wall, a boss costs 5.
-- **Survive all 20 waves** to win. Lose all your wall and the city falls.
-- Waves 10 and 20 bring **bosses** — the 将军 (General) and the 龍 (Black Dragon).
+- **Survive all the waves you picked** to win — the **总波数 (Total waves)** slider in the 波次 · WAVE panel sets the run length from **20 to 100 waves** in steps of 10, and the choice is remembered. Lose all your wall and the city falls.
+- Every **10 waves** brings a **boss**: the 将军 (General) and the 龍 (Black Dragon).
+- **Every 20 waves the difficulty steps up a tier** — more enemies and more HP on top of the normal per-wave ramp.
 
 ### Towers
 | Tower | Cost | Role |
@@ -134,7 +136,8 @@ Each tower can be upgraded twice (max level 3). Upgrades add a storey to the pag
 | Upgrade / sell | Click a built tower, then **升级** (upgrade) or **拆除** (sell) |
 | Cancel | Press **Esc** or **right-click** |
 | Pause | Press **Space** or click **暂停** |
-| Start next wave early | Click the button while it counts down — **earns bonus silver** |
+| Start the next wave early | Click the button while it counts down — **earns bonus silver** |
+| Wave count | **总波数** slider in 波次 · WAVE — 20 to 100 waves, 10 at a time |
 | Game speed | **1×** / **2×** / **3×** buttons |
 | Sound on/off | **🔊 音效** button |
 | Save / load | **保存进度** (save) and **读取存档** (load) buttons |
@@ -161,7 +164,7 @@ Your progress is **saved automatically** to the browser's local storage, so you 
 - Ancient Chinese **scroll-map** visual theme — parchment terrain, ink-wash mountains, a red sun, and cloud scrolls.
 - Canvas-rendered **pagoda towers** that gain a new roof tier with each upgrade.
 - 4 tower types with splash, slow, and chain-lightning mechanics.
-- 20 hand-tuned waves with two boss encounters.
+- 20 hand-tuned waves that **cycle into longer runs**: pick 20–100 waves with the slider, and every 20 waves raises a difficulty tier (more enemies, more HP) with a boss every 10.
 - **Save & restore** — automatic checkpoints plus manual save/load via browser local storage, including mid-wave state.
 - Procedural audio effects (WebAudio) with a mute toggle.
 
@@ -178,7 +181,8 @@ The second game of the collection: a lane-defense built on the same single-file 
 - Zombies crawl in from the right. If one reaches the house on the left, you lose.
 - Plant on the **5 × 9 lawn**. Each row has one **割草机 (lawn mower)** that fires automatically the first time a zombie breaks through — a one-time save per row.
 - **阳光 (sun)** is your currency. It falls from the sky and pops out of sunflowers — click a sun to collect it, or hire the **兔子园丁 (rabbit gardener)** and let it run around hoovering them up.
-- Survive all **20 waves**. Wave 10 brings a **巨人僵尸 (Gargantuar)**, wave 20 the **僵尸博士 (Zomboss)** — who also calls in reinforcements while he advances.
+- Survive the wave count you set on the **总波数 (Total waves)** slider — **20–100 waves**, in steps of 10 — and the choice is remembered between runs. Wave 10 brings a **巨人僵尸 (Gargantuar)**, wave 20 the **僵尸博士 (Zomboss)** — who also calls in reinforcements while he advances.
+- **Every 20 waves the difficulty steps up a tier**: more zombies, and more HP on top of the normal per-wave ramp.
 
 ### Plants
 | Plant | Cost | Role |
@@ -250,6 +254,7 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | Cancel | Press **Esc** or **right-click** |
 | Pause | Press **Space** or click **暂停** |
 | Start the next wave early | Click the wave button while it counts down |
+| Wave count | **总波数** slider in 波次 · WAVE — 20 to 100 waves, 10 at a time |
 | Game speed | **1×** / **2×** / **3×** buttons |
 | Sound on/off | **🔊 音效** button |
 | Auto-collect sun | Hire the **🐰 兔子园丁** in 设置 (☀1000, then it gathers every sun for the rest of the run) |
@@ -280,7 +285,7 @@ Identical to the Tower Defense project, but with its own save key — the games 
 - Sun economy with clickable sky sun and sunflower output, plus an optional auto-collect toggle.
 - Per-row **lawn mowers** as a one-time safety net.
 - Zombie **armour** (cone / bucket) that visibly absorbs damage before the walker drops.
-- 20 waves with flag waves, two bosses, and a Zomboss that spawns reinforcements.
+- 20 waves per cycle with flag waves every 5, a boss every 10, and a Zomboss that spawns reinforcements — **stretch the run to 100 waves** with the 总波数 slider, where every 20 waves adds a difficulty tier.
 - Wave progress bar with flag markers, wave preview, and PvZ-style "一大波僵尸正在接近！" alerts.
 - Save & restore, 1×/2×/3× speed, pause, and procedural WebAudio sound with a mute toggle.
 
@@ -297,7 +302,7 @@ The third game of the collection: the Great Wall and the lawn in one battle. Bot
 - The wall starts at **20** and is drawn as a **长城关门** on the left of the lawn. A normal enemy takes 1 wall, 将军 5, 黑龙 8. Wall at 0 = 长城失守.
 - **阳光** starts at 50. It falls from the sky and drops from 向日葵; spend it on plants.
 - **银两** starts at 150. Every enemy you kill pays a bounty; spend it on towers.
-- Survive **20 waves** to win. Waves 5 / 10 / 15 / 20 are 一大波 (flag) waves.
+- Survive the wave count you set on the **总波数 (Total waves)** slider — **20–100 waves**, in steps of 10, remembered between runs. Every 5th wave is a 一大波 (flag) wave, and **every 20 waves raises a difficulty tier**.
 
 ### Defending — two systems, one lawn
 | System | Currency | Where | How |
@@ -334,8 +339,7 @@ Plants work exactly as in 植物大战僵尸 3 — including **drag-to-fuse** (a
 
 Both 蛮族 and zombies **chew plants** that block them, and both drop silver when killed.
 
-- **Wave 10** is a double boss: 巨人僵尸 **and** 将军 together.
-- **Wave 20** is 僵尸博士 **and** 黑龙 together.
+- **Every 10 waves** is a double boss: wave 10 pairs 巨人僵尸 **and** 将军, wave 20 pairs 僵尸博士 **and** 黑龙, and the pattern repeats for longer runs.
 
 ### Controls
 | Action | How |
