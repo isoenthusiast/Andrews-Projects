@@ -36,4 +36,4 @@ playing it.
   host several games behind a mode picker.
 - [project-docs.instructions.md](./instructions/project-docs.instructions.md) — `README.md` and
   `INSTRUCTIONS.md` structure.
-- [new-game.prompt.md](./prompts/new-game.prompt.md) — scaffolds a whole new app end to end.
+- [new-game](./skills/new-game/SKILL.md) — a skill that scaffolds a whole new app end to end.
