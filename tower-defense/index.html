@@ -5094,6 +5094,7 @@ function draw() {
     for (const z of zombies) { if (z.alive) items.push({ d: z.r * 100 + 60, f: () => drawZombie(z) }); }
     items.sort((a, b) => a.d - b.d);
     for (const it of items) it.f();
+    drawPlantBars();
 
     drawShots();
     if (COMBO) drawTowerShots();
@@ -5121,15 +5122,39 @@ function draw() {
 
 function drawOnePlant(p, s) {
     if (s == null) s = 0.72 + 0.28 * p.grow;
-    if (p.type === 'potatomine' && !p.armed) { drawBuriedMine(p, s); return; }
-    ctx.save();
-    if (p.hurtT > 0) ctx.globalAlpha = 0.72;
-    drawPlantArt(p.type, p.x, p.y, s, p.anim + state.t * 0);
-    ctx.restore();
-    if (p.hurtT > 0) {
-        ctx.fillStyle = 'rgba(255,90,70,0.45)';
-        ctx.beginPath(); ctx.arc(p.x, p.y - 6, 26, 0, 6.29); ctx.fill();
+    const buried = p.type === 'potatomine' && !p.armed;
+    if (buried) {
+        drawBuriedMine(p, s);
+    } else {
+        ctx.save();
+        if (p.hurtT > 0) ctx.globalAlpha = 0.72;
+        drawPlantArt(p.type, p.x, p.y, s, p.anim + state.t * 0);
+        ctx.restore();
+        if (p.hurtT > 0) {
+            ctx.fillStyle = 'rgba(255,90,70,0.45)';
+            ctx.beginPath(); ctx.arc(p.x, p.y - 6, 26, 0, 6.29); ctx.fill();
+        }
     }
+}
+
+// 植物头顶的小血条：绿 → 琥珀 → 红，和长城守卫战里敌人的血条同一套画法。
+// 单独一趟绘制，压在植物和僵尸之上，免得被正在啃食的僵尸挡住。
+// 只有被啃过才亮出来，满血的草坪保持干净。
+function drawPlantBars() {
+    for (const p of plants) {
+        if (!p.alive || p.hp >= p.maxHp) continue;
+        const s = 0.72 + 0.28 * p.grow;
+        const buried = p.type === 'potatomine' && !p.armed;
+        drawHpBar(p.x, p.y - (buried ? 24 : 44) * s, clamp(p.hp / p.maxHp, 0, 1));
+    }
+}
+
+function drawHpBar(cx, barY, pct) {
+    const bw = 32, bh = 4;
+    ctx.fillStyle = 'rgba(30,18,10,0.7)';
+    roundRect(ctx, cx - bw / 2, barY, bw, bh, 2); ctx.fill();
+    ctx.fillStyle = pct > 0.5 ? '#5cb85c' : pct > 0.22 ? '#e0a83c' : '#c0392b';
+    roundRect(ctx, cx - bw / 2, barY, Math.max(1, bw * pct), bh, 2); ctx.fill();
 }
 
 // ------------------------------- HUD + UI --------------------------------

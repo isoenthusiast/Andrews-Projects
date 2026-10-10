@@ -193,7 +193,7 @@ The second game of the collection: a lane-defense built on the same single-file 
 | 土豆雷 Potato Mine | 25 | Arms for 14 s, then blows up the next zombie to step on it |
 | 火爆辣椒 Jalapeno | 125 | Burns every zombie in its whole lane |
 
-Every plant goes on **cooldown** after planting, shown as a dark overlay sliding up its seed packet.
+Every plant goes on **cooldown** after planting, shown as a dark overlay sliding up its seed packet. A plant that has been bitten grows a small health bar above it — green, then amber, then red as it runs out — and it only appears once the plant has taken damage, so an untouched lawn stays clean.
 
 ### 兔子园丁 · Rabbit gardener
 A one-off **☀1000** hire button in 设置 · SETTINGS. Pay it once and a rabbit moves onto the lawn and starts hopping after sun: every sun that lands is fetched and collected for you, for the rest of the run. There is **no levelling and nothing to upgrade** — a single purchase, and the button changes to **🐰 兔子园丁：在岗** so you can see it is working. Having grabbed a sun it simply waits there for the next one instead of walking home, and it travels with your save, so loading a run keeps it, while **重新开始** starts you without one.
