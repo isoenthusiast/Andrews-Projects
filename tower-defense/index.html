@@ -791,6 +791,13 @@
     .btn.ghost:hover { background: rgba(166,216,74,0.14); }
     .btn:disabled { opacity: .4; cursor: not-allowed; filter: grayscale(.6); }
     .btn.sm { padding: 8px 14px; font-size: 0.8rem; }
+    .btn.poor { opacity: .45; filter: grayscale(.6); }
+    .btn.on {
+        color: #3d2c05;
+        background: linear-gradient(180deg, #f7dd7a, #c9a13c);
+        border-color: rgba(255,246,190,0.6);
+        box-shadow: 0 4px 0 #8a6b1c, 0 8px 18px rgba(0,0,0,0.4);
+    }
 
     /* ---------------- Side panel ---------------- */
     .panel {
@@ -1023,8 +1030,9 @@
                     <button class="btn sm ghost" id="btnMute">🔊 音效</button>
                 </div>
                 <div class="row" style="margin-top:8px">
-                    <button class="btn sm ghost" id="btnAuto">☀ 自动收集：关</button>
+                    <button class="btn sm ghost" id="btnRabbit">🐰 兔子园丁 · ☀ 1000</button>
                 </div>
+                <p class="hint" style="margin:7px 0 0">雇一只 <b>兔子园丁</b>，它会满草坪跑去捡起落下的阳光。买断一次，本局永久生效，无需升级。</p>
                 <h3 style="margin-top:14px">存档 · SAVE</h3>
                 <div class="row">
                     <button class="btn sm" id="btnSave">保存进度</button>
@@ -2904,6 +2912,7 @@ const LAWN_R = LAWN_X + COLS * CELL_W;      // 970
 const LAWN_B = LAWN_Y + ROWS * CELL_H;      // 530
 const TOTAL_WAVES = 20;
 const FLAG_WAVES = [5, 10, 15, 20];
+const RABBIT_COST = 1000;   // 兔子园丁：一次性买断，自动收集阳光
 
 const CJK = '"Microsoft YaHei", "PingFang SC", "Noto Sans SC", "SimHei", sans-serif';
 const UI  = "'Segoe UI', system-ui, sans-serif";
@@ -3228,7 +3237,7 @@ function resetState() {
         phase: 'prep',            // prep | running | over | won
         speed: 1,
         paused: false,
-        autoCollect: false,
+        rabbit: false,
         betweenTimer: null,
         spawnQueue: [],
         spawnTimer: 0,
@@ -3257,6 +3266,7 @@ function resetState() {
     shovelMode = false;
     selected = null;
     drag = null;
+    rabbit = null;
     towerType = null;
     towerSel = null;
 }
@@ -3436,10 +3446,63 @@ function updateSuns(dt) {
             s.y = Math.min(s.ty, s.y + s.vy * dt);
         } else {
             s.life -= dt;
-            if (state.autoCollect && s.born > 0.7) collectSun(s);
         }
     }
     suns = suns.filter(s => !s.taken && s.life > 0);
+}
+
+// ------------------------------- 兔子园丁 · rabbit gardener ---------------
+// Hired once for RABBIT_COST sun. From then on it lives on the lawn and hops
+// over to pick up every sun that lands, then waits right there for the next one.
+const RABBIT_SPEED = 250;
+const RABBIT_SPAWN = { x: LAWN_X + 26, y: LAWN_B - 16 };
+let rabbit = null;
+
+function spawnRabbit() {
+    rabbit = { x: RABBIT_SPAWN.x, y: RABBIT_SPAWN.y, face: 1, anim: 0, hopAmp: 0, hold: 0 };
+}
+
+// 找最近的一颗阳光；快消失的优先，免得白跑。
+function rabbitTarget() {
+    let best = null, bestScore = Infinity;
+    for (const s of suns) {
+        if (s.taken || s.y < s.ty) continue;
+        const score = Math.hypot(s.x - rabbit.x, s.y - rabbit.y) + s.life * 20;
+        if (score < bestScore) { bestScore = score; best = s; }
+    }
+    return best;
+}
+
+function updateRabbit(dt) {
+    if (!rabbit) return;
+    rabbit.anim += dt;
+    if (rabbit.hold > 0) rabbit.hold -= dt;
+
+    const target = rabbit.hold > 0 ? null : rabbitTarget();
+    let d = 0;
+    if (target) {
+        const ty = clamp(target.y, LAWN_Y + 14, LAWN_B - 14);
+        const dx = target.x - rabbit.x, dy = ty - rabbit.y;
+        d = Math.hypot(dx, dy);
+        if (d > 2) {
+            const step = Math.min(d, RABBIT_SPEED * dt);
+            rabbit.x += dx / d * step;
+            rabbit.y += dy / d * step;
+            if (Math.abs(dx) > 1) rabbit.face = dx < 0 ? -1 : 1;
+        }
+    }
+    // 只有跑起来才蹦；没有阳光要捡就原地趴着
+    if (target && d > 22) rabbit.hopAmp = Math.min(1, rabbit.hopAmp + dt * 6);
+    else rabbit.hopAmp = Math.max(0, rabbit.hopAmp - dt * 6);
+
+    if (target && d < 22) {
+        collectSun(target);
+        rabbit.hold = 0.3;
+    }
+    // 阳光快消失了，兔子来不及跑到就先收起来，别白白浪费
+    for (const s of suns) {
+        if (!s.taken && s.y >= s.ty && s.life < 1.5) collectSun(s);
+    }
 }
 
 // ------------------------------- Plants ----------------------------------
@@ -4042,6 +4105,7 @@ function update(dt) {
 
     updateWaves(dt);
     updateSuns(dt);
+    updateRabbit(dt);
     updatePlants(dt);
     updateShots(dt);
     updateZombies(dt);
@@ -4783,6 +4847,69 @@ function drawMowers() {
     }
 }
 
+// ------------------------------- Draw: 兔子园丁 --------------------------
+function drawRabbit() {
+    if (!rabbit) return;
+    const bob = Math.abs(Math.sin(rabbit.anim * 11)) * 7 * rabbit.hopAmp;
+    const step = Math.sin(rabbit.anim * 11) * 3 * rabbit.hopAmp;
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(30,20,10,0.26)';
+    ctx.beginPath();
+    ctx.ellipse(rabbit.x, rabbit.y + 10, 11, 4, 0, 0, 6.29);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(rabbit.x, rabbit.y - bob);
+    ctx.scale(rabbit.face, 1);
+
+    // tail + body
+    ctx.fillStyle = '#f2ece0';
+    ctx.beginPath(); ctx.arc(-11, 1, 4.2, 0, 6.29); ctx.fill();
+    ctx.fillStyle = '#fdfaf3';
+    ctx.beginPath(); ctx.ellipse(-1, 3, 11, 8, 0, 0, 6.29); ctx.fill();
+
+    // legs, alternating with the hop
+    ctx.fillStyle = '#eae2d3';
+    ctx.beginPath(); ctx.ellipse(-6 + step, 9, 4, 3, 0, 0, 6.29); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3 - step, 9, 4, 3, 0, 0, 6.29); ctx.fill();
+
+    // ears — they flop a little while hopping
+    const wig = Math.sin(rabbit.anim * 6) * (0.1 + rabbit.hopAmp * 0.18);
+    for (const e of [{ a: -0.4 + wig, x: 5 }, { a: 0.08 + wig, x: 9.5 }]) {
+        ctx.save();
+        ctx.translate(e.x, -7);
+        ctx.rotate(e.a);
+        ctx.fillStyle = '#fdfaf3';
+        roundRect(ctx, -2.7, -16, 5.4, 17, 2.7); ctx.fill();
+        ctx.fillStyle = '#f0b3bf';
+        roundRect(ctx, -1.3, -14, 2.6, 12, 1.3); ctx.fill();
+        ctx.restore();
+    }
+
+    // head
+    ctx.fillStyle = '#fdfaf3';
+    ctx.beginPath(); ctx.arc(7, -3, 7.2, 0, 6.29); ctx.fill();
+    ctx.fillStyle = '#f0b3bf';
+    ctx.beginPath(); ctx.arc(12.6, -2, 2.1, 0, 6.29); ctx.fill();
+    ctx.fillStyle = '#2a2018';
+    ctx.beginPath(); ctx.arc(9, -5, 1.7, 0, 6.29); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath(); ctx.arc(9.6, -5.6, 0.6, 0, 6.29); ctx.fill();
+
+    // the sun it is carrying home
+    if (rabbit.hold > 0) {
+        const h = clamp(rabbit.hold / 0.3, 0, 1);
+        ctx.fillStyle = '#f2c14e';
+        ctx.beginPath(); ctx.arc(3, -20 - h * 4, 3 + h * 2, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#ffe98f';
+        ctx.beginPath(); ctx.arc(3, -20 - h * 4, 1.6 + h, 0, 6.29); ctx.fill();
+    }
+
+    ctx.restore();
+}
+
 // ------------------------------- Draw: shots -----------------------------
 function drawShots() {
     for (const s of shots) {
@@ -4959,6 +5086,7 @@ function draw() {
     drawHints();
     drawDragLayer();
     drawMowers();
+    drawRabbit();
 
     const items = [];
     for (const p of plants) { if (p.alive) items.push({ d: p.r * 100 + 12, f: () => drawOnePlant(p) }); }
@@ -5017,6 +5145,7 @@ function updateHud() {
     el('statSun').textContent = Math.floor(state.sun);
     el('statLife').textContent = mowersLeft();
     el('statWave').textContent = state.wave + ' / ' + TOTAL_WAVES;
+    updateRabbitButton();
     if (COMBO) {
         el('statGold').textContent = Math.floor(state.gold);
         el('statWall').textContent = Math.max(0, state.wall);
@@ -5024,6 +5153,30 @@ function updateHud() {
     } else {
         el('sunCount').textContent = '☀ ' + Math.floor(state.sun);
     }
+}
+
+// 兔子园丁：花 RABBIT_COST 阳光买断一次，本局永久自动收集阳光，没有等级。
+function buyRabbit() {
+    if (state.phase === 'over' || state.phase === 'won') return;
+    if (state.rabbit) { toast('兔子园丁已经在草坪上忙着了'); return; }
+    if (state.sun < RABBIT_COST) { toast('阳光不足，需要 ' + RABBIT_COST + ' ☀', true); return; }
+    spendSun(RABBIT_COST);
+    state.rabbit = true;
+    spawnRabbit();
+    Sfx.build();
+    toast('兔子园丁上岗：它会把阳光捡回来');
+    updateRabbitButton();
+    scheduleAutoSave();
+}
+
+function updateRabbitButton() {
+    const b = el('btnRabbit');
+    if (!b) return;
+    b.classList.toggle('on', state.rabbit);
+    b.classList.toggle('poor', !state.rabbit && state.sun < RABBIT_COST);
+    b.textContent = state.rabbit
+        ? '🐰 兔子园丁：在岗'
+        : '🐰 兔子园丁 · ☀ ' + RABBIT_COST;
 }
 
 function banner(msg, big) {
@@ -5410,7 +5563,7 @@ const Store = (() => {
 
 function savePrefs() {
     Store.write(PREFS_KEY, JSON.stringify({
-        speed: state.speed, muted: Sfx.muted, autoCollect: state.autoCollect
+        speed: state.speed, muted: Sfx.muted
     }));
 }
 
@@ -5421,14 +5574,13 @@ function applyPrefs() {
             const p = JSON.parse(raw);
             if (p && p.speed >= 1 && p.speed <= 3) state.speed = p.speed;
             if (p && typeof p.muted === 'boolean') Sfx.setMuted(p.muted);
-            if (p && typeof p.autoCollect === 'boolean') state.autoCollect = p.autoCollect;
         } catch (e) { /* ignore corrupt prefs */ }
     }
     for (const btn of el('speedGroup').children) {
         btn.classList.toggle('on', Number(btn.dataset.speed) === state.speed);
     }
     el('btnMute').textContent = Sfx.muted ? '🔇 静音' : '🔊 音效';
-    el('btnAuto').textContent = '☀ 自动收集：' + (state.autoCollect ? '开' : '关');
+    updateRabbitButton();
 }
 
 function serializeGame() {
@@ -5445,6 +5597,7 @@ function serializeGame() {
         skySunTimer: state.skySunTimer,
         bossSpawnTimer: state.bossSpawnTimer,
         speed: state.speed,
+        rabbit: state.rabbit,
         cooldowns: state.cooldowns,
         spawnQueue: state.spawnQueue.map(s => ({ k: s.kind, t: s.t, h: s.hpMul })),
         plants: plants.filter(p => p.alive).map(p => ({
@@ -5482,6 +5635,8 @@ function restoreGame(d) {
     state.skySunTimer = typeof d.skySunTimer === 'number' ? d.skySunTimer : 7;
     state.bossSpawnTimer = typeof d.bossSpawnTimer === 'number' ? d.bossSpawnTimer : 8;
     state.cooldowns = d.cooldowns || {};
+    state.rabbit = !!d.rabbit;
+    if (state.rabbit) spawnRabbit();
     state.spawnQueue = (d.spawnQueue || []).map(s => ({ kind: s.k, t: s.t, hpMul: s.h }));
 
     for (const p of d.plants) {
@@ -5742,11 +5897,7 @@ function wireButtons() {
         el('btnMute').textContent = Sfx.muted ? '🔇 静音' : '🔊 音效';
         savePrefs();
     });
-    el('btnAuto').addEventListener('click', () => {
-        state.autoCollect = !state.autoCollect;
-        el('btnAuto').textContent = '☀ 自动收集：' + (state.autoCollect ? '开' : '关');
-        savePrefs();
-    });
+    el('btnRabbit').addEventListener('click', () => { Sfx.unlock(); buyRabbit(); });
     for (const btn of el('speedGroup').children) {
         btn.addEventListener('click', () => {
             state.speed = Number(btn.dataset.speed);

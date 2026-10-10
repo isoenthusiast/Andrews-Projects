@@ -177,7 +177,7 @@ The second game of the collection: a lane-defense built on the same single-file 
 - Open `tower-defense/index.html` in any browser and pick **植物大战僵尸 3** on the title screen.
 - Zombies crawl in from the right. If one reaches the house on the left, you lose.
 - Plant on the **5 × 9 lawn**. Each row has one **割草机 (lawn mower)** that fires automatically the first time a zombie breaks through — a one-time save per row.
-- **阳光 (sun)** is your currency. It falls from the sky and pops out of sunflowers — click a sun to collect it, or turn on **☀ 自动收集**.
+- **阳光 (sun)** is your currency. It falls from the sky and pops out of sunflowers — click a sun to collect it, or hire the **兔子园丁 (rabbit gardener)** and let it run around hoovering them up.
 - Survive all **20 waves**. Wave 10 brings a **巨人僵尸 (Gargantuar)**, wave 20 the **僵尸博士 (Zomboss)** — who also calls in reinforcements while he advances.
 
 ### Plants
@@ -194,6 +194,9 @@ The second game of the collection: a lane-defense built on the same single-file 
 | 火爆辣椒 Jalapeno | 125 | Burns every zombie in its whole lane |
 
 Every plant goes on **cooldown** after planting, shown as a dark overlay sliding up its seed packet.
+
+### 兔子园丁 · Rabbit gardener
+A one-off **☀1000** hire button in 设置 · SETTINGS. Pay it once and a rabbit moves onto the lawn and starts hopping after sun: every sun that lands is fetched and collected for you, for the rest of the run. There is **no levelling and nothing to upgrade** — a single purchase, and the button changes to **🐰 兔子园丁：在岗** so you can see it is working. Having grabbed a sun it simply waits there for the next one instead of walking home, and it travels with your save, so loading a run keeps it, while **重新开始** starts you without one.
 
 ### 融合 · Combining plants (fusion)
 Drag one planted plant **onto** another: both vanish and a single **fused plant** grows in the cell you dropped onto. Fused plants wear a golden aura and do the job of both parents at once.
@@ -249,7 +252,7 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | Start the next wave early | Click the wave button while it counts down |
 | Game speed | **1×** / **2×** / **3×** buttons |
 | Sound on/off | **🔊 音效** button |
-| Auto-collect sun | **☀ 自动收集** toggle |
+| Auto-collect sun | Hire the **🐰 兔子园丁** in 设置 (☀1000, then it gathers every sun for the rest of the run) |
 | Save / load | **保存进度** and **读取存档**; also auto-saves after each wave, each planting and each wave start |
 
 ### Saving your game
@@ -340,7 +343,7 @@ Both 蛮族 and zombies **chew plants** that block them, and both drop silver wh
 | Select a plant | Click its packet in the tray, or press **1**–**9** |
 | Select a tower | Click a card in 炮塔 · TOWERS, or press **Q** / **W** / **E** / **R** |
 | Build | Click an empty lawn cell (plants cost ☀, towers cost 🪙) |
-| Collect sun | Click a falling sun (☀ 自动收集 also works) |
+| Collect sun | Click a falling sun, or hire the **🐰 兔子园丁** (☀1000) and it collects them for you |
 | Inspect | Click a plant or a built tower — the sidebar shows its stats |
 | Upgrade / sell a tower | Select it, then **升级** / **拆除** |
 | Dig up a plant | Click a plant, then **铲除** — or use the **🥄** shovel |
@@ -349,7 +352,7 @@ Both 蛮族 and zombies **chew plants** that block them, and both drop silver wh
 | Pause | Press **Space** or click **暂停** |
 | Start the next wave early | Click the wave button while it counts down |
 | Game speed | **1×** / **2×** / **3×** buttons |
-| Sound / auto-collect | **🔊 音效** and **☀ 自动收集** toggles |
+| Sound / rabbit gardener | **🔊 音效** button and the **🐰 兔子园丁** hire button |
 | Save / load | **保存进度** and **读取存档** |
 
 ### Saving your game
