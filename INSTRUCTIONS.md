@@ -196,6 +196,15 @@ The second game of the collection: a lane-defense built on the same single-file 
 | 樱桃炸弹 Cherry Bomb | 150 | Detonates a 3 × 3 area |
 | 土豆雷 Potato Mine | 25 | Arms for 14 s, then blows up the next zombie to step on it |
 | 火爆辣椒 Jalapeno | 125 | Burns every zombie in its whole lane |
+| 棘刺仙人掌 Briar Cactus | 175 | Fires piercing thorns through multiple zombies in its lane |
+| 余烬荚 Ember Pod | 225 | Explosive seeds splash damage onto nearby zombies |
+| 萤光菇 Glowcap | 125 | Periodically heals nearby injured plants |
+| 霜晶花 Frostbud | 150 | Charges briefly, then damages and freezes nearby zombies |
+| 日芒射手 Sunshard | 250 | Produces sun and fires piercing rays |
+| 花粉泡泡 Pollen Puff | 200 | Pollen shots splash and slow nearby zombies |
+| 星果射手 Starfruit | 300 | Fires star shots down all five lanes |
+| 脉冲花 Pulsebloom | 275 | Electric shots chain to nearby zombies |
+| 荆棘树皮 Thornbark | 150 | A tough barrier that damages zombies while they bite it |
 
 Every plant goes on **cooldown** after planting, shown as a dark overlay sliding up its seed packet. A plant that has been bitten grows a small health bar above it — green, then amber, then red as it runs out — and it only appears once the plant has taken damage, so an untouched lawn stays clean.
 
@@ -231,6 +240,15 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | 火爆辣椒 + 火爆辣椒 | 烈焰风暴 — burns three lanes |
 | 土豆雷 + 土豆雷 | 连环雷区 — blows up three zombies |
 | 土豆雷 + 樱桃炸弹 | 连环雷区 |
+| 双发射手 + 棘刺仙人掌 | 荆棘连发器 — piercing thorn bursts |
+| 向日葵 + 余烬荚 | 日耀余烬 — makes sun and fires explosive seeds |
+| 寒冰射手 + 萤光菇 | 月光疗菇 — heals nearby plants and fires slowing ice peas |
+| 三线射手 + 寒冰射手 | 霜线射手 — slowing ice peas across three lanes |
+| 双发射手 + 余烬荚 | 爆燃双发 — two explosive seeds per burst |
+| 向日葵 + 萤光菇 | 日光疗菇 — produces sun and heals nearby plants |
+| 坚果墙 + 萤光菇 | 荧光坚果 — sturdy wall that heals nearby plants |
+| 坚果墙 + 棘刺仙人掌 | 荆棘坚果 — sturdy wall that fires piercing thorns |
+| 向日葵 + 三线射手 | 三线向日葵 — produces sun and attacks three lanes |
 
 ### Zombies
 | Zombie | Trait |
@@ -239,13 +257,19 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | 路障僵尸 Conehead | Road cone soaks 370 extra damage |
 | 铁桶僵尸 Buckethead | Metal bucket takes 1100 extra damage |
 | 旗帜僵尸 Flag Zombie | Marks the start of a huge wave; moves faster |
+| 裂步小鬼 Rift Skitter | Fast, lightly armoured runner |
+| 石甲巨尸 Stoneback Brute | Slow zombie with a heavy armour shell |
+| 回声嚎尸 Echo Howler | Speeds up nearby zombies as it marches |
+| 苔医僵尸 Moss Medic | Periodically heals nearby injured zombies |
+| 余烬僵尸 Cinder Zombie | Armoured zombie that resists slowing effects |
+| 裂风僵尸 Rift Dasher | Occasionally bursts forward at high speed |
 | 巨人僵尸 Gargantuar | **Boss** — wave 10, smashes plants almost instantly |
 | 僵尸博士 Zomboss | **Final boss** — wave 20, high HP, spawns extra zombies |
 
 ### Controls
 | Action | How |
 |---|---|
-| Select a plant | Click its seed packet, or press **1**–**9** |
+| Select a plant | Click its seed packet, or press **1**–**9** for the first nine plants |
 | Plant | Click an empty lawn cell |
 | Collect sun | Click a falling sun |
 | Inspect / dig up | Click a planted plant, then **铲除** in the sidebar |
@@ -281,10 +305,11 @@ Identical to the Tower Defense project, but with its own save key — the games 
 ### Features
 - Classic **5-lane × 9-column lawn** rendered on a single canvas — house, porch and picket fence included.
 - **Fusion**: drag one plant onto another to combine them into one of **19 hybrid plants**, drawn as both parents under a golden aura.
-- 9 plants and 6 zombies, all drawn procedurally (no image assets), with squash-free walk and chew animation.
+- 18 plants and 6 zombies, all drawn procedurally (no image assets), with squash-free walk and chew animation. Zombies wear their own skin and cloth palette, shade from a gradient rather than a flat fill, and reach forward with real hands and boots.
+- **Hit feedback on the body itself**: a hit makes the zombie flinch back under a short flash and shed a spray of chips, instead of an ellipse blinking over the top of it.
+- Zombie **armour** (cone / bucket) that visibly absorbs damage before the walker drops — the cone loses its tip and the bucket dents and notches as the armour runs out.
 - Sun economy with clickable sky sun and sunflower output, plus an optional auto-collect toggle.
 - Per-row **lawn mowers** as a one-time safety net.
-- Zombie **armour** (cone / bucket) that visibly absorbs damage before the walker drops.
 - 20 waves per cycle with flag waves every 5, a boss every 10, and a Zomboss that spawns reinforcements — **stretch the run to 100 waves** with the 总波数 slider, where every 20 waves adds a difficulty tier.
 - Wave progress bar with flag markers, wave preview, and PvZ-style "一大波僵尸正在接近！" alerts.
 - Save & restore, 1×/2×/3× speed, pause, and procedural WebAudio sound with a mute toggle.
