@@ -205,8 +205,22 @@ The second game of the collection: a lane-defense built on the same single-file 
 | 星果射手 Starfruit | 300 | Fires star shots down all five lanes |
 | 脉冲花 Pulsebloom | 275 | Electric shots chain to nearby zombies |
 | 荆棘树皮 Thornbark | 150 | A tough barrier that damages zombies while they bite it |
+| 地刺 Spike Weed | 100 | Zombies take damage for walking over it — and it cannot be eaten |
+| 磁力菇 Magnet-shroom | 175 | Periodically strips 360 armour off the toughest zombie in range |
+| 寒霜兰 Chillbloom | 200 | A cold aura that keeps nearby zombies permanently slowed |
+| 震地瓜 Quake Melon | 250 | A shockwave every 5.5 s hitting everything within ~1.5 tiles |
+| 疾风荚 Gust Pod | 275 | A gust that shoves its lane back 34 px every 6.5 s |
+| 蓄阳罐 Sun Jar | 200 | Banks up, then pays out **75 sun** in one drop |
+| 机枪射手 Gatling Pea | 350 | Four peas per volley — the fastest shooter on the lawn |
+| 阳莲 Sun Lily | 325 | Produces sun **and** heals nearby injured plants |
+| 爆裂花 Blast Bloom | 425 | Explosive seeds down three lanes at once |
+| 石树皮 Stonebark | 175 | 3200 HP stone wall that cuts whatever bites it |
 
 Every plant goes on **cooldown** after planting, shown as a dark overlay sliding up its seed packet. A plant that has been bitten grows a small health bar above it — green, then amber, then red as it runs out — and it only appears once the plant has taken damage, so an untouched lawn stays clean.
+
+There are **28 seed packets**. The tray holds two rows and scrolls for the rest, so the lawn never leaves the screen. Keys **1**–**9** pick the first nine as before.
+
+A few plants do their own thing rather than shooting: **地刺** is the only plant zombies cannot eat — they have to walk over it and take damage; **磁力菇** only removes armour; **寒霜兰** only slows; **震地瓜** and **疾风荚** hit or shove everything near them on a timer. Their sidebar entry (选中 · SELECTED) spells out the numbers.
 
 ### 兔子园丁 · Rabbit gardener
 A one-off **☀1000** hire button in 设置 · SETTINGS. Pay it once and a rabbit moves onto the lawn and starts hopping after sun: every sun that lands is fetched and collected for you, for the rest of the run. There is **no levelling and nothing to upgrade** — a single purchase, and the button changes to **🐰 兔子园丁：在岗** so you can see it is working. Having grabbed a sun it simply waits there for the next one instead of walking home, and it travels with your save, so loading a run keeps it, while **重新开始** starts you without one.
@@ -285,6 +299,14 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | 裂风僵尸 Rift Dasher | Occasionally bursts forward at high speed |
 | 巨人僵尸 Gargantuar | **Boss** — wave 10, smashes plants almost instantly |
 | 僵尸博士 Zomboss | **Final boss** — wave 20, high HP, spawns extra zombies |
+| 撑杆僵尸 Pole Vaulting Zombie | Leaps the **first** plant it meets in one bound, then eats as normal |
+| 爆裂僵尸 Bomber Zombie | Explodes on death, damaging every plant within ~95 px |
+| 窃阳僵尸 Sun Thief Zombie | Siphons 25 sun off you every 6.5 s while it marches |
+| 喷吐僵尸 Spitter Zombie | Spits acid at the front plant from ~2 tiles away — it never closes in |
+| 疾行僵尸 Sprinter Zombie | Very fast, very fragile |
+| 泥甲僵尸 Mudshell Zombie | 1450 armour and a slow, heavy tread |
+| 冻僵僵尸 Frostbitten Zombie | Almost immune to slowing (0.96 resistance) |
+| 号旗僵尸 Herald Zombie | Carries a banner that rallies nearby zombies like the Howler |
 
 ### Controls
 | Action | How |
@@ -325,13 +347,14 @@ Identical to the Tower Defense project, but with its own save key — the games 
 ### Features
 - Classic **5-lane × 9-column lawn** rendered on a single canvas — house, porch and picket fence included.
 - **Fusion**: drag one plant onto another to combine them into one of **44 hybrid plants**, drawn as both parents under a golden aura.
-- 18 plants and 6 zombies, all drawn procedurally (no image assets), with squash-free walk and chew animation. Zombies wear their own skin and cloth palette, shade from a gradient rather than a flat fill, and reach forward with real hands and boots.
+- 28 plants and 20 zombies, all drawn procedurally (no image assets), with squash-free walk and chew animation. Zombies wear their own skin and cloth palette, shade from a gradient rather than a flat fill, and reach forward with real hands and boots.
 - **Hit feedback on the body itself**: a hit makes the zombie flinch back under a short flash and shed a spray of chips, instead of an ellipse blinking over the top of it.
 - Zombie **armour** (cone / bucket) that visibly absorbs damage before the walker drops — the cone loses its tip and the bucket dents and notches as the armour runs out.
 - Sun economy with clickable sky sun and sunflower output, plus an optional auto-collect toggle.
 - Per-row **lawn mowers** as a one-time safety net.
 - 20 waves per cycle with flag waves every 5, a boss every 10, and a Zomboss that spawns reinforcements — **stretch the run to 100 waves** with the 总波数 slider, where every 20 waves adds a difficulty tier.
 - Wave progress bar with flag markers, wave preview, and PvZ-style "一大波僵尸正在接近！" alerts.
+- Zombies that each break a rule: the **撑杆僵尸** that vaults your first plant, the **爆裂僵尸** that detonates on death, the **窃阳僵尸** that steals your sun, and the **喷吐僵尸** that shells your front line from range.
 - Save & restore, 1×/2×/3× speed, pause, and procedural WebAudio sound with a mute toggle.
 
 ---
@@ -428,6 +451,51 @@ Identical to the other two games, but with its own key (`comb_save_v1`) — the 
 - Invaders and zombies share the same lane AI — both bite plants and both pay bounties.
 - **城墙 (wall) HP** replaces the instant loss: leaks hurt, 20 points of damage and the wall falls.
 - Plant **fusion** (44 hybrids), lawn mowers, sun economy, 1×/2×/3× speed, pause, save & restore — all carried over.
+
+---
+
+## Qube Stack
+
+**Location:** `qube-puzzle/index.html`
+
+### How to Play
+- Open `qube-puzzle/index.html` in any browser.
+- A cube slides back and forth above the tower. **Tap** or press **Space** to drop it.
+- Where it lands decides what happens next:
+  - 🎯 **On the tower** — the overhang is sliced off and tumbles away, so the tower gets narrower.
+  - ✨ **PERFECT** — within a whisker of centre: nothing is lost, the cube keeps its full size, and bonus points are paid.
+  - ❌ **Past the tower** — the cube misses and the run is over.
+- Every cube you place makes the next one faster.
+- The run also ends once the cube has been sliced down below the minimum size.
+- The camera orbits slowly and rises with the tower, so you always look at the top.
+
+### Controls
+| Action | How |
+|---|---|
+| Drop the cube | **Tap** or **click** anywhere, or press **Space**, **Enter** or **↓** |
+| Start / play again | **Tap** or press **Space** on the title and game-over screens |
+| Pause | Press **P** or **Esc**, or click **Pause** |
+| Restart | Press **R**, or click **New game** |
+| Sound on/off | Click **🔊 Sound** — the setting is remembered |
+
+### Saving your game
+- Your best score is stored in the browser under `qube-puzzle-best` as soon as a run ends, and shown as **Best**.
+- The sound setting is stored under `qube-puzzle` as well. Clearing the browser's storage for this page resets both.
+
+### Tips
+- Watch the cube's **speed**, not the tower — it climbs with every cube you place.
+- The dashed gold outline shows where the cube would land if you dropped it right now.
+- Aim for the middle of the cube below, never its edge: every slice costs you width.
+- Chain **PERFECT** drops while the cube is still wide — the combo bonus grows with each one.
+- When the cube gets thin, its swing stays the same length, so the timing window shrinks fast.
+
+### Features
+- A real 3D tower — every cube is projected, lit and depth-sorted by hand, with no libraries or dependencies.
+- A slowly orbiting camera that follows the tower up, with a little shake on every landing.
+- Sliced overhangs break off and tumble away, with a shockwave ring and a screen flash.
+- **PERFECT** drops build a combo with rising chimes and a gold **PERFECT ×n** pop.
+- A rainbow tower: each cube shifts the hue a little further.
+- Full keyboard, mouse and touch support, plus a persistent mute toggle.
 
 ---
 

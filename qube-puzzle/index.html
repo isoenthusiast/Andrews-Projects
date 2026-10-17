@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Qube Stack — a one-tap 3D cube tower</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    :root {
+        --gold1: #f7971e;
+        --gold2: #ffd200;
+        --muted: #a0a0c0;
+        --panel: rgba(20, 18, 42, .66);
+        --line: rgba(255, 255, 255, .12);
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        color: #fff;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+        cursor: pointer;
+    }
+
+    .hud { position: fixed; z-index: 5; pointer-events: none; }
+
+    .brand { top: 16px; left: 20px; }
+    .brand h1 {
+        font-size: 1.1rem;
+        letter-spacing: 5px;
+        text-transform: uppercase;
+        font-weight: 700;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .brand p { font-size: .68rem; color: #6f6f95; letter-spacing: 1.5px; margin-top: 3px; }
+
+    .stats { top: 14px; right: 20px; display: flex; gap: 18px; text-align: right; }
+    .stat { display: flex; flex-direction: column; gap: 2px; }
+    .stat .label {
+        font-size: .6rem;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #6f6f95;
+    }
+    .stat .value {
+        font-size: 1rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        color: #e8e8ff;
+    }
+    .stat .value.gold {
+        font-size: 1.5rem;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .dock {
+        position: fixed;
+        z-index: 6;
+        left: 50%;
+        bottom: 18px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        width: min(760px, calc(100% - 24px));
+        padding: 10px 14px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, .5);
+    }
+
+    .btn {
+        font: inherit;
+        font-size: .8rem;
+        font-weight: 600;
+        color: #e8e8ff;
+        background: rgba(255, 255, 255, .08);
+        border: 1px solid rgba(255, 255, 255, .13);
+        padding: 9px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: .16s;
+        white-space: nowrap;
+    }
+    .btn:hover { background: rgba(255, 255, 255, .17); transform: translateY(-1px); }
+    .btn:active { transform: scale(.96); }
+    .btn.primary {
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        color: #2a1a00;
+        border: none;
+        box-shadow: 0 6px 18px rgba(247, 151, 30, .3);
+    }
+    .btn.primary:hover { filter: brightness(1.08); }
+
+    .sep { width: 1px; height: 24px; background: rgba(255, 255, 255, .12); }
+    .hint { font-size: .68rem; color: #6f6f95; letter-spacing: .4px; }
+    .hint b { color: #c9c9e8; font-weight: 600; }
+
+    .overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 8;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(8, 6, 24, .74);
+        backdrop-filter: blur(6px);
+    }
+    .overlay.show { display: flex; }
+
+    .sheet {
+        width: min(430px, 100%);
+        text-align: center;
+        padding: 26px 24px;
+        border-radius: 20px;
+        background: rgba(20, 18, 42, .88);
+        border: 1px solid var(--line);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
+    }
+
+    .sheet h2 {
+        font-size: 1.55rem;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .sheet .big {
+        font-size: 2.5rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        margin-top: 6px;
+        background: linear-gradient(90deg, var(--gold1), var(--gold2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .sheet p { color: var(--muted); font-size: .86rem; line-height: 1.6; margin-top: 10px; }
+
+    .rules {
+        display: inline-block;
+        text-align: left;
+        margin-top: 14px;
+        font-size: .82rem;
+        line-height: 1.9;
+        color: var(--muted);
+    }
+    .rules i { color: var(--gold2); font-style: normal; }
+    .rules b { color: #e8e8ff; font-weight: 600; }
+
+    .sheet .btn.primary { margin-top: 18px; padding: 12px 28px; font-size: .92rem; }
+
+    @media (max-width: 560px) {
+        .brand p { display: none; }
+        .stats { gap: 12px; }
+        .stat .value.gold { font-size: 1.25rem; }
+        .hint { display: none; }
+    }
+</style>
+</head>
+<body>
+    <canvas id="scene"></canvas>
+
+    <div class="hud brand">
+        <h1>Qube Stack</h1>
+        <p>One tap per cube</p>
+    </div>
+
+    <div class="hud stats">
+        <div class="stat">
+            <span class="label">Score</span>
+            <span class="value gold" id="score">0</span>
+        </div>
+        <div class="stat">
+            <span class="label">Best</span>
+            <span class="value" id="best">0</span>
+        </div>
+        <div class="stat">
+            <span class="label">Height</span>
+            <span class="value" id="height">0</span>
+        </div>
+    </div>
+
+    <div class="dock">
+        <button class="btn primary" id="btnPlay">New game</button>
+        <div class="sep"></div>
+        <button class="btn" id="btnPause">Pause</button>
+        <button class="btn" id="btnSound">&#128266; Sound</button>
+        <div class="sep"></div>
+        <span class="hint"><b>Space</b> / <b>tap</b> to drop &middot; <b>P</b> pause &middot; <b>R</b> restart</span>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="sheet">
+            <h2 id="ovTitle">Qube Stack</h2>
+            <div class="big" id="ovScore" hidden>0</div>
+            <p id="ovText"></p>
+            <div class="rules" id="ovRules">
+                <div><i>&#9670;</i> <b>Tap</b> or press <b>Space</b> to drop the cube</div>
+                <div><i>&#9670;</i> Line the cube up with the tower below it</div>
+                <div><i>&#9670;</i> Overhang is sliced off, so the tower narrows</div>
+                <div><i>&#9670;</i> A <b>PERFECT</b> drop loses nothing and builds a combo</div>
+                <div><i>&#9670;</i> The run ends when the cube gets too small</div>
+            </div>
+            <button class="btn primary" id="ovBtn">Start</button>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            'use strict';
+
+            // ======================= Constants =======================
+            const START = 3;          // starting plan size of a cube (world units)
+            const UNIT = 1;           // height of one block
+            const MIN_SIZE = 0.3;     // narrowest block that can still carry another cube
+            const GRAVITY = 26;
+            const STORE_KEY = 'qube-puzzle';
+            const BEST_KEY = 'qube-puzzle-best';
+
+            // ======================= Sound =======================
+            const Sfx = (() => {
+                let ac = null, silent = false;
+                function ensure() {
+                    if (!ac) {
+                        const AC = window.AudioContext || window.webkitAudioContext;
+                        if (AC) ac = new AC();
+                    }
+                    if (ac && ac.state === 'suspended') ac.resume();
+                    return ac;
+                }
+                function tone(freq, dur, type, vol, slideTo) {
+                    if (silent) return;
+                    const c = ensure(); if (!c) return;
+                    const o = c.createOscillator(), g = c.createGain();
+                    o.type = type || 'square';
+                    o.frequency.setValueAtTime(freq, c.currentTime);
+                    if (slideTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, slideTo), c.currentTime + dur);
+                    g.gain.setValueAtTime(0, c.currentTime);
+                    g.gain.linearRampToValueAtTime(vol == null ? 0.05 : vol, c.currentTime + 0.008);
+                    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+                    o.connect(g); g.connect(c.destination);
+                    o.start(); o.stop(c.currentTime + dur + 0.02);
+                }
+                return {
+                    unlock: ensure,
+                    drop: () => tone(540, 0.09, 'triangle', 0.035, 280),
+                    land: () => tone(190, 0.12, 'square', 0.05, 120),
+                    slice: () => tone(300, 0.09, 'sawtooth', 0.03, 170),
+                    perfect: (n) => {
+                        const base = 640 + Math.min(6, n - 1) * 80;
+                        tone(base, 0.14, 'triangle', 0.05, base + 180);
+                        setTimeout(() => tone(base + 260, 0.16, 'triangle', 0.045, base + 420), 70);
+                    },
+                    start: () => { [520, 700, 920].forEach((f, i) => setTimeout(() => tone(f, 0.15, 'triangle', 0.045), i * 80)); },
+                    over: () => { [420, 330, 250, 160].forEach((f, i) => setTimeout(() => tone(f, 0.38, 'sawtooth', 0.055), i * 150)); },
+                    setMuted(v) { silent = v; },
+                    get muted() { return silent; }
+                };
+            })();
+
+            // ======================= Storage =======================
+            function loadBest() {
+                try { return parseInt(localStorage.getItem(BEST_KEY), 10) || 0; } catch (e) { return 0; }
+            }
+            function saveBest(v) {
+                try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) { /* storage unavailable */ }
+            }
+            function loadSettings() {
+                try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+            }
+            function saveSettings() {
+                try { localStorage.setItem(STORE_KEY, JSON.stringify({ muted: Sfx.muted })); } catch (e) { /* storage unavailable */ }
+            }
+
+            // ======================= Canvas =======================
+            const cv = document.getElementById('scene');
+            const ctx = cv.getContext('2d');
+            let W = 0, H = 0, focal = 800, bgGrad = null, backdrop = null;
+
+            // ======================= Vector math =======================
+            const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+            const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+            const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+            function norm(v) { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; }
+
+            function rotMat(rx, ry, rz) {
+                const cx = Math.cos(rx), sx = Math.sin(rx);
+                const cy = Math.cos(ry), sy = Math.sin(ry);
+                const cz = Math.cos(rz), sz = Math.sin(rz);
+                return [
+                    cy * cz + sy * sx * sz, -cy * sz + sy * sx * cz, sy * cx,
+                    cx * sz, cx * cz, -sx,
+                    -sy * cz + cy * sx * sz, sy * sz + cy * sx * cz, cy * cx
+                ];
+            }
+            function applyMat(m, v) {
+                return [
+                    m[0] * v[0] + m[1] * v[1] + m[2] * v[2],
+                    m[3] * v[0] + m[4] * v[1] + m[5] * v[2],
+                    m[6] * v[0] + m[7] * v[1] + m[8] * v[2]
+                ];
+            }
+
+            // ======================= Cube geometry =======================
+            const VERT = [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1], [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]];
+            const FACES = [
+                { n: [0, 0, 1], v: [4, 5, 6, 7] },
+                { n: [0, 0, -1], v: [1, 0, 3, 2] },
+                { n: [0, 1, 0], v: [7, 6, 2, 3] },
+                { n: [0, -1, 0], v: [0, 1, 5, 4] },
+                { n: [1, 0, 0], v: [5, 1, 2, 6] },
+                { n: [-1, 0, 0], v: [0, 4, 7, 3] }
+            ];
+            const LIGHT = norm([-0.5, 0.75, 0.62]);
+
+            // ======================= Camera =======================
+            const cam = {
+                yaw: -0.62, pitch: 0.36, dist: 27, fov: 1.02,
+                tx: 0, ty: 3.2, tz: 0,
+                eye: [0, 0, 0], fwd: [0, 0, -1], right: [1, 0, 0], up: [0, 1, 0],
+                shake: 0, shakeX: 0, shakeY: 0
+            };
+
+            function fit() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                W = window.innerWidth;
+                H = window.innerHeight;
+                cv.width = Math.round(W * dpr);
+                cv.height = Math.round(H * dpr);
+                cv.style.width = W + 'px';
+                cv.style.height = H + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                focal = (H / 2) / Math.tan(cam.fov / 2);
+                bgGrad = ctx.createLinearGradient(0, 0, W, H);
+                bgGrad.addColorStop(0, '#0f0c29');
+                bgGrad.addColorStop(0.5, '#302b63');
+                bgGrad.addColorStop(1, '#24243e');
+                backdrop = ctx.createRadialGradient(W * 0.5, H * 0.66, 0, W * 0.5, H * 0.66, Math.max(W, H) * 0.62);
+                backdrop.addColorStop(0, 'rgba(112, 94, 224, 0.22)');
+                backdrop.addColorStop(1, 'rgba(112, 94, 224, 0)');
+            }
+
+            function updateCamera(dt, t) {
+                cam.yaw = -0.62 + Math.sin(t * 0.21) * 0.42;
+                const top = tower[tower.length - 1];
+                const k = 1 - Math.exp(-dt * 3.2);
+                cam.ty += (top.y + top.h + 1.7 - cam.ty) * k;
+                cam.tx += (top.x * 0.45 - cam.tx) * k * 0.7;
+                cam.tz += (top.z * 0.45 - cam.tz) * k * 0.7;
+                cam.dist += (27 + Math.min(10, tower.length * 0.18) - cam.dist) * k * 0.5;
+
+                const cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+                cam.eye = [
+                    cam.tx + Math.sin(cam.yaw) * cp * cam.dist,
+                    cam.ty + sp * cam.dist,
+                    cam.tz + Math.cos(cam.yaw) * cp * cam.dist
+                ];
+                cam.fwd = norm([cam.tx - cam.eye[0], cam.ty - cam.eye[1], cam.tz - cam.eye[2]]);
+                cam.right = norm(cross(cam.fwd, [0, 1, 0]));
+                cam.up = cross(cam.right, cam.fwd);
+
+                cam.shake *= Math.exp(-dt * 7);
+                cam.shakeX = Math.cos(t * 43) * cam.shake;
+                cam.shakeY = Math.sin(t * 56) * cam.shake;
+            }
+
+            function project(p) {
+                const vx = p[0] - cam.eye[0], vy = p[1] - cam.eye[1], vz = p[2] - cam.eye[2];
+                const z = vx * cam.fwd[0] + vy * cam.fwd[1] + vz * cam.fwd[2];
+                if (z < 0.4) return null;
+                const x = vx * cam.right[0] + vy * cam.right[1] + vz * cam.right[2];
+                const y = vx * cam.up[0] + vy * cam.up[1] + vz * cam.up[2];
+                const s = focal / z;
+                return { x: W * 0.5 + x * s + cam.shakeX, y: H * 0.5 - y * s + cam.shakeY, z };
+            }
+
+            // ======================= Cube faces =======================
+            const faceBuf = [];
+            function pushBox(b) {
+                const h = b.h * (1 - 0.3 * (b.squash || 0));
+                const hx = b.w * 0.5, hy = h * 0.5, hz = b.d * 0.5;
+                const c = [b.x, b.y + hy, b.z];
+                const toEye = [cam.eye[0] - c[0], cam.eye[1] - c[1], cam.eye[2] - c[2]];
+                const R = b.R;
+                for (let fi = 0; fi < FACES.length; fi++) {
+                    const f = FACES[fi];
+                    const n = R ? applyMat(R, f.n) : f.n;
+                    if (dot(n, toEye) <= 0) continue;
+                    const pts = [];
+                    let ok = true;
+                    for (let vi = 0; vi < 4; vi++) {
+                        const lv = VERT[f.v[vi]];
+                        let p = [lv[0] * hx, lv[1] * hy, lv[2] * hz];
+                        if (R) p = applyMat(R, p);
+                        const pr = project([p[0] + c[0], p[1] + c[1], p[2] + c[2]]);
+                        if (!pr) { ok = false; break; }
+                        pts.push(pr);
+                    }
+                    if (!ok) continue;
+                    let depth = 0;
+                    for (let i = 0; i < 4; i++) depth += pts[i].z;
+                    const lit = 0.34 + 0.66 * Math.max(0, dot(n, LIGHT));
+                    const L = clamp(12 + lit * 52 + (b.flash || 0) * 34, 8, 96);
+                    faceBuf.push({
+                        pts,
+                        d: depth * 0.25,
+                        fill: 'hsl(' + b.hue + ',58%,' + L.toFixed(1) + '%)',
+                        edge: 'hsl(' + b.hue + ',45%,' + (L * 0.52).toFixed(1) + '%)'
+                    });
+                }
+            }
+
+            // ======================= Elements =======================
+            const el = {
+                score: document.getElementById('score'),
+                best: document.getElementById('best'),
+                height: document.getElementById('height'),
+                overlay: document.getElementById('overlay'),
+                ovTitle: document.getElementById('ovTitle'),
+                ovScore: document.getElementById('ovScore'),
+                ovText: document.getElementById('ovText'),
+                ovRules: document.getElementById('ovRules'),
+                ovBtn: document.getElementById('ovBtn'),
+                btnPlay: document.getElementById('btnPlay'),
+                btnPause: document.getElementById('btnPause'),
+                btnSound: document.getElementById('btnSound')
+            };
+
+            // ======================= State =======================
+            let state = 'ready';       // ready | playing | paused | dying | over
+            let tower = [];            // committed blocks, bottom first
+            let mover = null;          // the cube being placed
+            let debris = [], pops = [], rings = [];
+            let score = 0, best = 0, placed = 0, combo = 0;
+            let screenFlash = 0, dyingT = 0, elapsed = 0, muted = false;
+
+            function makeBase() {
+                return { x: 0, z: 0, y: 0, w: START, d: START, h: UNIT, hue: 234, flash: 0.6, squash: 0 };
+            }
+
+            function spawnMover() {
+                const prev = tower[tower.length - 1];
+                const axis = (tower.length % 2 === 1) ? 'x' : 'z';
+                const center = axis === 'x' ? prev.x : prev.z;
+                const size = axis === 'x' ? prev.w : prev.d;
+                const amp = 3.3 + size * 0.85;
+                mover = {
+                    axis, amp, center,
+                    x: prev.x, z: prev.z, w: prev.w, d: prev.d, h: UNIT,
+                    y: prev.y + prev.h + 1.15,
+                    landY: prev.y + prev.h,
+                    hue: (200 + tower.length * 8) % 360,
+                    speed: Math.min(8.5, 2.5 + placed * 0.13),
+                    dir: 1, falling: false, vy: 0, vx: 0, vz: 0,
+                    spin: [0, 0, 0], spinV: [0, 0, 0], R: null,
+                    flash: 0, squash: 0
+                };
+                if (axis === 'x') mover.x = center - amp; else mover.z = center - amp;
+            }
+
+            function updateHud() {
+                el.score.textContent = score.toLocaleString();
+                el.best.textContent = Math.max(best, score).toLocaleString();
+                el.height.textContent = placed;
+            }
+
+            function spawnDebris(center, size, axis, side, hue) {
+                const m = mover;
+                const push = 2.4 + Math.random() * 1.1;
+                debris.push({
+                    x: axis === 'x' ? center : m.x,
+                    z: axis === 'x' ? m.z : center,
+                    y: m.landY,
+                    w: axis === 'x' ? size : m.w,
+                    d: axis === 'x' ? m.d : size,
+                    h: UNIT,
+                    hue,
+                    vx: axis === 'x' ? side * push : 0,
+                    vz: axis === 'x' ? 0 : side * push,
+                    vy: 1.5,
+                    spin: [0, 0, 0],
+                    spinV: [2.4 + Math.random(), 1.8 + Math.random(), 1.1 + Math.random()],
+                    R: rotMat(0, 0, 0),
+                    flash: 0.5, squash: 0
+                });
+            }
+
+            // ======================= Playing =======================
+            function drop() {
+                if (state !== 'playing' || !mover || mover.falling) return;
+                mover.falling = true;
+                mover.vy = -1.4;
+                Sfx.drop();
+            }
+
+            function land() {
+                const prev = tower[tower.length - 1];
+                const axis = mover.axis;
+                const pCenter = axis === 'x' ? prev.x : prev.z;
+                const pSize = axis === 'x' ? prev.w : prev.d;
+                const cCenter = axis === 'x' ? mover.x : mover.z;
+                const cSize = axis === 'x' ? mover.w : mover.d;
+
+                const pMin = pCenter - pSize / 2, pMax = pCenter + pSize / 2;
+                const cMin = cCenter - cSize / 2, cMax = cCenter + cSize / 2;
+                const oMin = Math.max(pMin, cMin), oMax = Math.min(pMax, cMax);
+                const overlap = oMax - oMin;
+                if (overlap <= 0) { miss(); return; }
+
+                const tol = Math.max(0.05, cSize * 0.06);
+                const perfect = Math.abs(cCenter - pCenter) <= tol;
+                let newSize, newCenter;
+
+                if (perfect) {
+                    combo++;
+                    score += 1 + combo;
+                    newSize = pSize;
+                    newCenter = pCenter;
+                    screenFlash = Math.min(1, 0.3 + combo * 0.1);
+                    cam.shake = Math.min(6, 3 + combo);
+                    Sfx.perfect(combo);
+                } else {
+                    combo = 0;
+                    score += 1;
+                    newSize = overlap;
+                    newCenter = (oMin + oMax) / 2;
+                    cam.shake = 2.2;
+                    Sfx.land();
+
+                    let dSize, dCenter, side;
+                    if (cMax > pMax + 1e-6) { dSize = cMax - pMax; dCenter = (pMax + cMax) / 2; side = 1; }
+                    else { dSize = pMin - cMin; dCenter = (cMin + pMin) / 2; side = -1; }
+                    if (dSize > 0.04) { spawnDebris(dCenter, dSize, axis, side, mover.hue); Sfx.slice(); }
+                }
+
+                const blk = {
+                    x: mover.x, z: mover.z, y: mover.landY,
+                    w: mover.w, d: mover.d, h: UNIT,
+                    hue: mover.hue, flash: 1, squash: perfect ? 0.9 : 0.6
+                };
+                if (axis === 'x') { blk.x = newCenter; blk.w = newSize; }
+                else { blk.z = newCenter; blk.d = newSize; }
+                tower.push(blk);
+                placed++;
+
+                rings.push({ x: blk.x, y: blk.y + blk.h + 0.02, z: blk.z, r: Math.max(blk.w, blk.d) * 0.55, life: 1 });
+                if (perfect) {
+                    pops.push({
+                        text: combo > 1 ? 'PERFECT \u00d7' + combo : 'PERFECT',
+                        x: blk.x, y: blk.y + blk.h + 1.3, z: blk.z,
+                        life: 1, ttl: 1.1
+                    });
+                }
+
+                updateHud();
+                mover = null;
+
+                if (newSize < MIN_SIZE) {
+                    state = 'dying';
+                    dyingT = 0.9;
+                    Sfx.over();
+                    return;
+                }
+                spawnMover();
+            }
+
+            function miss() {
+                state = 'dying';
+                dyingT = 0.9;
+                mover.vy = -3;
+                mover.spinV = [2.6, 1.8, 1.2];
+                mover.R = rotMat(0, 0, 0);
+                cam.shake = 3;
+                Sfx.over();
+            }
+
+            function startRun() {
+                tower = [makeBase()];
+                debris = []; pops = []; rings = [];
+                score = 0; placed = 0; combo = 0;
+                screenFlash = 0; cam.shake = 0;
+                cam.tx = 0; cam.tz = 0; cam.ty = 3.2; cam.dist = 27;
+                mover = null;
+                spawnMover();
+                state = 'playing';
+                el.btnPause.textContent = 'Pause';
+                hideOverlay();
+                updateHud();
+                Sfx.unlock();
+                Sfx.start();
+            }
+
+            function finishRun() {
+                state = 'over';
+                const isBest = score > best;
+                if (isBest) { best = score; saveBest(best); }
+                updateHud();
+                showOverlay({
+                    title: isBest ? 'New Best!' : 'Game Over',
+                    score,
+                    text: 'You stacked ' + placed + (placed === 1 ? ' cube' : ' cubes') + '. Best ' + best + '.',
+                    rules: false,
+                    btn: 'Play again'
+                });
+            }
+
+            function togglePause() {
+                if (state === 'playing') {
+                    state = 'paused';
+                    el.btnPause.textContent = 'Resume';
+                    showOverlay({ title: 'Paused', text: 'Your tower is waiting.', rules: false, btn: 'Resume' });
+                } else if (state === 'paused') {
+                    state = 'playing';
+                    el.btnPause.textContent = 'Pause';
+                    hideOverlay();
+                }
+            }
+
+            function tap() {
+                Sfx.unlock();
+                if (state === 'ready' || state === 'over') startRun();
+                else if (state === 'paused') togglePause();
+                else if (state === 'playing') drop();
+            }
+
+            function showOverlay(o) {
+                el.ovTitle.textContent = o.title;
+                el.ovText.textContent = o.text || '';
+                el.ovRules.hidden = !o.rules;
+                el.ovScore.hidden = o.score == null;
+                if (o.score != null) el.ovScore.textContent = o.score.toLocaleString();
+                el.ovBtn.textContent = o.btn;
+                el.overlay.classList.add('show');
+            }
+            function hideOverlay() { el.overlay.classList.remove('show'); }
+
+            // ======================= Update =======================
+            function update(dt) {
+                for (let i = pops.length - 1; i >= 0; i--) {
+                    const p = pops[i];
+                    p.life -= dt / p.ttl;
+                    if (p.life <= 0) pops.splice(i, 1);
+                }
+                for (let i = rings.length - 1; i >= 0; i--) {
+                    const r = rings[i];
+                    r.r += dt * 4.2;
+                    r.life -= dt * 1.5;
+                    if (r.life <= 0) rings.splice(i, 1);
+                }
+                for (let i = debris.length - 1; i >= 0; i--) {
+                    const d = debris[i];
+                    d.vy -= GRAVITY * dt;
+                    d.x += d.vx * dt; d.y += d.vy * dt; d.z += d.vz * dt;
+                    d.spin[0] += d.spinV[0] * dt;
+                    d.spin[1] += d.spinV[1] * dt;
+                    d.spin[2] += d.spinV[2] * dt;
+                    d.R = rotMat(d.spin[0], d.spin[1], d.spin[2]);
+                    if (d.y < cam.ty - 45) debris.splice(i, 1);
+                }
+                for (let i = 0; i < tower.length; i++) {
+                    const b = tower[i];
+                    if (b.flash) b.flash = Math.max(0, b.flash - dt * 3.4);
+                    if (b.squash) b.squash = Math.max(0, b.squash - dt * 5);
+                }
+                if (screenFlash > 0) screenFlash = Math.max(0, screenFlash - dt * 2.6);
+
+                // the cube slides back and forth while it waits for a tap
+                if ((state === 'playing' || state === 'ready') && mover && !mover.falling) {
+                    let v = (mover.axis === 'x' ? mover.x : mover.z) + mover.dir * mover.speed * dt;
+                    const lo = mover.center - mover.amp, hi = mover.center + mover.amp;
+                    while (v > hi || v < lo) {
+                        if (v > hi) { v = 2 * hi - v; mover.dir = -1; }
+                        else { v = 2 * lo - v; mover.dir = 1; }
+                    }
+                    if (mover.axis === 'x') mover.x = v; else mover.z = v;
+                }
+
+                if (mover && mover.falling && (state === 'playing' || state === 'dying')) {
+                    mover.vy -= GRAVITY * dt;
+                    mover.y += mover.vy * dt;
+                    mover.x += mover.vx * dt;
+                    mover.z += mover.vz * dt;
+                    if (mover.spinV[0] || mover.spinV[1] || mover.spinV[2]) {
+                        mover.spin[0] += mover.spinV[0] * dt;
+                        mover.spin[1] += mover.spinV[1] * dt;
+                        mover.spin[2] += mover.spinV[2] * dt;
+                        mover.R = rotMat(mover.spin[0], mover.spin[1], mover.spin[2]);
+                    }
+                    if (state === 'playing' && mover.y <= mover.landY) {
+                        mover.y = mover.landY;
+                        land();
+                    }
+                }
+
+                if (state === 'dying') {
+                    dyingT -= dt;
+                    if (dyingT <= 0) finishRun();
+                }
+            }
+
+            // ======================= Render =======================
+            function render() {
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, W, H);
+                ctx.fillStyle = backdrop;
+                ctx.fillRect(0, 0, W, H);
+
+                faceBuf.length = 0;
+                if (mover) pushBox(mover);
+                for (let i = tower.length - 1; i >= 0; i--) {
+                    const b = tower[i];
+                    if (b.y + b.h < cam.ty - 26) break;
+                    pushBox(b);
+                }
+                for (let i = 0; i < debris.length; i++) pushBox(debris[i]);
+
+                faceBuf.sort((a, b) => b.d - a.d);
+                for (let i = 0; i < faceBuf.length; i++) {
+                    const f = faceBuf[i];
+                    ctx.beginPath();
+                    ctx.moveTo(f.pts[0].x, f.pts[0].y);
+                    ctx.lineTo(f.pts[1].x, f.pts[1].y);
+                    ctx.lineTo(f.pts[2].x, f.pts[2].y);
+                    ctx.lineTo(f.pts[3].x, f.pts[3].y);
+                    ctx.closePath();
+                    ctx.fillStyle = f.fill;
+                    ctx.fill();
+                    ctx.strokeStyle = f.edge;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // aiming aid: the swing path, and where the cube would land
+                if (mover && !mover.falling && (state === 'playing' || state === 'ready')) {
+                    const top = tower[tower.length - 1];
+                    const axle = mover.axis === 'x' ? mover.z : mover.x;
+                    const pathY = top.y + top.h + 1.15;
+                    const a = mover.axis === 'x' ? [mover.center - mover.amp, pathY, axle] : [axle, pathY, mover.center - mover.amp];
+                    const b = mover.axis === 'x' ? [mover.center + mover.amp, pathY, axle] : [axle, pathY, mover.center + mover.amp];
+                    const pa = project(a), pb = project(b);
+                    if (pa && pb) {
+                        ctx.save();
+                        ctx.setLineDash([6, 8]);
+                        ctx.strokeStyle = 'rgba(255, 210, 0, .22)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(pa.x, pa.y);
+                        ctx.lineTo(pb.x, pb.y);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    const gy = top.y + top.h + 0.02;
+                    const hw = mover.w / 2, hd = mover.d / 2;
+                    const corners = [
+                        [mover.x - hw, gy, mover.z - hd],
+                        [mover.x + hw, gy, mover.z - hd],
+                        [mover.x + hw, gy, mover.z + hd],
+                        [mover.x - hw, gy, mover.z + hd]
+                    ].map(project);
+                    if (corners[0] && corners[1] && corners[2] && corners[3]) {
+                        ctx.save();
+                        ctx.setLineDash([5, 5]);
+                        ctx.strokeStyle = 'rgba(255, 210, 0, .34)';
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.moveTo(corners[0].x, corners[0].y);
+                        for (let i = 1; i < 4; i++) ctx.lineTo(corners[i].x, corners[i].y);
+                        ctx.closePath();
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+
+                // shockwave rings on the top face of the landing cube
+                for (let i = 0; i < rings.length; i++) {
+                    const r = rings[i];
+                    ctx.beginPath();
+                    let drawing = false;
+                    for (let k = 0; k <= 32; k++) {
+                        const a = k / 32 * Math.PI * 2;
+                        const p = project([r.x + Math.cos(a) * r.r, r.y, r.z + Math.sin(a) * r.r]);
+                        if (!p) { drawing = false; continue; }
+                        if (drawing) ctx.lineTo(p.x, p.y); else { ctx.moveTo(p.x, p.y); drawing = true; }
+                    }
+                    ctx.strokeStyle = 'rgba(255, 210, 0, ' + (r.life * 0.5).toFixed(3) + ')';
+                    ctx.lineWidth = 0.5 + r.life * 2;
+                    ctx.stroke();
+                }
+
+                if (pops.length) {
+                    ctx.textAlign = 'center';
+                    ctx.font = '700 22px "Segoe UI", system-ui, sans-serif';
+                    for (let i = 0; i < pops.length; i++) {
+                        const p = pops[i];
+                        const pr = project([p.x, p.y, p.z]);
+                        if (!pr) continue;
+                        ctx.globalAlpha = Math.min(1, p.life * 1.6);
+                        ctx.shadowColor = 'rgba(255, 190, 60, .9)';
+                        ctx.shadowBlur = 14;
+                        ctx.fillStyle = '#ffd200';
+                        ctx.fillText(p.text, pr.x, pr.y - (1 - p.life) * 46);
+                        ctx.shadowBlur = 0;
+                    }
+                    ctx.globalAlpha = 1;
+                }
+
+                if (screenFlash > 0) {
+                    const g = ctx.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, Math.max(W, H) * 0.7);
+                    g.addColorStop(0, 'rgba(255, 226, 150, ' + (screenFlash * 0.2).toFixed(3) + ')');
+                    g.addColorStop(1, 'rgba(255, 226, 150, 0)');
+                    ctx.fillStyle = g;
+                    ctx.fillRect(0, 0, W, H);
+                }
+            }
+
+            // ======================= Loop =======================
+            let last = 0;
+            function frame(t) {
+                const dt = last ? Math.min((t - last) / 1000, 0.05) : 0;
+                last = t;
+                // the canvas must always cover the viewport, even if a resize event is missed
+                if (window.innerWidth !== W || window.innerHeight !== H) fit();
+                elapsed += dt;
+                update(dt);
+                updateCamera(dt, elapsed);
+                render();
+                requestAnimationFrame(frame);
+            }
+
+            // ======================= Setup =======================
+            const settings = loadSettings();
+            muted = !!settings.muted;
+            Sfx.setMuted(muted);
+            el.btnSound.textContent = muted ? '\uD83D\uDD07 Muted' : '\uD83D\uDD0A Sound';
+            best = loadBest();
+
+            tower = [makeBase()];
+            spawnMover();
+            updateHud();
+            showOverlay({
+                title: 'Qube Stack',
+                text: 'Stack the cubes as high as you can \u2014 one tap each.',
+                rules: true,
+                btn: 'Start'
+            });
+
+            cv.addEventListener('pointerdown', (e) => { e.preventDefault(); tap(); });
+            el.overlay.addEventListener('pointerdown', (e) => {
+                if (e.target === el.overlay && (state === 'ready' || state === 'over')) startRun();
+            });
+            el.ovBtn.addEventListener('click', () => { if (state === 'paused') togglePause(); else startRun(); });
+            el.btnPlay.addEventListener('click', startRun);
+            el.btnPause.addEventListener('click', togglePause);
+            el.btnSound.addEventListener('click', () => {
+                muted = !muted;
+                Sfx.setMuted(muted);
+                el.btnSound.textContent = muted ? '\uD83D\uDD07 Muted' : '\uD83D\uDD0A Sound';
+                saveSettings();
+            });
+
+            window.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowDown') {
+                    e.preventDefault();
+                    tap();
+                } else if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                    togglePause();
+                } else if (e.key === 'r' || e.key === 'R') {
+                    startRun();
+                }
+            });
+
+            window.addEventListener('resize', fit);
+
+            fit();
+            requestAnimationFrame(frame);
+        })();
+    </script>
+</body>
+</html>

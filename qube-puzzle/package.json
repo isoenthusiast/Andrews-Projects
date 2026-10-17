@@ -1,0 +1,6 @@
+{
+    "name": "qube-puzzle",
+    "version": "1.0.0",
+    "description": "Qube Stack - a one-tap 3D cube stacking game with a rotating camera",
+    "private": true
+}

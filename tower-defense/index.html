@@ -733,7 +733,16 @@
         box-shadow: 0 4px 12px rgba(0,0,0,0.45), inset 0 0 10px rgba(255,255,255,0.35);
     }
 
-    .packets { flex: 1 1 auto; display: flex; gap: 7px; flex-wrap: wrap; align-content: flex-start; }
+    /* 28 张种子卡在窄窗口里要占好几行，把草坪顶出屏幕；所以托盘最多两行，
+       多出来的部分自己滚动。 */
+    .packets {
+        flex: 1 1 auto; display: flex; gap: 7px; flex-wrap: wrap; align-content: flex-start;
+        max-height: 178px; overflow-y: auto; overflow-x: hidden;
+        padding-right: 4px; scrollbar-width: thin;
+        scrollbar-color: rgba(166,216,74,0.35) transparent;
+    }
+    .packets::-webkit-scrollbar { width: 8px; }
+    .packets::-webkit-scrollbar-thumb { background: rgba(166,216,74,0.3); border-radius: 8px; }
 
     .packet {
         position: relative;
@@ -4428,7 +4437,7 @@ function updateZombies(dt) {
                     updateHud();
                     burst(z.x, z.y - 30, '#f7dd7a', 8, 80);
                     pushFloat(z.x, z.y - 52, '-' + Math.round(taken) + ' ☀', '#f0b7a0');
-                    Sfx.coin();
+                    Sfx.collect();
                 }
             }
         }
@@ -4483,10 +4492,12 @@ function updateZombies(dt) {
             if (!holding) {
                 const rallied = zombies.some(other => other !== z && other.alive &&
                     ZOMBIE_TYPES[other.kind].rally && other.r === z.r && Math.abs(other.x - z.x) < 150);
-                const vaulting = z.vaultFor > 0;
-                z.x -= T.speed * z.slowF * (rallied ? 1.3 : 1) *
-                    (z.dashFor > 0 ? T.dashMultiplier : 1) * (vaulting ? 4.6 : 1) * dt;
-                if (vaulting) z.vaultFor = Math.max(0, z.vaultFor - dt);
+                // 撑杆跳是一记定长的飞跃（不被减速影响），必须越过植物的啃咬范围，
+                // 否则落地后又站在原地啃起来。
+                const step = z.vaultFor > 0 ? 220 : T.speed * z.slowF * (rallied ? 1.3 : 1) *
+                    (z.dashFor > 0 ? T.dashMultiplier : 1);
+                z.x -= step * dt;
+                if (z.vaultFor > 0) z.vaultFor = Math.max(0, z.vaultFor - dt);
             }
         }
 
