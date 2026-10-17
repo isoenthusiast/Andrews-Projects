@@ -249,6 +249,26 @@ Drag one planted plant **onto** another: both vanish and a single **fused plant*
 | 坚果墙 + 萤光菇 | 荧光坚果 — sturdy wall that heals nearby plants |
 | 坚果墙 + 棘刺仙人掌 | 荆棘坚果 — sturdy wall that fires piercing thorns |
 | 向日葵 + 三线射手 | 三线向日葵 — produces sun and attacks three lanes |
+| 寒冰射手 + 霜晶花 | 霜晶长枪 — piercing ice spears that chill a whole lane |
+| 霜晶花 + 霜晶花 | 暴雪核心 — blast that freezes a wide area |
+| 棘刺仙人掌 + 霜晶花 | 冰棱仙人掌 — icicles pierce three zombies and slow them |
+| 萤光菇 + 霜晶花 | 霜疗菇 — heals nearby plants and fires slowing ice peas |
+| 向日葵 + 日芒射手 | 日芒泉 — a sun bonanza with piercing rays |
+| 日芒射手 + 双发射手 | 光刺双发 — double piercing rays, plus sun |
+| 日芒射手 + 星果射手 | 日耀星果 — star shots down five lanes, plus sun |
+| 豌豆射手 + 花粉泡泡 | 花粉喷射器 — pollen shots that splash and slow |
+| 寒冰射手 + 花粉泡泡 | 霜花粉泡泡 — icy pollen with a stronger, longer slow |
+| 萤光菇 + 花粉泡泡 | 花粉疗菇 — heals plants while firing pollen |
+| 三线射手 + 花粉泡泡 | 三线花粉 — pollen down three lanes, splashing and slowing |
+| 脉冲花 + 脉冲花 | 雷暴花 — arcs jump to four zombies |
+| 脉冲花 + 双发射手 | 电弧双发 — two charged shots that chain on impact |
+| 余烬荚 + 脉冲花 | 等离子荚 — plasma splashes and passes its charge on |
+| 脉冲花 + 星果射手 | 电弧星果 — five lanes of charge, each arcing onward |
+| 星果射手 + 星果射手 | 超新星果 — star shots at double strength down five lanes |
+| 星果射手 + 余烬荚 | 星火荚 — explosive starfire down five lanes |
+| 荆棘树皮 + 坚果墙 | 铁壁树皮 — a 6400 HP bark wall that stings biters |
+| 荆棘树皮 + 棘刺仙人掌 | 荆棘堡垒 — fires piercing thorns while stinging biters |
+| 萤光菇 + 荆棘树皮 | 疗愈树皮 — a thorny bark wall that also heals plants |
 
 ### Zombies
 | Zombie | Trait |
@@ -304,7 +324,7 @@ Identical to the Tower Defense project, but with its own save key — the games 
 
 ### Features
 - Classic **5-lane × 9-column lawn** rendered on a single canvas — house, porch and picket fence included.
-- **Fusion**: drag one plant onto another to combine them into one of **19 hybrid plants**, drawn as both parents under a golden aura.
+- **Fusion**: drag one plant onto another to combine them into one of **44 hybrid plants**, drawn as both parents under a golden aura.
 - 18 plants and 6 zombies, all drawn procedurally (no image assets), with squash-free walk and chew animation. Zombies wear their own skin and cloth palette, shade from a gradient rather than a flat fill, and reach forward with real hands and boots.
 - **Hit feedback on the body itself**: a hit makes the zombie flinch back under a short flash and shed a spray of chips, instead of an ellipse blinking over the top of it.
 - Zombie **armour** (cone / bucket) that visibly absorbs damage before the walker drops — the cone loses its tip and the bucket dents and notches as the armour runs out.
@@ -346,7 +366,7 @@ One occupant per cell — a plant and a tower can never share a square.
 
 Towers fire at whatever is closest to the wall inside their **circular range** — they shoot across lanes, so one tower can cover several rows. Each tower upgrades twice (max level 3): click a built tower and use **升级** (upgrade) or **拆除** (sell, refunds half of everything you put in).
 
-Plants work exactly as in 植物大战僵尸 3 — including **drag-to-fuse** (all 19 hybrids above).
+Plants work exactly as in 植物大战僵尸 3 — including **drag-to-fuse** (all 44 hybrids above).
 
 ### The joint army
 | Enemy | Side | Trait |
@@ -407,7 +427,7 @@ Identical to the other two games, but with its own key (`comb_save_v1`) — the 
 - Fully mixed waves with **twin bosses** at wave 10 (巨人僵尸 + 将军) and wave 20 (僵尸博士 + 黑龙).
 - Invaders and zombies share the same lane AI — both bite plants and both pay bounties.
 - **城墙 (wall) HP** replaces the instant loss: leaks hurt, 20 points of damage and the wall falls.
-- Plant **fusion** (19 hybrids), lawn mowers, sun economy, 1×/2×/3× speed, pause, save & restore — all carried over.
+- Plant **fusion** (44 hybrids), lawn mowers, sun economy, 1×/2×/3× speed, pause, save & restore — all carried over.
 
 ---
 

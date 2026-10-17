@@ -3217,6 +3217,58 @@ const PLANT_TYPES = {
         desc: '厚实树皮挡路，僵尸啃咬时会被尖刺反伤', retaliate: 65
     },
 
+    // ---- 第二批基础植物 ----
+    spikeweed: {
+        name: '地刺', glyph: '刺', cost: 100, hp: 260, cd: 12,
+        color: '#8a7b52', dark: '#544a2c',
+        desc: '僵尸踩过就掉血，而且啃不动它', spikeDps: 62, uneatable: true
+    },
+    magnetcap: {
+        name: '磁力菇', glyph: '磁', cost: 175, hp: 300, cd: 14,
+        color: '#a05fb0', dark: '#5f3269',
+        desc: '定期吸走附近僵尸身上的护甲', stripEvery: 12, strip: 360, stripRange: 195
+    },
+    chillbloom: {
+        name: '寒霜兰', glyph: '霜', cost: 200, hp: 300, cd: 12,
+        color: '#6fc2d8', dark: '#356e85',
+        desc: '身边一直绕着寒气，附近僵尸持续减速', auraSlow: 0.55, auraRange: 145
+    },
+    quakemelon: {
+        name: '震地瓜', glyph: '震', cost: 250, hp: 400, cd: 16,
+        color: '#c98c3c', dark: '#7a4f1b',
+        desc: '每隔几秒震出一圈冲击波，伤害附近僵尸', shockEvery: 5.5, shockDmg: 72, shockRange: 160
+    },
+    gustpod: {
+        name: '疾风荚', glyph: '风', cost: 275, hp: 340, cd: 18,
+        color: '#7fae9c', dark: '#3f6b5c',
+        desc: '刮起一阵风，把前面那条线上的僵尸吹退', pushEvery: 6.5, pushPx: 34, pushRange: 155
+    },
+    sunbattery: {
+        name: '蓄阳罐', glyph: '阳', cost: 200, hp: 300, cd: 12,
+        color: '#e0c257', dark: '#8d7526',
+        desc: '储满一次吐出 75 阳光', sunEvery: 22, sunValue: 75
+    },
+    gatlingpea: {
+        name: '机枪射手', glyph: '机', cost: 350, hp: 300, cd: 12,
+        color: '#2f7a3a', dark: '#1b4a22',
+        desc: '一轮连发四颗豌豆', dmg: 17, rate: 1.35, burst: 4, proj: 'pea'
+    },
+    sunlily: {
+        name: '阳莲', glyph: '莲', cost: 325, hp: 320, cd: 14,
+        color: '#dcd07a', dark: '#8b7f36',
+        desc: '产出阳光，同时治疗附近的植物', sunEvery: 12, heal: 110, healEvery: 5
+    },
+    blastbloom: {
+        name: '爆裂花', glyph: '爆', cost: 425, hp: 350, cd: 12,
+        color: '#d2723f', dark: '#7d3a22',
+        desc: '三条线一起砸下爆裂种子', dmg: 20, rate: 2, rows: 3, proj: 'ember', splash: 44
+    },
+    stonebark: {
+        name: '石树皮', glyph: '石', cost: 175, hp: 3200, cd: 15,
+        color: '#8b8f6a', dark: '#4c5038',
+        desc: '三千血的石墙，啃它的僵尸会被划伤', retaliate: 95
+    },
+
     // ---- 融合植物：把两株植物拖到一起才会出现，不出现在种子栏里 ----
     doubleSun:     { name: '双子向日葵', glyph: '葵', cost: 150, hp: 360, cd: 0, fused: true, art: ['sunflower', 'sunflower'],
                      color: '#f2c14e', dark: '#b8862c', desc: '阳光产量翻倍', sunEvery: 7 },
@@ -3265,9 +3317,50 @@ const PLANT_TYPES = {
     thornNut:     { name: '荆棘坚果', glyph: '刺', cost: 250, hp: 4000, cd: 0, fused: true, art: ['thorncactus', 'wallnut'],
                      color: '#73954e', dark: '#3d5c2b', desc: '发射尖刺并穿透僵尸', dmg: 22, rate: 2, proj: 'thorn', pierce: 1 },
     sunThreepeater: { name: '三线向日葵', glyph: '葵', cost: 480, hp: 370, cd: 0, fused: true, art: ['sunflower', 'threepeater'],
-                     color: '#c5ac47', dark: '#756322', desc: '产阳光并攻击三条线', sunEvery: 13, dmg: 16, rate: 1.8, rows: 3, proj: 'pea' }
+                     color: '#c5ac47', dark: '#756322', desc: '产阳光并攻击三条线', sunEvery: 13, dmg: 16, rate: 1.8, rows: 3, proj: 'pea' },
+
+    frostLance:    { name: '霜晶长枪', glyph: '霜', cost: 320, hp: 340, cd: 0, fused: true, art: ['snowpea', 'frostbud'],
+                     color: '#57b3dd', dark: '#2d6f96', desc: '贯穿冰枪，重创并冻住整排僵尸', dmg: 26, rate: 1.6, proj: 'snow', slow: 0.34, slowDur: 5, pierce: 2 },
+    blizzardCore:  { name: '暴雪核心', glyph: '暴', cost: 280, hp: 9999, cd: 0, fused: true, art: ['frostbud', 'frostbud'],
+                     color: '#7fd4ef', dark: '#3a7f9c', desc: '炸开一圈极寒暴雪，冻住一大片僵尸', bomb: 'blizzard' },
+    icicleCactus:  { name: '冰棱仙人掌', glyph: '棱', cost: 360, hp: 380, cd: 0, fused: true, art: ['thorncactus', 'frostbud'],
+                     color: '#63b06f', dark: '#2f6a42', desc: '冰棱贯穿三只僵尸，沿途减速', dmg: 30, rate: 1.7, proj: 'snow', slow: 0.42, slowDur: 4, pierce: 3 },
+    frostMender:   { name: '霜疗菇', glyph: '荧', cost: 300, hp: 340, cd: 0, fused: true, art: ['glowcap', 'frostbud'],
+                     color: '#8fb4d6', dark: '#4c6d93', desc: '治疗附近植物并发射减速冰豆', heal: 130, healEvery: 5, dmg: 20, rate: 1.8, proj: 'snow', slow: 0.5, slowDur: 4 },
+    sunFountain:   { name: '日芒泉', glyph: '芒', cost: 300, hp: 380, cd: 0, fused: true, art: ['sunflower', 'sunshard'],
+                     color: '#e3bd55', dark: '#8f7326', desc: '阳光大丰收，光刺还能穿刺僵尸', sunEvery: 8, dmg: 24, rate: 1.7, proj: 'thorn', pierce: 2 },
+    rayRepeater:   { name: '光刺双发', glyph: '芒', cost: 400, hp: 380, cd: 0, fused: true, art: ['sunshard', 'repeater'],
+                     color: '#c9b054', dark: '#7f6a24', desc: '双发光刺，边穿刺边产阳光', sunEvery: 12, dmg: 22, rate: 1.6, burst: 2, proj: 'thorn', pierce: 2 },
+    solarStar:     { name: '日耀星果', glyph: '星', cost: 520, hp: 380, cd: 0, fused: true, art: ['starfruit', 'sunshard'],
+                     color: '#e8b951', dark: '#957227', desc: '五条线射出星弹，还顺手产出阳光', sunEvery: 13, dmg: 18, rate: 1.7, rows: 5, proj: 'star' },
+    pollenSprayer: { name: '花粉喷射器', glyph: '粉', cost: 300, hp: 340, cd: 0, fused: true, art: ['peashooter', 'pollenpuff'],
+                     color: '#b7c451', dark: '#6c7526', desc: '花粉弹溅射并拖慢附近僵尸', dmg: 22, rate: 1.5, proj: 'pollen', splash: 54, slow: 0.7, slowDur: 3 },
+    frostPollen:   { name: '霜花粉泡泡', glyph: '粉', cost: 320, hp: 340, cd: 0, fused: true, art: ['pollenpuff', 'snowpea'],
+                     color: '#93c7d4', dark: '#4a7684', desc: '冰花粉溅射，减速更强更久', dmg: 22, rate: 1.8, proj: 'pollen', splash: 48, slow: 0.45, slowDur: 4.5 },
+    pollenMender:  { name: '花粉疗菇', glyph: '荧', cost: 320, hp: 360, cd: 0, fused: true, art: ['glowcap', 'pollenpuff'],
+                     color: '#b9b45e', dark: '#6d6a2d', desc: '边治疗植物边发射花粉弹', heal: 120, healEvery: 5, dmg: 24, rate: 2, proj: 'pollen', splash: 44, slow: 0.72, slowDur: 3 },
+    pollenThreepeater: { name: '三线花粉', glyph: '粉', cost: 460, hp: 350, cd: 0, fused: true, art: ['threepeater', 'pollenpuff'],
+                     color: '#93a849', dark: '#556325', desc: '三条线一起撒花粉，溅射又减速', dmg: 18, rate: 2, rows: 3, proj: 'pollen', splash: 42, slow: 0.72, slowDur: 2.5 },
+    stormBloom:    { name: '雷暴花', glyph: '脉', cost: 500, hp: 380, cd: 0, fused: true, art: ['pulsebloom', 'pulsebloom'],
+                     color: '#5fb6d9', dark: '#2a5f7d', desc: '电弧一次跳跃四个僵尸', dmg: 30, rate: 1.5, proj: 'pulse', chain: 4 },
+    arcRepeater:   { name: '电弧双发', glyph: '脉', cost: 440, hp: 360, cd: 0, fused: true, art: ['pulsebloom', 'repeater'],
+                     color: '#4f9fc0', dark: '#265a72', desc: '双发电流弹，每发都会跳跃放电', dmg: 24, rate: 1.6, burst: 2, proj: 'pulse', chain: 2 },
+    plasmaPod:     { name: '等离子荚', glyph: '焰', cost: 480, hp: 380, cd: 0, fused: true, art: ['emberpod', 'pulsebloom'],
+                     color: '#7f9cd0', dark: '#3d4f86', desc: '等离子弹溅射并把电流传给附近僵尸', dmg: 30, rate: 1.9, proj: 'pulse', chain: 3, splash: 46 },
+    arcStar:       { name: '电弧星果', glyph: '星', cost: 520, hp: 370, cd: 0, fused: true, art: ['starfruit', 'pulsebloom'],
+                     color: '#79b4d6', dark: '#3a6486', desc: '五条线一起放电，电弧继续跳跃', dmg: 16, rate: 1.9, rows: 5, proj: 'pulse', chain: 2 },
+    superStar:     { name: '超新星果', glyph: '星', cost: 540, hp: 380, cd: 0, fused: true, art: ['starfruit', 'starfruit'],
+                     color: '#f6c352', dark: '#9d7222', desc: '五条线的星弹威力翻倍', dmg: 27, rate: 1.5, rows: 5, proj: 'star' },
+    starEmber:     { name: '星火荚', glyph: '焰', cost: 500, hp: 370, cd: 0, fused: true, art: ['starfruit', 'emberpod'],
+                     color: '#ee9a4e', dark: '#8f4d27', desc: '五条线一起砸下爆裂星火', dmg: 19, rate: 2.1, rows: 5, proj: 'ember', splash: 42 },
+    ironBark:      { name: '铁壁树皮', glyph: '棘', cost: 200, hp: 6400, cd: 0, fused: true, art: ['thornbark', 'wallnut'],
+                     color: '#8f9152', dark: '#4f5326', desc: '六千血的树皮墙，啃它就被扎', retaliate: 130 },
+    briarFortress: { name: '荆棘堡垒', glyph: '棘', cost: 300, hp: 2700, cd: 0, fused: true, art: ['thornbark', 'thorncactus'],
+                     color: '#6d9a52', dark: '#38582c', desc: '一边射穿刺尖刺，一边反伤啃它的僵尸', retaliate: 110, dmg: 24, rate: 2.2, proj: 'thorn', pierce: 2 },
+    menderBark:    { name: '疗愈树皮', glyph: '荧', cost: 280, hp: 3600, cd: 0, fused: true, art: ['glowcap', 'thornbark'],
+                     color: '#7d9d5c', dark: '#40562f', desc: '会治疗附近植物的反伤树皮', retaliate: 70, heal: 120, healEvery: 5 }
 };
-const PLANT_ORDER = ['sunflower', 'peashooter', 'wallnut', 'snowpea', 'repeater', 'threepeater', 'cherry', 'potatomine', 'jalapeno', 'thorncactus', 'emberpod', 'glowcap', 'frostbud', 'sunshard', 'pollenpuff', 'starfruit', 'pulsebloom', 'thornbark'];
+const PLANT_ORDER = ['sunflower', 'peashooter', 'wallnut', 'snowpea', 'repeater', 'threepeater', 'cherry', 'potatomine', 'jalapeno', 'thorncactus', 'emberpod', 'glowcap', 'frostbud', 'sunshard', 'pollenpuff', 'starfruit', 'pulsebloom', 'thornbark', 'spikeweed', 'magnetcap', 'chillbloom', 'quakemelon', 'gustpod', 'sunbattery', 'gatlingpea', 'sunlily', 'blastbloom', 'stonebark'];
 
 // 需要"埋伏"而不是立刻引爆的炸弹
 const MINE_BOMBS = { potato: 1, minemulti: 1 };
@@ -3301,7 +3394,29 @@ const FUSIONS = {
     'glowcap+sunflower': 'sunGlowcap',
     'glowcap+wallnut': 'menderNut',
     'thorncactus+wallnut': 'thornNut',
-    'sunflower+threepeater': 'sunThreepeater'
+    'sunflower+threepeater': 'sunThreepeater',
+
+    // 霜晶花 / 日芒射手 / 花粉泡泡 / 星果 / 脉冲花 / 荆棘树皮 的组合
+    'frostbud+frostbud': 'blizzardCore',
+    'frostbud+glowcap': 'frostMender',
+    'frostbud+snowpea': 'frostLance',
+    'frostbud+thorncactus': 'icicleCactus',
+    'glowcap+pollenpuff': 'pollenMender',
+    'peashooter+pollenpuff': 'pollenSprayer',
+    'pollenpuff+snowpea': 'frostPollen',
+    'pollenpuff+threepeater': 'pollenThreepeater',
+    'emberpod+pulsebloom': 'plasmaPod',
+    'pulsebloom+pulsebloom': 'stormBloom',
+    'pulsebloom+repeater': 'arcRepeater',
+    'pulsebloom+starfruit': 'arcStar',
+    'emberpod+starfruit': 'starEmber',
+    'starfruit+starfruit': 'superStar',
+    'repeater+sunshard': 'rayRepeater',
+    'sunflower+sunshard': 'sunFountain',
+    'starfruit+sunshard': 'solarStar',
+    'glowcap+thornbark': 'menderBark',
+    'thornbark+thorncactus': 'briarFortress',
+    'thornbark+wallnut': 'ironBark'
 };
 
 // 键名统一按字母序排列，免得手写顺序出错
@@ -3328,7 +3443,17 @@ const ZOMBIE_TYPES = {
     cinder:  { name: '余烬僵尸', glyph: '烬', hp: 250, armor: 420, speed: 18, dps: 130, radius: 24, coat: '#965b45', edge: '#513126', skin: '#c99a7d', hat: 'cinder', slowResist: 0.78 },
     dasher:  { name: '裂风僵尸', glyph: '风', hp: 185, armor: 0, speed: 24, dps: 95, radius: 20, coat: '#718b9b', edge: '#354754', skin: '#93b3c2', hat: 'goggles', dashEvery: 4.2, dashDuration: 0.75, dashMultiplier: 2.2 },
     gargantuar: { name: '巨人僵尸', glyph: '巨', hp: 4200, armor: 0, speed: 13, dps: 1500, radius: 42, coat: '#4f5c46', edge: '#26301f', skin: '#83946f', boss: true },
-    zomboss:    { name: '僵尸博士', glyph: '博', hp: 15000, armor: 0, speed: 10, dps: 900, radius: 56, coat: '#3c4a3a', edge: '#1b241a', skin: '#73846a', boss: true, spawner: true }
+    zomboss:    { name: '僵尸博士', glyph: '博', hp: 15000, armor: 0, speed: 10, dps: 900, radius: 56, coat: '#3c4a3a', edge: '#1b241a', skin: '#73846a', boss: true, spawner: true },
+
+    // ---- 第二批僵尸 ----
+    vault:   { name: '撑杆僵尸', glyph: '杆', hp: 210, armor: 0,    speed: 26, dps: 100, radius: 22, coat: '#46688a', edge: '#213449', skin: '#9dc0d6', hat: 'band', vault: true, vaultDuration: 0.55 },
+    bomber:  { name: '爆裂僵尸', glyph: '爆', hp: 260, armor: 120,  speed: 22, dps: 110, radius: 23, coat: '#7a4a2e', edge: '#3d2314', skin: '#c69a76', hat: 'fuse', deathBlast: 340, blastRange: 95 },
+    thief:   { name: '窃阳僵尸', glyph: '窃', hp: 240, armor: 0,    speed: 30, dps: 90,  radius: 22, coat: '#4b4a63', edge: '#232234', skin: '#a9a6c4', hat: 'hood', stealEvery: 6.5, stealSun: 25 },
+    spitter: { name: '喷吐僵尸', glyph: '吐', hp: 300, armor: 60,   speed: 18, dps: 60,  radius: 23, coat: '#5f7a4a', edge: '#2c3b21', skin: '#a4bf8a', spitEvery: 3.4, spitDmg: 62, spitRange: 215 },
+    sprinter:{ name: '疾行僵尸', glyph: '疾', hp: 170, armor: 0,    speed: 34, dps: 95,  radius: 19, coat: '#3f7d7a', edge: '#1d3c3b', skin: '#93c8c4' },
+    golem:   { name: '泥甲僵尸', glyph: '泥', hp: 320, armor: 1450, speed: 13, dps: 190, radius: 27, coat: '#6b5a3c', edge: '#382e1c', skin: '#b3a382', hat: 'plate' },
+    frostbit:{ name: '冻僵僵尸', glyph: '冻', hp: 330, armor: 260,  speed: 19, dps: 120, radius: 23, coat: '#5c7f97', edge: '#2b4256', skin: '#bcdcea', slowResist: 0.96 },
+    herald:  { name: '号旗僵尸', glyph: '号', hp: 240, armor: 0,    speed: 28, dps: 100, radius: 22, coat: '#8a5a8a', edge: '#45264a', skin: '#c9a2cc', flag: true, rally: true }
 };
 
 // wave number -> composition table (counts), with bosses appended.
@@ -3340,19 +3465,19 @@ const WAVE_TABLE = [
     { basic: 4, cone: 3, flag: 1, skitter: 1 },
     { basic: 4, cone: 3, bulwark: 1 },
     { basic: 4, cone: 3, bucket: 1, howler: 1 },
-    { basic: 5, cone: 3, bucket: 2, dasher: 1 },
-    { basic: 6, cone: 4, bucket: 2, medic: 1 },
+    { basic: 5, cone: 3, bucket: 2, dasher: 1, sprinter: 1 },
+    { basic: 6, cone: 4, bucket: 2, medic: 1, spitter: 1 },
     { basic: 5, cone: 3, bucket: 2, flag: 1, boss: 'gargantuar' },
-    { basic: 6, cone: 4, bucket: 3, cinder: 1 },
-    { basic: 6, cone: 4, bucket: 3, flag: 1, medic: 1 },
-    { basic: 7, cone: 5, bucket: 3, dasher: 2 },
-    { basic: 7, cone: 5, bucket: 4, cinder: 1 },
-    { basic: 8, cone: 6, bucket: 4, flag: 1 },
-    { basic: 8, cone: 6, bucket: 5, medic: 1 },
-    { basic: 9, cone: 6, bucket: 5, flag: 1, cinder: 2 },
-    { basic: 9, cone: 7, bucket: 6, dasher: 2 },
-    { basic: 10, cone: 8, bucket: 6, medic: 2, cinder: 1 },
-    { basic: 8, cone: 6, bucket: 6, flag: 2, dasher: 2, boss: 'zomboss' }
+    { basic: 6, cone: 4, bucket: 3, cinder: 1, vault: 1 },
+    { basic: 6, cone: 4, bucket: 3, flag: 1, medic: 1, bomber: 1 },
+    { basic: 7, cone: 5, bucket: 3, dasher: 2, thief: 1 },
+    { basic: 7, cone: 5, bucket: 4, cinder: 1, golem: 1 },
+    { basic: 8, cone: 6, bucket: 4, flag: 1, herald: 1 },
+    { basic: 8, cone: 6, bucket: 5, medic: 1, frostbit: 1 },
+    { basic: 9, cone: 6, bucket: 5, flag: 1, cinder: 2, spitter: 2 },
+    { basic: 9, cone: 7, bucket: 6, dasher: 2, vault: 2 },
+    { basic: 10, cone: 8, bucket: 6, medic: 2, cinder: 1, bomber: 2 },
+    { basic: 8, cone: 6, bucket: 6, flag: 2, dasher: 2, golem: 2, herald: 1, boss: 'zomboss' }
 ];
 
 // ------------------------------- 组合模式 · combined mode ---------------
@@ -3410,7 +3535,8 @@ const INVADER_TYPES = {
 for (const k of Object.keys(INVADER_TYPES)) ZOMBIE_TYPES[k] = INVADER_TYPES[k];
 
 // 僵尸在组合模式里也掉银两，不然炮塔没得建。
-const COMBO_BOUNTY = { basic: 8, cone: 14, bucket: 24, flag: 10, skitter: 12, bulwark: 28, howler: 26, medic: 30, cinder: 34, dasher: 22, gargantuar: 260, zomboss: 700 };
+const COMBO_BOUNTY = { basic: 8, cone: 14, bucket: 24, flag: 10, skitter: 12, bulwark: 28, howler: 26, medic: 30, cinder: 34, dasher: 22, gargantuar: 260, zomboss: 700,
+    vault: 18, bomber: 26, thief: 22, spitter: 28, sprinter: 14, golem: 36, frostbit: 30, herald: 20 };
 
 // wave number -> mixed composition: zombies and 蛮族 side by side, twin bosses
 const COMBO_WAVE_TABLE = [
@@ -3420,19 +3546,19 @@ const COMBO_WAVE_TABLE = [
     { cone: 2, monk: 2, rider: 2, skitter: 1 },
     { basic: 3, cone: 2, flag: 1, raider: 2, skitter: 1 },
     { bucket: 1, cone: 2, monk: 3, bulwark: 1, medic: 1 },
-    { bucket: 2, shield: 1, rider: 4, howler: 1, cinder: 1 },
-    { bucket: 2, monk: 4, cone: 3 },
-    { bucket: 3, shield: 2, raider: 6, flag: 1, dasher: 2 },
+    { bucket: 2, shield: 1, rider: 4, howler: 1, cinder: 1, spitter: 1 },
+    { bucket: 2, monk: 4, cone: 3, sprinter: 2 },
+    { bucket: 3, shield: 2, raider: 6, flag: 1, dasher: 2, thief: 1 },
     { basic: 6, cone: 4, bucket: 2, flag: 1, boss: 'gargantuar', boss2: 'general' },
-    { bucket: 3, shield: 4, monk: 6, medic: 1 },
-    { bucket: 4, shield: 4, rider: 6, flag: 1, cinder: 1 },
-    { bucket: 4, monk: 8, shield: 4, dasher: 2 },
-    { bucket: 5, shield: 6, raider: 8, medic: 1 },
-    { bucket: 5, monk: 8, shield: 6, flag: 1, cinder: 1 },
-    { bucket: 6, shield: 6, rider: 8, raider: 8, dasher: 2 },
-    { bucket: 6, monk: 10, shield: 8, flag: 1, medic: 1 },
-    { bucket: 7, shield: 8, monk: 10, cinder: 2 },
-    { bucket: 8, shield: 10, monk: 12, raider: 10, dasher: 2 },
+    { bucket: 3, shield: 4, monk: 6, medic: 1, bomber: 1 },
+    { bucket: 4, shield: 4, rider: 6, flag: 1, cinder: 1, vault: 2 },
+    { bucket: 4, monk: 8, shield: 4, dasher: 2, golem: 1 },
+    { bucket: 5, shield: 6, raider: 8, medic: 1, frostbit: 1 },
+    { bucket: 5, monk: 8, shield: 6, flag: 1, cinder: 1, herald: 1 },
+    { bucket: 6, shield: 6, rider: 8, raider: 8, dasher: 2, spitter: 2 },
+    { bucket: 6, monk: 10, shield: 8, flag: 1, medic: 1, bomber: 2 },
+    { bucket: 7, shield: 8, monk: 10, cinder: 2, vault: 2, golem: 1 },
+    { bucket: 8, shield: 10, monk: 12, raider: 10, dasher: 2, thief: 2 },
     { bucket: 6, shield: 8, monk: 10, flag: 2, medic: 2, cinder: 1, boss: 'zomboss', boss2: 'dragon' }
 ];
 
@@ -3699,6 +3825,10 @@ function spawnZombie(kind, hpMul) {
         healTimer: T.healEvery ? T.healEvery * 0.5 : 0,
         dashTimer: T.dashEvery ? T.dashEvery * 0.5 : 0,
         dashFor: 0,
+        spitTimer: T.spitEvery ? T.spitEvery * 0.5 : 0,
+        stealTimer: T.stealEvery ? T.stealEvery * 0.5 : 0,
+        vaultFor: 0,
+        vaulted: false,
         alive: true,
         eating: null,
         walkPhase: Math.random() * 6.28,
@@ -3833,6 +3963,9 @@ function makePlant(key, c, r) {
         cool: T.rate ? T.rate * 0.55 : 0,
         sunTimer: T.sunEvery ? T.sunEvery * 0.5 : 0,
         healTimer: T.healEvery ? T.healEvery * 0.5 : 0,
+        stripTimer: T.stripEvery ? T.stripEvery * 0.7 : 0,
+        shockTimer: T.shockEvery ? T.shockEvery * 0.6 : 0,
+        pushTimer: T.pushEvery ? T.pushEvery * 0.6 : 0,
         fuse: MINE_BOMBS[T.bomb] ? 14 : (T.bomb ? 1.6 : 0),
         armed: !MINE_BOMBS[T.bomb],
         grow: 0,
@@ -3913,7 +4046,7 @@ function updatePlants(dt) {
             p.sunTimer -= dt;
             if (p.sunTimer <= 0) {
                 p.sunTimer = T.sunEvery;
-                dropSun(p.x, p.y - 6, 25, false);
+                dropSun(p.x, p.y - 6, T.sunValue || 25, false);
             }
         }
 
@@ -3929,6 +4062,78 @@ function updatePlants(dt) {
                     target.hp = Math.min(target.maxHp, target.hp + T.heal);
                     burst(target.x, target.y - 18, T.color, 10, 70);
                     pushFloat(target.x, target.y - 28, '+' + T.heal, '#bdf49d');
+                }
+            }
+        }
+
+        // 地刺：僵尸踩在格子上就一直掉血（它啃不动，只能踩过去）
+        if (T.spikeDps) {
+            for (const z of zombies) {
+                if (!z.alive || z.r !== p.r) continue;
+                if (Math.abs(z.x - p.x) > 44) continue;
+                hitZombie(z, T.spikeDps * dt, p.x);
+            }
+        }
+
+        // 磁力菇：定期吸掉附近护甲最厚的僵尸身上的护甲
+        if (T.stripEvery) {
+            p.stripTimer -= dt;
+            if (p.stripTimer <= 0) {
+                p.stripTimer = T.stripEvery;
+                const armored = zombies
+                    .filter(z => z.alive && z.armor > 0 &&
+                        Math.hypot(z.x - p.x, (z.r - p.r) * CELL_H) <= T.stripRange)
+                    .sort((a, b) => b.armor - a.armor)[0];
+                if (armored) {
+                    const taken = Math.min(armored.armor, T.strip);
+                    armored.armor -= taken;
+                    burst(armored.x, armored.y - 22, '#c77fe0', 14, 120);
+                    pushFloat(armored.x, armored.y - 48, '-' + Math.round(taken) + ' 护甲', '#e2b0f0');
+                    Sfx.fuse();
+                }
+            }
+        }
+
+        // 寒霜兰：持续散发寒气，光环内的僵尸一直被减速
+        if (T.auraSlow) {
+            for (const z of zombies) {
+                if (!z.alive) continue;
+                if (Math.hypot(z.x - p.x, (z.r - p.r) * CELL_H) > T.auraRange) continue;
+                applySlow(z, T.auraSlow, 0.3);
+            }
+        }
+
+        // 震地瓜：按节奏震出一圈冲击波
+        if (T.shockEvery) {
+            p.shockTimer -= dt;
+            if (p.shockTimer <= 0) {
+                p.shockTimer = T.shockEvery;
+                burst(p.x, p.y, '#e0b56e', 24, 210);
+                for (const z of zombies) {
+                    if (!z.alive) continue;
+                    if (Math.hypot(z.x - p.x, (z.r - p.r) * CELL_H) > T.shockRange) continue;
+                    hitZombie(z, T.shockDmg, p.x);
+                }
+                Sfx.boom();
+            }
+        }
+
+        // 疾风荚：把同一排前方的僵尸往回吹
+        if (T.pushEvery) {
+            p.pushTimer -= dt;
+            if (p.pushTimer <= 0) {
+                p.pushTimer = T.pushEvery;
+                let pushed = 0;
+                for (const z of zombies) {
+                    if (!z.alive || z.r !== p.r) continue;
+                    if (z.x < p.x || z.x - p.x > T.pushRange) continue;
+                    z.x = Math.min(CANVAS_W + 40, z.x + T.pushPx);
+                    pushed++;
+                }
+                if (pushed) {
+                    burst(p.x + 26, p.y, '#cfeee2', 14, 190);
+                    pushFloat(p.x + 24, p.y - 34, '阵风', '#cdf0e2');
+                    Sfx.snow();
                 }
             }
         }
@@ -3958,8 +4163,8 @@ function updatePlants(dt) {
                 for (const rr of rows) {
                     const y = rr === p.r ? p.y : cellCY(rr) + (rr < p.r ? 8 : -8);
                     firePea(p, rr, p.x + 22, y, 0);
-                    if (T.burst && T.burst > 1) {
-                        setTimeout(() => { if (p.alive) firePea(p, rr, p.x + 22, y, 0); }, 130);
+                    for (let i = 1; i < (T.burst || 1); i++) {
+                        setTimeout(() => { if (p.alive) firePea(p, rr, p.x + 22, y, 0); }, 130 * i);
                     }
                 }
             }
@@ -4016,6 +4221,17 @@ function detonate(p) {
             if (!z.alive || Math.hypot(z.x - p.x, (z.r - p.r) * CELL_H) > CELL_W * 1.6) continue;
             hitZombie(z, 180, p.x);
             applySlow(z, 0.35, 4.5);
+        }
+    } else if (T.bomb === 'blizzard') {
+        state.flash = 0.3;
+        burst(p.x, p.y, '#9ce7ff', 40, 280);
+        burst(p.x, p.y, '#e8fbff', 22, 200);
+        for (const z of zombies) {
+            if (!z.alive) continue;
+            if (Math.abs(z.r - p.r) <= 1 && Math.abs(z.x - p.x) < CELL_W * 2.4) {
+                hitZombie(z, 320, p.x);
+                applySlow(z, 0.28, 6);
+            }
         }
     } else if (T.bomb === 'mega') {
         burst(p.x, p.y, '#ff6a3d', 42, 300);
@@ -4101,9 +4317,21 @@ function plantToEat(z) {
     let best = null;
     for (const p of plants) {
         if (!p.alive || p.r !== z.r) continue;
+        if (PLANT_TYPES[p.type].uneatable) continue;   // 地刺躺在地上，僵尸只能踩过去
         if (mouth <= p.x + 22 && z.x > p.x - 30) {
             if (!best || p.x > best.x) best = p;
         }
+    }
+    return best;
+}
+
+// 僵尸前方射程内最靠前的一株植物（喷吐僵尸用）
+function frontPlant(z, range) {
+    let best = null;
+    for (const p of plants) {
+        if (!p.alive || p.r !== z.r) continue;
+        if (p.x > z.x || z.x - p.x > range) continue;
+        if (!best || p.x > best.x) best = p;
     }
     return best;
 }
@@ -4147,6 +4375,17 @@ function killZombie(z, fromX) {
     const T = ZOMBIE_TYPES[z.kind];
     burst(z.x, z.y, T.coat, 14, 130);
     pushFloat(z.x, z.y - 20, '☠', '#c9d3b8');
+    // 爆裂僵尸：炸开时连带炸伤旁边的植物
+    if (T.deathBlast) {
+        Sfx.boom();
+        burst(z.x, z.y - 6, '#ff9b51', 26, 240);
+        for (const p of plants) {
+            if (!p.alive) continue;
+            if (Math.hypot(p.x - z.x, (p.r - z.r) * CELL_H) > T.blastRange) continue;
+            damagePlant(p, T.deathBlast);
+            burst(p.x, p.y - 10, '#e0715f', 10, 110);
+        }
+    }
     if (COMBO) {
         const bounty = T.reward != null ? T.reward : (COMBO_BOUNTY[z.kind] || 0);
         if (bounty) {
@@ -4177,6 +4416,28 @@ function updateZombies(dt) {
                 }
             }
         }
+        // 窃阳僵尸：一边走一边顺手摸走你的阳光
+        if (T.stealEvery) {
+            z.stealTimer -= dt;
+            if (z.stealTimer <= 0) {
+                z.stealTimer = T.stealEvery;
+                const taken = Math.min(state.sun, T.stealSun);
+                if (taken > 0) {
+                    state.sun -= taken;
+                    flashStat('statSunBox');
+                    updateHud();
+                    burst(z.x, z.y - 30, '#f7dd7a', 8, 80);
+                    pushFloat(z.x, z.y - 52, '-' + Math.round(taken) + ' ☀', '#f0b7a0');
+                    Sfx.coin();
+                }
+            }
+        }
+        // 撑杆僵尸：遇到第一株植物就撑杆跳过去
+        if (T.vault && !z.vaulted) {
+            const ahead = plants.find(p => p.alive && p.r === z.r && !PLANT_TYPES[p.type].uneatable &&
+                p.x + 22 >= z.x - 34 && p.x < z.x);
+            if (ahead) { z.vaulted = true; z.vaultFor = T.vaultDuration || 0.55; }
+        }
         if (T.dashEvery) {
             z.dashTimer -= dt;
             z.dashFor = Math.max(0, z.dashFor - dt);
@@ -4187,8 +4448,8 @@ function updateZombies(dt) {
         }
         z.walkPhase += dt * 4.4 * z.slowF;
 
-        // find the plant it is chewing on
-        const target = plantToEat(z);
+        // 撑杆跳的这段时间里它在空中，够不到植物也啃不到
+        const target = z.vaultFor > 0 ? null : plantToEat(z);
 
         if (target && target.alive) {
             z.eating = target;
@@ -4204,10 +4465,29 @@ function updateZombies(dt) {
             if (!z.alive) continue;
         } else {
             z.eating = null;
-            const rallied = zombies.some(other => other !== z && other.alive &&
-                ZOMBIE_TYPES[other.kind].rally && other.r === z.r && Math.abs(other.x - z.x) < 150);
-            z.x -= T.speed * z.slowF * (rallied ? 1.3 : 1) *
-                (z.dashFor > 0 ? T.dashMultiplier : 1) * dt;
+            // 喷吐僵尸：站在射程外往前面那株植物吐酸液
+            let holding = false;
+            if (T.spitEvery) {
+                const victim = frontPlant(z, T.spitRange);
+                if (victim) {
+                    holding = true;
+                    z.spitTimer -= dt;
+                    if (z.spitTimer <= 0) {
+                        z.spitTimer = T.spitEvery;
+                        damagePlant(victim, T.spitDmg);
+                        burst(victim.x, victim.y - 18, '#c8e07a', 12, 130);
+                        Sfx.pea();
+                    }
+                }
+            }
+            if (!holding) {
+                const rallied = zombies.some(other => other !== z && other.alive &&
+                    ZOMBIE_TYPES[other.kind].rally && other.r === z.r && Math.abs(other.x - z.x) < 150);
+                const vaulting = z.vaultFor > 0;
+                z.x -= T.speed * z.slowF * (rallied ? 1.3 : 1) *
+                    (z.dashFor > 0 ? T.dashMultiplier : 1) * (vaulting ? 4.6 : 1) * dt;
+                if (vaulting) z.vaultFor = Math.max(0, z.vaultFor - dt);
+            }
         }
 
         if (z.x < LAWN_X - 24) {
@@ -5226,6 +5506,210 @@ function drawPlantArt(key, x, y, s, t) {
             ctx.closePath(); ctx.fill();
         }
         face(0, -13 * s, 11 * s, 'angry', 'flat');
+    } else if (key === 'spikeweed') {
+        // 躺在地上的一排铁刺：没有茎，也没有脸
+        const mound = ctx.createLinearGradient(0, 6 * s, 0, 26 * s);
+        mound.addColorStop(0, '#6b5f3c'); mound.addColorStop(1, '#3b3322');
+        ctx.fillStyle = mound;
+        ctx.beginPath(); ctx.ellipse(0, 21 * s, 30 * s, 8 * s, 0, 0, 6.29); ctx.fill();
+        for (let i = 0; i < 6; i++) {
+            const px = (-24 + i * 9.6) * s;
+            const hgt = (i % 2 ? 19 : 26) * s;
+            const sg = ctx.createLinearGradient(px, 20 * s, px, 20 * s - hgt);
+            sg.addColorStop(0, '#4a463c'); sg.addColorStop(0.5, '#b9bdb2'); sg.addColorStop(1, '#eef1e6');
+            ctx.fillStyle = sg;
+            ctx.beginPath();
+            ctx.moveTo(px - 4 * s, 20 * s);
+            ctx.lineTo(px, 20 * s - hgt);
+            ctx.lineTo(px + 4 * s, 20 * s);
+            ctx.closePath(); ctx.fill();
+        }
+    } else if (key === 'magnetcap') {
+        stem(0, 0, s, -10 * s, '#7d5a95');
+        leafPair(0, 0, s);
+        ctx.fillStyle = '#c08ad6';
+        ctx.beginPath(); ctx.ellipse(0, -24 * s, 24 * s, 15 * s, 0, Math.PI, 6.29); ctx.fill();
+        ctx.fillStyle = '#8a51a3';
+        roundRect(ctx, -7 * s, -26 * s, 14 * s, 26 * s, 6 * s); ctx.fill();
+        // 伞盖顶上那副马蹄形磁铁
+        ctx.strokeStyle = '#d94f4f';
+        ctx.lineWidth = 6 * s;
+        ctx.beginPath(); ctx.arc(0, -40 * s, 9 * s, Math.PI, 0); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(-9 * s, -40 * s); ctx.lineTo(-9 * s, -32 * s);
+        ctx.moveTo(9 * s, -40 * s); ctx.lineTo(9 * s, -32 * s);
+        ctx.stroke();
+        ctx.fillStyle = '#d8dbe0';
+        ctx.fillRect(-12.8 * s, -33 * s, 7.6 * s, 3.4 * s);
+        ctx.fillRect(5.2 * s, -33 * s, 7.6 * s, 3.4 * s);
+        face(0, -12 * s, 9 * s, null, 'smile');
+        for (let i = 0; i < 3; i++) {                   // 被吸过来的护甲碎屑
+            const a = t * 0.9 + i * 2.1;
+            ctx.fillStyle = 'rgba(226,176,240,0.85)';
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * 26 * s, -30 * s + Math.sin(a) * 16 * s, 2.2 * s, 0, 6.29);
+            ctx.fill();
+        }
+    } else if (key === 'chillbloom') {
+        stem(0, 0, s, -12 * s, '#3f8aa0');
+        leafPair(0, 0, s);
+        petalRing(0, -27 * s, 8 * s, 13 * s, 6 * s, 6, t * 0.08, '#57b6d1', '#dff7ff');
+        const core = ctx.createRadialGradient(-4 * s, -31 * s, 1, 0, -27 * s, 13 * s);
+        core.addColorStop(0, '#f2ffff'); core.addColorStop(0.55, '#9fe3f2'); core.addColorStop(1, '#3d86a4');
+        ctx.fillStyle = core;
+        ctx.beginPath(); ctx.arc(0, -27 * s, 9 * s, 0, 6.29); ctx.fill();
+        face(0, -27 * s, 7 * s, null, 'smile');
+        for (let i = 0; i < 2; i++) {                   // 一圈圈扩出去的寒气
+            const pulse = (t * 0.5 + i * 0.5) % 1;
+            ctx.strokeStyle = 'rgba(190,240,255,' + (0.4 * (1 - pulse)).toFixed(3) + ')';
+            ctx.lineWidth = 2 * s;
+            ctx.beginPath(); ctx.arc(0, -22 * s, (26 + pulse * 26) * s, 0, 6.29); ctx.stroke();
+        }
+    } else if (key === 'quakemelon') {
+        stem(0, 0, s, -8 * s, '#8a6224');
+        leafPair(0, 0, s);
+        const mg = ctx.createRadialGradient(-8 * s, -28 * s, 2 * s, 0, -20 * s, 26 * s);
+        mg.addColorStop(0, '#f2c778'); mg.addColorStop(0.5, '#c98c3c'); mg.addColorStop(1, '#7a4f1b');
+        ctx.fillStyle = mg;
+        ctx.beginPath(); ctx.ellipse(0, -20 * s, 23 * s, 20 * s, 0, 0, 6.29); ctx.fill();
+        ctx.strokeStyle = 'rgba(70,44,12,0.55)';
+        ctx.lineWidth = 2 * s;
+        ctx.beginPath();
+        ctx.moveTo(-16 * s, -32 * s); ctx.lineTo(-6 * s, -22 * s); ctx.lineTo(-14 * s, -12 * s);
+        ctx.moveTo(4 * s, -36 * s); ctx.lineTo(10 * s, -24 * s); ctx.lineTo(3 * s, -14 * s); ctx.lineTo(12 * s, -6 * s);
+        ctx.stroke();
+        face(0, -18 * s, 11 * s, 'angry', 'flat');
+        const shake = (t * 0.55) % 1;                   // 脚下荡开的冲击波
+        ctx.strokeStyle = 'rgba(240,210,150,' + (0.5 * (1 - shake)).toFixed(3) + ')';
+        ctx.lineWidth = 3 * s;
+        ctx.beginPath();
+        ctx.ellipse(0, 26 * s, (20 + shake * 40) * s, (8 + shake * 14) * s, 0, 0, 6.29);
+        ctx.stroke();
+    } else if (key === 'gustpod') {
+        stem(0, 0, s, -10 * s, '#3f6b5c');
+        leafPair(0, 0, s);
+        const pg = ctx.createLinearGradient(-16 * s, -40 * s, 16 * s, 4 * s);
+        pg.addColorStop(0, '#b7e0cd'); pg.addColorStop(0.55, '#7fae9c'); pg.addColorStop(1, '#3f6b5c');
+        ctx.fillStyle = pg;
+        ctx.beginPath(); ctx.ellipse(0, -20 * s, 17 * s, 24 * s, -0.1, 0, 6.29); ctx.fill();
+        ctx.fillStyle = 'rgba(240,255,250,0.5)';
+        ctx.beginPath(); ctx.ellipse(-6 * s, -28 * s, 4 * s, 8 * s, -0.4, 0, 6.29); ctx.fill();
+        face(2 * s, -18 * s, 9 * s, null, 'smile');
+        ctx.strokeStyle = 'rgba(220,250,240,0.8)';
+        ctx.lineWidth = 2.2 * s; ctx.lineCap = 'round';
+        for (let i = 0; i < 3; i++) {                   // 往外刮的风
+            const off = ((t * 26 + i * 18) % 54) - 6;
+            const yy = (-34 + i * 13) * s;
+            ctx.beginPath();
+            ctx.moveTo((12 + off * 0.4) * s, yy);
+            ctx.quadraticCurveTo((26 + off * 0.6) * s, yy - 5 * s, (40 + off) * s, yy);
+            ctx.stroke();
+        }
+    } else if (key === 'sunbattery') {
+        const fill = 0.55 + 0.45 * Math.sin(t * 1.6);   // 罐子里的阳光在呼吸
+        ctx.fillStyle = '#c9b06a';
+        ctx.beginPath(); ctx.ellipse(0, 25 * s, 18 * s, 7 * s, 0, 0, 6.29); ctx.fill();
+        const jg = ctx.createLinearGradient(-16 * s, -30 * s, 16 * s, 24 * s);
+        jg.addColorStop(0, '#f0dfa4'); jg.addColorStop(0.5, '#c9a94f'); jg.addColorStop(1, '#8a6f24');
+        ctx.fillStyle = jg;
+        roundRect(ctx, -16 * s, -24 * s, 32 * s, 48 * s, 9 * s); ctx.fill();
+        ctx.fillStyle = '#7d6420';
+        roundRect(ctx, -19 * s, -30 * s, 38 * s, 9 * s, 4 * s); ctx.fill();
+        const glow = ctx.createRadialGradient(-4 * s, -4 * s, 1, 0, 0, 15 * s);
+        glow.addColorStop(0, 'rgba(255,250,205,' + fill.toFixed(3) + ')');
+        glow.addColorStop(0.6, 'rgba(245,201,72,' + (0.8 * fill).toFixed(3) + ')');
+        glow.addColorStop(1, 'rgba(186,119,39,0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(0, -1 * s, 15 * s, 0, 6.29); ctx.fill();
+        face(0, 2 * s, 9 * s, null, 'smile');
+        ctx.strokeStyle = 'rgba(255,240,170,0.8)';
+        ctx.lineWidth = 2 * s;
+        for (let i = 0; i < 4; i++) {
+            const a = t * 0.7 + i * 1.57;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(a) * 24 * s, -6 * s + Math.sin(a) * 24 * s);
+            ctx.lineTo(Math.cos(a) * 30 * s, -6 * s + Math.sin(a) * 30 * s);
+            ctx.stroke();
+        }
+    } else if (key === 'gatlingpea') {
+        stem(0, 0, s, -6 * s, '#1b4a22');
+        leafPair(0, 0, s);
+        ctx.fillStyle = '#1b4a22';
+        ctx.beginPath(); ctx.ellipse(-7 * s, -3 * s, 6 * s, 3.4 * s, -0.7, 0, 6.29); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(7 * s, -3 * s, 6 * s, 3.4 * s, 0.7, 0, 6.29); ctx.fill();
+        ctx.save();
+        ctx.translate(-2 * s, -20 * s);
+        ctx.rotate(Math.sin(t * 1.1) * 0.06);           // 四根炮管在微微转动
+        peaHead(0, 0, s, false, [[-20, 9], [-10, 9], [0, 9], [10, 9]]);
+        ctx.restore();
+        face(-8 * s, -20 * s, 12 * s, 'angry', 'flat');
+        ctx.fillStyle = '#f0c24a';
+        for (let i = 0; i < 3; i++) {
+            const a = t * 3 + i * 2.1;
+            ctx.beginPath();
+            ctx.arc(-2 * s + Math.cos(a) * 22 * s, -30 * s + Math.sin(a) * 12 * s, 1.8 * s, 0, 6.29);
+            ctx.fill();
+        }
+    } else if (key === 'sunlily') {
+        ctx.fillStyle = '#4f8a5c';
+        ctx.beginPath(); ctx.ellipse(0, 22 * s, 27 * s, 10 * s, 0, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#6fae74';
+        ctx.beginPath(); ctx.ellipse(-1 * s, 20 * s, 22 * s, 7.5 * s, 0, 0, 6.29); ctx.fill();
+        stem(0, 0, s, -12 * s, '#3f7a4a');
+        petalRing(0, -26 * s, 7 * s, 12 * s, 5.6 * s, 7, t * 0.1, '#cdbf62', '#f6efb0');
+        const lily = ctx.createRadialGradient(-5 * s, -30 * s, 1, 0, -26 * s, 13 * s);
+        lily.addColorStop(0, '#fffbd8'); lily.addColorStop(0.55, '#efd873'); lily.addColorStop(1, '#a8902f');
+        ctx.fillStyle = lily;
+        ctx.beginPath(); ctx.arc(0, -26 * s, 10 * s, 0, 6.29); ctx.fill();
+        face(0, -26 * s, 7.5 * s, null, 'smile');
+        ctx.fillStyle = 'rgba(190,240,160,0.9)';
+        for (let i = 0; i < 3; i++) {                   // 飘向旁边植物的治疗光点
+            const a = t * 1.2 + i * 2.1;
+            ctx.beginPath();
+            ctx.arc(Math.cos(a) * 26 * s, -34 * s + Math.sin(a) * 12 * s, 2 * s, 0, 6.29);
+            ctx.fill();
+        }
+    } else if (key === 'blastbloom') {
+        stem(0, 0, s, -10 * s, '#7d3a22');
+        leafPair(0, 0, s);
+        for (const [px, py, ss] of [[0, -30, 1], [-15, -17, 0.8], [15, -17, 0.8]]) {
+            const eg = ctx.createRadialGradient(px * s - 4 * s, py * s - 4 * s, 1, px * s, py * s, 15 * s * ss);
+            eg.addColorStop(0, '#ffd27a'); eg.addColorStop(0.5, '#e07a3c'); eg.addColorStop(1, '#7d3a22');
+            ctx.fillStyle = eg;
+            ctx.beginPath(); ctx.arc(px * s, py * s, 12 * s * ss, 0, 6.29); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,230,170,0.75)';
+            ctx.lineWidth = 1.8 * s * ss;
+            ctx.beginPath();
+            ctx.moveTo(px * s - 5 * s * ss, py * s - 8 * s * ss);
+            ctx.lineTo(px * s, py * s - 2 * s * ss);
+            ctx.lineTo(px * s + 5 * s * ss, py * s - 9 * s * ss);
+            ctx.stroke();
+        }
+        face(0, -30 * s, 8 * s, 'angry', 'flat');
+    } else if (key === 'stonebark') {
+        leafPair(0, 0, s);
+        const sg = ctx.createLinearGradient(-22 * s, -38 * s, 22 * s, 24 * s);
+        sg.addColorStop(0, '#b3b795'); sg.addColorStop(0.5, '#8b8f6a'); sg.addColorStop(1, '#4c5038');
+        ctx.fillStyle = sg;
+        roundRect(ctx, -22 * s, -38 * s, 44 * s, 62 * s, 10 * s); ctx.fill();
+        ctx.strokeStyle = 'rgba(40,44,26,0.6)';
+        ctx.lineWidth = 2.2 * s;
+        ctx.beginPath();
+        ctx.moveTo(-22 * s, -20 * s); ctx.lineTo(22 * s, -20 * s);
+        ctx.moveTo(-22 * s, -2 * s); ctx.lineTo(22 * s, -2 * s);
+        ctx.moveTo(-6 * s, -38 * s); ctx.lineTo(-6 * s, -20 * s);
+        ctx.moveTo(8 * s, -20 * s); ctx.lineTo(8 * s, -2 * s);
+        ctx.moveTo(-10 * s, -2 * s); ctx.lineTo(-10 * s, 24 * s);
+        ctx.stroke();
+        ctx.fillStyle = '#d8dcb8';
+        for (const [px, py, dir] of [[-20, -30, -1], [21, -13, 1], [-21, 8, -1], [19, 17, 1]]) {
+            ctx.beginPath();
+            ctx.moveTo(px * s, py * s);
+            ctx.lineTo((px + dir * 11) * s, (py - 4) * s);
+            ctx.lineTo((px + dir * 6) * s, (py + 5) * s);
+            ctx.closePath(); ctx.fill();
+        }
+        face(0, -12 * s, 11 * s, 'angry', 'flat');
     } else if (key === 'wallnut') {
         const ng = ctx.createLinearGradient(-22 * s, -34 * s, 20 * s, 26 * s);
         ng.addColorStop(0, '#d29a55'); ng.addColorStop(0.45, '#b0793a'); ng.addColorStop(1, '#7d5222');
@@ -5576,6 +6060,11 @@ function drawZombie(z) {
     ctx.save();
     ctx.translate(z.x, z.y);
     ctx.scale(s, s);
+    if (z.vaultFor > 0) {                              // 撑杆跳的那一下：往前上方窜
+        const arc = Math.sin((1 - z.vaultFor / (T.vaultDuration || 0.55)) * Math.PI);
+        ctx.translate(-7 * arc, -36 * arc);
+        ctx.rotate(-0.22 * arc);
+    }
     if (recoil > 0.01) {
         // 向后仰并轻微压扁，围绕脚底缩放，脚不动
         ctx.translate(5 * recoil, 0);
@@ -5848,6 +6337,49 @@ function drawZombie(z) {
             ctx.arc(Math.cos(a) * 10, hy - 27 - (i * 4 + (state.t * 12) % 8), 1.4, 0, 6.29);
             ctx.fill();
         }
+    } else if (T.hat === 'band') {
+        ctx.fillStyle = tint(T.coat, -0.34);
+        roundRect(ctx, -16, hy - 12, 32, 9, 4.5); ctx.fill();
+        ctx.fillStyle = '#e2c56b';
+        roundRect(ctx, -16, hy - 12, 32, 3.6, 1.8); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        roundRect(ctx, -13, hy - 11, 9, 2, 1); ctx.fill();
+    } else if (T.hat === 'fuse') {
+        const blink = 0.6 + 0.4 * Math.sin(state.t * 9);
+        ctx.fillStyle = '#2f3238';
+        ctx.beginPath(); ctx.arc(0, hy - 20, 13, 0, 6.29); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.beginPath(); ctx.ellipse(-4.5, hy - 24, 4, 2.6, -0.5, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#6b4a22';
+        roundRect(ctx, -2.4, hy - 36, 4.8, 8, 2); ctx.fill();
+        ctx.strokeStyle = '#8a6a34'; ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(0, hy - 35);
+        ctx.quadraticCurveTo(7, hy - 41, 4, hy - 47);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,170,60,' + (0.5 * blink).toFixed(3) + ')';
+        ctx.beginPath(); ctx.arc(4, hy - 48, 6.5, 0, 6.29); ctx.fill();
+        ctx.fillStyle = '#ffd76a';
+        ctx.beginPath(); ctx.arc(4, hy - 48, 0.6 + 2.6 * blink, 0, 6.29); ctx.fill();
+    } else if (T.hat === 'hood') {
+        ctx.fillStyle = tint(T.coat, -0.36);
+        ctx.beginPath();                                // 兜帽：外圈减掉脸那一块
+        ctx.moveTo(-17, hy + 6);
+        ctx.quadraticCurveTo(-20, hy - 27, 0, hy - 29);
+        ctx.quadraticCurveTo(20, hy - 27, 17, hy + 6);
+        ctx.quadraticCurveTo(12, hy - 4, 7, hy - 6);
+        ctx.quadraticCurveTo(0, hy - 8, -7, hy - 6);
+        ctx.quadraticCurveTo(-12, hy - 4, -17, hy + 6);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath();
+        ctx.moveTo(-14, hy - 13); ctx.quadraticCurveTo(-13, hy - 25, -1, hy - 27);
+        ctx.quadraticCurveTo(-10, hy - 21, -14, hy - 13);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = tint(T.coat, -0.5);
+        ctx.beginPath();
+        ctx.moveTo(-17, hy + 3); ctx.lineTo(-23, hy + 16); ctx.lineTo(-11, hy + 9);
+        ctx.closePath(); ctx.fill();
     } else if (T.flag) {
         ctx.strokeStyle = '#6b4a2a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(13, hy + 8); ctx.lineTo(13, hy - 76); ctx.stroke();
@@ -5922,6 +6454,25 @@ function drawZombie(z) {
         ctx.strokeStyle = 'rgba(190,150,220,' + (0.28 + 0.12 * Math.sin(state.t * 4)) + ')';
         ctx.lineWidth = 2;
         ctx.beginPath(); ctx.arc(0, -8, 54, 0, 6.29); ctx.stroke();
+    }
+    if (T.vault) {                                     // 手里那根撑杆
+        ctx.save();
+        ctx.translate(-15, 4);
+        ctx.rotate(z.vaultFor > 0 ? -1.2 : -0.45);
+        const pole = ctx.createLinearGradient(0, -12, 0, 92);
+        pole.addColorStop(0, '#e6d3a6'); pole.addColorStop(0.5, '#c3a469'); pole.addColorStop(1, '#8a6a34');
+        ctx.fillStyle = pole;
+        roundRect(ctx, -3, -14, 6, 98, 3); ctx.fill();
+        ctx.fillStyle = '#6b4a22';
+        roundRect(ctx, -3.7, 42, 7.4, 6, 2); ctx.fill();
+        ctx.restore();
+    }
+    if (T.spitEvery) {                                 // 嘴里挂着的酸液
+        const drool = 0.5 + 0.5 * Math.sin(state.t * 3);
+        ctx.fillStyle = 'rgba(150,200,90,0.85)';
+        ctx.beginPath();
+        ctx.ellipse(0, hy + 11, 3.4, 4 + drool * 3.5, 0, 0, 6.29);
+        ctx.fill();
     }
     if (T.heal) {
         ctx.strokeStyle = 'rgba(140,220,120,' + (0.24 + 0.12 * Math.sin(state.t * 4)) + ')';
@@ -6586,7 +7137,7 @@ function renderSelectedPanel() {
     el('selDmg').textContent = T.dmg ? T.dmg : '—';
     el('selRate').textContent = T.rate ? (T.rate).toFixed(2) + ' /s' : '—';
     const extraRow = el('selExtraRow');
-    if (T.sunEvery) { extraRow.style.display = ''; el('selExtraKey').textContent = '产阳光'; el('selExtraVal').textContent = '+25 / ' + T.sunEvery + 's'; }
+    if (T.sunEvery) { extraRow.style.display = ''; el('selExtraKey').textContent = '产阳光'; el('selExtraVal').textContent = '+' + (T.sunValue || 25) + ' / ' + T.sunEvery + 's'; }
     else if (T.bomb) {
         extraRow.style.display = '';
         el('selExtraKey').textContent = MINE_BOMBS[T.bomb] ? '状态' : '引信';
@@ -6594,6 +7145,13 @@ function renderSelectedPanel() {
             ? (selected.armed ? '已就绪 · 等僵尸来' : Math.max(0, selected.fuse).toFixed(1) + 's 后埋伏完成')
             : Math.max(0, selected.fuse).toFixed(1) + 's';
     }
+    else if (T.spikeDps) { extraRow.style.display = ''; el('selExtraKey').textContent = '踩踏伤害'; el('selExtraVal').textContent = T.spikeDps + ' /s'; }
+    else if (T.stripEvery) { extraRow.style.display = ''; el('selExtraKey').textContent = '吸甲'; el('selExtraVal').textContent = '-' + T.strip + ' / ' + T.stripEvery + 's'; }
+    else if (T.auraSlow) { extraRow.style.display = ''; el('selExtraKey').textContent = '寒气减速'; el('selExtraVal').textContent = '×' + T.auraSlow + ' · 范围 ' + T.auraRange; }
+    else if (T.shockEvery) { extraRow.style.display = ''; el('selExtraKey').textContent = '冲击波'; el('selExtraVal').textContent = T.shockDmg + ' / ' + T.shockEvery + 's'; }
+    else if (T.pushEvery) { extraRow.style.display = ''; el('selExtraKey').textContent = '击退'; el('selExtraVal').textContent = '-' + T.pushPx + ' / ' + T.pushEvery + 's'; }
+    else if (T.retaliate) { extraRow.style.display = ''; el('selExtraKey').textContent = '反伤'; el('selExtraVal').textContent = T.retaliate + ' /s'; }
+    else if (T.heal) { extraRow.style.display = ''; el('selExtraKey').textContent = '治疗'; el('selExtraVal').textContent = '+' + T.heal + ' / ' + T.healEvery + 's'; }
     else if (T.slow) { extraRow.style.display = ''; el('selExtraKey').textContent = '减速'; el('selExtraVal').textContent = '×' + T.slow; }
     else if (T.rows === 3) { extraRow.style.display = ''; el('selExtraKey').textContent = '攻击线路'; el('selExtraVal').textContent = '3 条'; }
     else extraRow.style.display = 'none';
@@ -6820,12 +7378,14 @@ function serializeGame() {
         spawnQueue: state.spawnQueue.map(s => ({ k: s.kind, t: s.t, h: s.hpMul })),
         plants: plants.filter(p => p.alive).map(p => ({
             k: p.type, c: p.c, r: p.r, h: Math.round(p.hp), m: p.maxHp,
-            st: p.sunTimer, ht: p.healTimer, cl: p.cool, fu: p.fuse, ar: p.armed
+            st: p.sunTimer, ht: p.healTimer, cl: p.cool, fu: p.fuse, ar: p.armed,
+            mt: p.stripTimer, qt: p.shockTimer, pt: p.pushTimer
         })),
         zombies: zombies.filter(z => z.alive).map(z => ({
             k: z.kind, r: z.r, x: Math.round(z.x), h: Math.round(z.hp), m: Math.round(z.maxHp),
             a: Math.round(z.armor), am: Math.round(z.maxArmor), sl: z.slowT, sf: z.slowF,
-            ht: z.healTimer, dt: z.dashTimer, df: z.dashFor
+            ht: z.healTimer, dt: z.dashTimer, df: z.dashFor,
+            st: z.spitTimer, kt: z.stealTimer, vf: z.vaultFor, vd: z.vaulted
         })),
         suns: suns.map(s => ({ x: s.x, y: s.y, ty: s.ty, v: s.value, l: s.life, b: s.born, s: s.fromSky })),
         mowers: mowers.map(m => ({ r: m.r, x: Math.round(m.x), s: m.state })),
@@ -6874,6 +7434,9 @@ function restoreGame(d) {
             healTimer: typeof p.ht === 'number' ? p.ht : (T.healEvery || 0),
             fuse: typeof p.fu === 'number' ? p.fu : (MINE_BOMBS[T.bomb] ? 14 : (T.bomb ? 1.6 : 0)),
             armed: p.ar !== false,
+            stripTimer: typeof p.mt === 'number' ? p.mt : (T.stripEvery || 0),
+            shockTimer: typeof p.qt === 'number' ? p.qt : (T.shockEvery || 0),
+            pushTimer: typeof p.pt === 'number' ? p.pt : (T.pushEvery || 0),
             grow: 1, hurtT: 0, anim: Math.random() * 6.28
         });
     }
@@ -6887,6 +7450,10 @@ function restoreGame(d) {
             healTimer: typeof z.ht === 'number' ? z.ht : (T.healEvery ? T.healEvery * 0.5 : 0),
             dashTimer: typeof z.dt === 'number' ? z.dt : (T.dashEvery ? T.dashEvery * 0.5 : 0),
             dashFor: typeof z.df === 'number' ? z.df : 0,
+            spitTimer: typeof z.st === 'number' ? z.st : (T.spitEvery ? T.spitEvery * 0.5 : 0),
+            stealTimer: typeof z.kt === 'number' ? z.kt : (T.stealEvery ? T.stealEvery * 0.5 : 0),
+            vaultFor: typeof z.vf === 'number' ? z.vf : 0,
+            vaulted: !!z.vd,
             alive: true, eating: null, walkPhase: Math.random() * 6.28,
             biteTimer: 0, hurtT: 0, spendT: 0
         });
@@ -7429,6 +7996,27 @@ window.__I18N = (() => {
         '向五条草坪线路同时发射星弹': 'Fires star shots down all five lanes',
         '电流弹命中后会跳跃攻击附近僵尸': 'Electric shots chain to nearby zombies on impact',
         '厚实树皮挡路，僵尸啃咬时会被尖刺反伤': 'A sturdy thorny barrier that damages zombies while they bite it',
+        // second batch of base plants
+        '地刺': 'Spike Weed',
+        '僵尸踩过就掉血，而且啃不动它': 'Hurts every zombie that walks over it, and cannot be eaten',
+        '磁力菇': 'Magnet-shroom',
+        '定期吸走附近僵尸身上的护甲': 'Periodically strips the armour off nearby zombies',
+        '寒霜兰': 'Chillbloom',
+        '身边一直绕着寒气，附近僵尸持续减速': 'A cold aura that keeps nearby zombies slowed',
+        '震地瓜': 'Quake Melon',
+        '每隔几秒震出一圈冲击波，伤害附近僵尸': 'Sends out a shockwave every few seconds',
+        '疾风荚': 'Gust Pod',
+        '刮起一阵风，把前面那条线上的僵尸吹退': 'Blows a gust that shoves its lane back',
+        '蓄阳罐': 'Sun Jar',
+        '储满一次吐出 75 阳光': 'Pays out 75 sun each time it fills',
+        '机枪射手': 'Gatling Pea',
+        '一轮连发四颗豌豆': 'Four peas per volley',
+        '阳莲': 'Sun Lily',
+        '产出阳光，同时治疗附近的植物': 'Makes sun while healing nearby plants',
+        '爆裂花': 'Blast Bloom',
+        '三条线一起砸下爆裂种子': 'Explosive seeds down three lanes',
+        '石树皮': 'Stonebark',
+        '三千血的石墙，啃它的僵尸会被划伤': 'A stone wall that stings the zombies chewing it',
         // fused plants
         '双子向日葵': 'Twin Sunflower',
         '阳光产量翻倍': 'Double sun output',
@@ -7478,6 +8066,46 @@ window.__I18N = (() => {
         '发射尖刺并穿透僵尸': 'Fires thorns that pierce zombies',
         '三线向日葵': 'Solar Threepeater',
         '产阳光并攻击三条线': 'Makes sun and attacks three lanes',
+        '霜晶长枪': 'Frost Lance',
+        '贯穿冰枪，重创并冻住整排僵尸': 'Piercing ice spears that chill a whole lane',
+        '暴雪核心': 'Blizzard Core',
+        '炸开一圈极寒暴雪，冻住一大片僵尸': 'Bursts into freezing snow that halts a wide area',
+        '冰棱仙人掌': 'Icicle Cactus',
+        '冰棱贯穿三只僵尸，沿途减速': 'Icicles pierce three zombies and chill them on the way',
+        '霜疗菇': 'Frost Glowcap',
+        '治疗附近植物并发射减速冰豆': 'Heals nearby plants and fires slowing ice peas',
+        '日芒泉': 'Sun Fountain',
+        '阳光大丰收，光刺还能穿刺僵尸': 'A sun bonanza whose rays pierce zombies',
+        '光刺双发': 'Ray Repeater',
+        '双发光刺，边穿刺边产阳光': 'Double piercing rays, plus sun',
+        '日耀星果': 'Solar Starfruit',
+        '五条线射出星弹，还顺手产出阳光': 'Star shots down five lanes, plus sun',
+        '花粉喷射器': 'Pollen Sprayer',
+        '花粉弹溅射并拖慢附近僵尸': 'Pollen shots splash and drag nearby zombies down',
+        '霜花粉泡泡': 'Frost Pollen Puff',
+        '冰花粉溅射，减速更强更久': 'Icy pollen splashes with a stronger, longer slow',
+        '花粉疗菇': 'Pollen Glowcap',
+        '边治疗植物边发射花粉弹': 'Heals plants while firing pollen shots',
+        '三线花粉': 'Pollen Threepeater',
+        '三条线一起撒花粉，溅射又减速': 'Pollen down three lanes, splashing and slowing',
+        '雷暴花': 'Storm Bloom',
+        '电弧一次跳跃四个僵尸': 'Arcs jump to four zombies at once',
+        '电弧双发': 'Arc Repeater',
+        '双发电流弹，每发都会跳跃放电': 'Two charged shots, each chaining on impact',
+        '等离子荚': 'Plasma Pod',
+        '等离子弹溅射并把电流传给附近僵尸': 'Plasma splashes and passes its charge on',
+        '电弧星果': 'Arc Starfruit',
+        '五条线一起放电，电弧继续跳跃': 'Five lanes of charge, each arcing onward',
+        '超新星果': 'Supernova',
+        '五条线的星弹威力翻倍': 'Star shots at double strength down five lanes',
+        '星火荚': 'Star Ember',
+        '五条线一起砸下爆裂星火': 'Explosive starfire down five lanes',
+        '铁壁树皮': 'Ironbark',
+        '六千血的树皮墙，啃它就被扎': 'A 6400 HP bark wall that stings whoever bites it',
+        '荆棘堡垒': 'Briar Fortress',
+        '一边射穿刺尖刺，一边反伤啃它的僵尸': 'Fires piercing thorns while stinging its chewers',
+        '疗愈树皮': 'Mending Bark',
+        '会治疗附近植物的反伤树皮': 'A thorny bark wall that also heals nearby plants',
 
         // ---- PvZ: zombies ----
         '普通僵尸': 'Basic Zombie',
@@ -7492,6 +8120,14 @@ window.__I18N = (() => {
         '裂风僵尸': 'Rift Dasher',
         '巨人僵尸': 'Gargantuar',
         '僵尸博士': 'Dr. Zomboss',
+        '撑杆僵尸': 'Pole Vaulting Zombie',
+        '爆裂僵尸': 'Bomber Zombie',
+        '窃阳僵尸': 'Sun Thief Zombie',
+        '喷吐僵尸': 'Spitter Zombie',
+        '疾行僵尸': 'Sprinter Zombie',
+        '泥甲僵尸': 'Mudshell Zombie',
+        '冻僵僵尸': 'Frostbitten Zombie',
+        '号旗僵尸': 'Herald Zombie',
         '僵尸': 'zombie',
         '敌人': 'enemies',
 

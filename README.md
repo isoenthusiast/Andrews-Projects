@@ -12,7 +12,7 @@ This repository serves as a **hands-on practice space** where AI helps turn idea
 | [Hangman](./hangman/) | Guess the word before the stick figure is complete — 100+ kid-friendly words |
 | [Clock](./clock/) | A live analog + digital clock with 12/24-hour toggle |
 | [Tower Defense](./tower-defense/) | 长城守卫战 — defend the Great Wall from 20–100 waves of invaders, with save & resume |
-| [Plants vs. Zombies 3](./tower-defense/) | 植物大战僵尸 3 — a lawn-defense: plant, harvest sun, fuse plants into hybrids, stop 20–100 waves of zombies |
+| [Plants vs. Zombies 3](./tower-defense/) | 植物大战僵尸 3 — a lawn-defense: plant, harvest sun, fuse plants into 44 hybrids, stop 20–100 waves of zombies |
 | [Combined mode](./tower-defense/) | 组合模式 — the Wall and the lawn in one battle: plants, silver-funded pagoda towers, wall HP and twin bosses |
 | [Level Devil](./level-devil/) | A troll platformer: 10 levels that lie, collapse and betray you on the way to the door |
 | [Hangman + Level Devil](./hangman-level-devil/) | Two games, one page — word-guessing hangman and the troll platformer, with a mode picker |
